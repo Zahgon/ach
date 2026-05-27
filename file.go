@@ -18,16 +18,7 @@
 package ach
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
-	"strconv"
-	"strings"
 	"time"
-
-	"github.com/moov-io/base"
 )
 
 // First position of all Record Types. These codes are uniquely assigned to
@@ -51,9 +42,7 @@ type FileError struct {
 	Msg       string
 }
 
-func (e FileError) Error() string {
-	return fmt.Sprintf("%s %s", e.FieldName, e.Msg)
-}
+func (e FileError) Error() string { _ = "STUB: not implemented"; return "" }
 
 // File contains the structures of a parsed ACH File.
 type File struct {
@@ -76,12 +65,7 @@ type File struct {
 }
 
 // NewFile constructs a file template.
-func NewFile() *File {
-	return &File{
-		Header:  NewFileHeader(),
-		Control: NewFileControl(),
-	}
-}
+func NewFile() *File { _ = "STUB: not implemented"; return nil }
 
 type file struct {
 	ID string `json:"id"`
@@ -108,27 +92,16 @@ type advFileControl struct {
 //
 // Date and Time fields in formats: RFC 3339 and ISO 8601 will be parsed and rewritten
 // as their YYMMDD (year, month, day) or hhmm (hour, minute) formats.
-func FileFromJSON(bs []byte) (*File, error) {
-	return FileFromJSONWith(bs, nil)
-}
+func FileFromJSON(bs []byte) (*File, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // ReadJSONFile will consume the specified filepath and parse the contents as a JSON formatted ACH file.
-func ReadJSONFile(path string) (*File, error) {
-	bs, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	return FileFromJSON(bs)
-}
+func ReadJSONFile(path string) (*File, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // ReadJSONFileWith will consume the specified filepath and parse the contents
 // as a JSON formatted ACH file with custom ValidateOpts.
 func ReadJSONFileWith(path string, opts *ValidateOpts) (*File, error) {
-	bs, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	return FileFromJSONWith(bs, opts)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // FileFromJSONWith attempts to return a *File object assuming the input is valid JSON.
@@ -141,125 +114,37 @@ func ReadJSONFileWith(path string, opts *ValidateOpts) (*File, error) {
 // Date and Time fields in formats: RFC 3339 and ISO 8601 will be parsed and rewritten
 // as their YYMMDD (year, month, day) or hhmm (hour, minute) formats.
 func FileFromJSONWith(bs []byte, opts *ValidateOpts) (*File, error) {
-	if len(bs) == 0 {
-		return nil, errors.New("no JSON data provided")
-	}
-	if !json.Valid(bs) {
-		return nil, fmt.Errorf("problem reading File: %w", ErrInvalidJSON)
-	}
-
-	// Read the ValidateOpts first
-	validateOpts, err := readValidateOpts(bs)
-	if err != nil {
-		return nil, fmt.Errorf("reading validate opts: %w", err)
-	}
-
-	out := NewFile()
-	out.SetValidation(opts.merge(validateOpts))
-
-	// read file root level
-	var f file
-	if err := json.NewDecoder(bytes.NewReader(bs)).Decode(&f); err != nil {
-		return nil, fmt.Errorf("problem reading File: %v", err)
-	}
-	out.ID = f.ID
-
-	// Read FileHeader
-	header := fileHeader{
-		Header: out.Header,
-	}
-	if err := json.NewDecoder(bytes.NewReader(bs)).Decode(&header); err != nil {
-		return nil, fmt.Errorf("problem reading FileHeader: %v", err)
-	}
-	out.Header = header.Header
-
-	// Build resulting file
-	if err := out.setBatchesFromJSON(bs); err != nil {
-		return nil, err
-	}
-
-	// Overwrite various timestamps with their ACH formatted values
-	out.overwriteDateTimeFields()
-
-	if !out.IsADV() {
-		// Read FileControl
-		control := fileControl{
-			Control: NewFileControl(),
-		}
-		if err := json.NewDecoder(bytes.NewReader(bs)).Decode(&control); err != nil {
-			return nil, fmt.Errorf("problem reading FileControl: %v", err)
-		}
-		out.Control = control.Control
-	} else {
-		// Read ADVFileControl
-		advControl := advFileControl{
-			ADVControl: NewADVFileControl(),
-		}
-		if err := json.NewDecoder(bytes.NewReader(bs)).Decode(&advControl); err != nil {
-			return nil, fmt.Errorf("problem reading ADVFileControl: %v", err)
-		}
-		out.ADVControl = advControl.ADVControl
-	}
-
-	if !out.IsADV() {
-		out.Control.BatchCount = len(out.Batches)
-	} else {
-		out.ADVControl.BatchCount = len(out.Batches)
-	}
-
-	if err := out.Create(); err != nil {
-		return out, err
-	}
-	if err := out.Validate(); err != nil {
-		return out, err
-	}
-	return out, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Read the ValidateOpts first
+
+// read file root level
+
+// Read FileHeader
+
+// Build resulting file
+
+// Overwrite various timestamps with their ACH formatted values
+
+// Read FileControl
+
+// Read ADVFileControl
 
 // MarshalJSON will produce a JSON blob with the ACH file's fields and validation settings.
-func (f *File) MarshalJSON() ([]byte, error) {
-	type Aux struct {
-		File
-		ValidateOpts *ValidateOpts `json:"validateOpts"`
-	}
-	return json.Marshal(Aux{
-		File:         *f,
-		ValidateOpts: f.validateOpts,
-	})
-}
+func (f *File) MarshalJSON() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // UnmarshalJSON parses a JSON blob with ach.FileFromJSON
 func (f *File) UnmarshalJSON(p []byte) error {
+	_ = "STUB: not implemented"
 	// merge any validate opts with the current file
-	opts, err := readValidateOpts(p)
-	if err != nil {
-		return err
-	}
-	f.SetValidation(f.validateOpts.merge(opts))
-
-	// Read the file
-	file, err := FileFromJSONWith(p, f.validateOpts)
-	if err != nil {
-		return err
-	}
-	if file != nil {
-		*f = *file
-	}
-
 	return nil
 }
 
-func readValidateOpts(p []byte) (*ValidateOpts, error) {
-	type Aux struct {
-		ValidateOpts *ValidateOpts `json:"validateOpts"`
-	}
-	var opts Aux
-	err := json.Unmarshal(p, &opts)
-	if err != nil {
-		return nil, err
-	}
-	return opts.ValidateOpts, nil
-}
+// Read the file
+
+func readValidateOpts(p []byte) (*ValidateOpts, error) { _ = "STUB: not implemented"; return nil, nil }
 
 type batchesJSON struct {
 	Batches []*Batch `json:"batches"`
@@ -269,252 +154,56 @@ type iatBatchesJSON struct {
 	IATBatches []IATBatch `json:"iatBatches"`
 }
 
-func setEntryRecordType(e *EntryDetail) {
-	if e == nil {
-		return
-	}
-	if e.Addenda02 != nil {
-		e.Addenda02.TypeCode = "02"
-	}
-	for _, a := range e.Addenda05 {
-		if a != nil {
-			a.TypeCode = "05"
-		}
-	}
-	if e.Addenda98 != nil {
-		e.Addenda98.TypeCode = "98"
-	}
-	if e.Addenda98Refused != nil {
-		e.Addenda98Refused.TypeCode = "98"
-	}
-	if e.Addenda99 != nil {
-		e.Addenda99.TypeCode = "99"
-	}
-	if e.Addenda99Dishonored != nil {
-		e.Addenda99Dishonored.TypeCode = "99"
-	}
-	if e.Addenda99Contested != nil {
-		e.Addenda99Contested.TypeCode = "99"
-	}
-}
+func setEntryRecordType(e *EntryDetail) { _ = "STUB: not implemented"; return }
 
-func setADVEntryRecordType(e *ADVEntryDetail) {
-	if e == nil {
-		return
-	}
-	if e.Addenda99 == nil {
-		e.Category = CategoryForward
-	}
-}
+func setADVEntryRecordType(e *ADVEntryDetail) { _ = "STUB: not implemented"; return }
 
-func setIATEntryRecordType(e *IATEntryDetail) {
-	if e == nil {
-		return
-	}
-	// these values need to be inferred from the json field names
-	if e.Addenda10 != nil {
-		e.Addenda10.TypeCode = "10"
-	}
-	if e.Addenda11 != nil {
-		e.Addenda11.TypeCode = "11"
-	}
-	if e.Addenda12 != nil {
-		e.Addenda12.TypeCode = "12"
-	}
-	if e.Addenda13 != nil {
-		e.Addenda13.TypeCode = "13"
-	}
-	if e.Addenda14 != nil {
-		e.Addenda14.TypeCode = "14"
-	}
-	if e.Addenda15 != nil {
-		e.Addenda15.TypeCode = "15"
-	}
-	if e.Addenda16 != nil {
-		e.Addenda16.TypeCode = "16"
-	}
-	for _, a := range e.Addenda17 {
-		if a != nil {
-			a.TypeCode = "17"
-		}
-	}
-	for _, a := range e.Addenda18 {
-		if a != nil {
-			a.TypeCode = "18"
-		}
-	}
-	if e.Addenda98 != nil {
-		e.Addenda98.TypeCode = "98"
-	}
-	if e.Addenda99 != nil {
-		e.Addenda99.TypeCode = "99"
-	}
-}
+func setIATEntryRecordType(e *IATEntryDetail) { _ = "STUB: not implemented"; return }
+
+// these values need to be inferred from the json field names
 
 // setBatchesFromJson takes bs as JSON and attempts to read out all the Batches within.
 //
 // We have to break this out as Batcher is an interface (and can't be read by Go's
 // json struct tag decoding).
-func (f *File) setBatchesFromJSON(bs []byte) error {
-	var batches batchesJSON
-	var iatBatches iatBatchesJSON
+func (f *File) setBatchesFromJSON(bs []byte) error { _ = "STUB: not implemented"; return nil }
 
-	if err := json.Unmarshal(bs, &batches); err != nil {
-		return err
-	}
-	// Clear out any nil batches
-	for i := range f.Batches {
-		if f.Batches[i] == nil {
-			f.Batches = append(f.Batches[:i], f.Batches[i+1:]...)
-		}
-	}
-	// Add new batches to file
-	for i := range batches.Batches {
-		if batches.Batches[i] == nil || batches.Batches[i].Header == nil {
-			continue
-		}
+// Clear out any nil batches
 
-		batch := *batches.Batches[i]
-		batch.SetID(batch.Header.ID)
-		batch.SetValidation(f.validateOpts)
+// Add new batches to file
 
-		secCode := strings.ToUpper(batch.Header.StandardEntryClassCode)
+// these values need to be inferred from the json field names
 
-		var filteredEntries []*EntryDetail
-		for _, e := range batch.Entries {
-			if e == nil {
-				continue
-			}
+// A few SEC codes don't follow the standard columns so we have to smush
+// them together as the JSON doesn't support ReceivingCompany separate
+// from IndividualName.
 
-			e.SetValidation(f.validateOpts)
+// Skip batches with no entries after filtering nulls
 
-			// these values need to be inferred from the json field names
-			setEntryRecordType(e)
+// Attach a batch with the correct type
 
-			if e != nil && e.secCode == "" {
-				e.secCode = secCode
-			}
-
-			// A few SEC codes don't follow the standard columns so we have to smush
-			// them together as the JSON doesn't support ReceivingCompany separate
-			// from IndividualName.
-			switch batch.GetHeader().StandardEntryClassCode {
-			case ATX, CTX:
-				addendaIndicator := e.AddendaRecordIndicator
-				addendaField, _ := strconv.Atoi(e.CATXAddendaRecordsField())
-
-				individualName := e.IndividualName
-
-				if addendaIndicator > 0 && addendaField == 0 {
-					e.SetCATXAddendaRecords(addendaIndicator)
-				}
-				if addendaIndicator == 0 && addendaField > 0 {
-					e.SetCATXAddendaRecords(addendaField)
-				}
-
-				if addendaField == 0 {
-					e.SetCATXReceivingCompany(individualName)
-				}
-			}
-			filteredEntries = append(filteredEntries, e)
-		}
-		batch.Entries = filteredEntries
-		var filteredADVEntries []*ADVEntryDetail
-		for _, e := range batch.ADVEntries {
-			if e == nil {
-				continue
-			}
-			setADVEntryRecordType(e)
-			filteredADVEntries = append(filteredADVEntries, e)
-		}
-		batch.ADVEntries = filteredADVEntries
-
-		// Skip batches with no entries after filtering nulls
-		if len(batch.Entries) == 0 && len(batch.ADVEntries) == 0 {
-			continue
-		}
-
-		if err := batch.build(); err != nil {
-			return batch.Error("Invalid Batch", err, batch.Header.ID)
-		}
-
-		// Attach a batch with the correct type
-		f.Batches = append(f.Batches, ConvertBatchType(batch))
-	}
-
-	if err := json.Unmarshal(bs, &iatBatches); err != nil {
-		return err
-	}
-
-	// Add new iatBatches to file
-	for i := range iatBatches.IATBatches {
-		iatBatch := iatBatches.IATBatches[i]
-
-		if iatBatch.Header == nil {
-			continue
-		}
-
-		iatBatch.ID = iatBatch.Header.ID
-		iatBatch.SetValidation(f.validateOpts)
-
-		for _, e := range iatBatch.Entries {
-			setIATEntryRecordType(e)
-		}
-
-		if err := iatBatch.build(); err != nil {
-			return iatBatch.Error("from JSON", err)
-		}
-		f.IATBatches = append(f.IATBatches, iatBatch)
-	}
-
-	return nil
-}
+// Add new iatBatches to file
 
 // overwriteDateTimeFields will scan through fields in a File for Date / Time
 // values which are not in their ACH format (YYMMDD, hhmm). It'll attempt to parse
 // various formats and overwrite them to the expected values (YYMMDD, hhmm).
 func (f *File) overwriteDateTimeFields() {
+	_ = "STUB: not implemented"
 	// Sometimes FileCreationTime is empty but FileCreationDate is populated, so set Time to 0000
-	if f.Header.FileCreationDate != "" && f.Header.FileCreationTime == "" {
-		f.Header.FileCreationTime = "0000"
-	}
-	// If both Date and Time are empty use the current wall clock value
-	if f.Header.FileCreationDate == "" && f.Header.FileCreationTime == "" {
-		now := time.Now()
-		f.Header.FileCreationTime = now.Format("1504")
-		f.Header.FileCreationDate = now.Format("060102")
-	}
-
-	// File header
-	if t, err := datetimeParse(f.Header.FileCreationDate); err == nil {
-		f.Header.FileCreationDate = t.Format("060102")
-	}
-	if t, err := datetimeParse(f.Header.FileCreationTime); err == nil {
-		f.Header.FileCreationTime = t.Format("1504")
-	}
-
-	// Batches
-	for i := range f.Batches {
-		// BatchHeader
-		header := f.Batches[i].GetHeader()
-		if t, err := datetimeParse(strings.TrimPrefix(header.CompanyDescriptiveDate, "SD")); err == nil {
-			header.CompanyDescriptiveDate = "SD" + t.Format("1504")
-		}
-		if t, err := datetimeParse(header.EffectiveEntryDate); err == nil {
-			header.EffectiveEntryDate = t.Format("060102")
-		}
-		f.Batches[i].SetHeader(header)
-	}
-
-	// TODO(adam): Addenda99 has DateOfDeath which is hard to parse and overwrite with Batcher.GetEntries() copying structs
-
-	// IAT Batches
-	for i := range f.IATBatches {
-		if t, err := datetimeParse(f.IATBatches[i].Header.EffectiveEntryDate); err == nil {
-			f.IATBatches[i].Header.EffectiveEntryDate = t.Format("060102")
-		}
-	}
+	return
 }
+
+// If both Date and Time are empty use the current wall clock value
+
+// File header
+
+// Batches
+
+// BatchHeader
+
+// TODO(adam): Addenda99 has DateOfDeath which is hard to parse and overwrite with Batcher.GetEntries() copying structs
+
+// IAT Batches
 
 var datetimeformats = []string{
 	"2006-01-02T15:04:05.999Z", // Default javascript (new Date).toISOString()
@@ -524,12 +213,8 @@ var datetimeformats = []string{
 }
 
 func datetimeParse(v string) (time.Time, error) {
-	for i := range datetimeformats {
-		if t, err := time.Parse(datetimeformats[i], v); err == nil && !t.IsZero() {
-			return t, nil
-		}
-	}
-	return time.Time{}, fmt.Errorf("unknown format: %s", v)
+	_ = "STUB: not implemented"
+	return *new(time.Time), nil
 }
 
 // Annotate each record with the number of its corresponding line in the
@@ -540,202 +225,33 @@ func datetimeParse(v string) (time.Time, error) {
 // [bh, [ed + addenda], bc]
 // [iatbh, [ed + addenda], iatbc]
 // fc
-func (f *File) annotateLineNumbers() {
-	n := 1
+func (f *File) annotateLineNumbers() { _ = "STUB: not implemented"; return }
 
-	f.Header.LineNumber = n
-	n++
-
-	isADV := f.IsADV()
-	for _, b := range f.Batches {
-		n = annotateBatchLineNumbers(b, n)
-	}
-	for i := range f.IATBatches {
-		n = annotateIATBatchLineNumbers(&f.IATBatches[i], n)
-	}
-
-	if !isADV {
-		f.Control.LineNumber = n
-	} else {
-
-		f.ADVControl.LineNumber = n
-	}
-}
-
-func annotateBatchLineNumbers(b Batcher, startIndex int) int {
-	n := startIndex
-	bh := b.GetHeader()
-	if bh != nil {
-		bh.LineNumber = n
-		n++
-	}
-
-	isADV := bh != nil && bh.StandardEntryClassCode == ADV
-
-	if !isADV {
-		for _, ed := range b.GetEntries() {
-			n = annotateEntryLineNumbers(ed, n)
-		}
-	} else {
-		for _, ed := range b.GetADVEntries() {
-			n = annotateADVEntryLineNumbers(ed, n)
-		}
-	}
-
-	if !isADV {
-		bc := b.GetControl()
-		if bc != nil {
-			bc.LineNumber = n
-			n++
-		}
-	} else {
-		bc := b.GetADVControl()
-		if bc != nil {
-			bc.LineNumber = n
-			n++
-		}
-	}
-	return n
-}
+func annotateBatchLineNumbers(b Batcher, startIndex int) int { _ = "STUB: not implemented"; return 0 }
 
 func annotateIATBatchLineNumbers(b *IATBatch, startIndex int) int {
-	n := startIndex
-	bh := b.GetHeader()
-	if bh != nil {
-		bh.LineNumber = n
-		n++
-	}
-
-	for _, ed := range b.GetEntries() {
-		n = annotateIATEntryLineNumbers(ed, n)
-	}
-
-	bc := b.GetControl()
-	if bc != nil {
-		bc.LineNumber = n
-		n++
-	}
-	return n
+	_ = "STUB: not implemented"
+	return 0
 }
 
 func annotateEntryLineNumbers(ed *EntryDetail, startIndex int) int {
-	n := startIndex
+	_ = "STUB: not implemented"
+
 	// Moov addenda order: 02, [05], 98, 98refused, 99, 99dishonored, 99contested
-	if ed == nil {
-		return n
-	}
-
-	ed.LineNumber = n
-	n++
-
-	if ed.Addenda02 != nil {
-		ed.Addenda02.LineNumber = n
-		n++
-	}
-	for _, addenda05 := range ed.Addenda05 {
-		if addenda05 != nil {
-			addenda05.LineNumber = n
-			n++
-		}
-	}
-	if ed.Addenda98 != nil {
-		ed.Addenda98.LineNumber = n
-		n++
-	}
-	if ed.Addenda98Refused != nil {
-		ed.Addenda98Refused.LineNumber = n
-		n++
-	}
-	if ed.Addenda99 != nil {
-		ed.Addenda99.LineNumber = n
-		n++
-	}
-	if ed.Addenda99Dishonored != nil {
-		ed.Addenda99Dishonored.LineNumber = n
-		n++
-	}
-	if ed.Addenda99Contested != nil {
-		ed.Addenda99Contested.LineNumber = n
-		n++
-	}
-	return n
+	return 0
 }
 
 func annotateADVEntryLineNumbers(ed *ADVEntryDetail, startIndex int) int {
+	_ = "STUB: not implemented"
 	// Moov addenda order: 99
-	n := startIndex
-	if ed == nil {
-		return n
-	}
-	ed.LineNumber = n
-	n++
-	if ed.Addenda99 != nil {
-		ed.Addenda99.LineNumber = n
-		n++
-	}
-	return n
+	return 0
 }
 
 func annotateIATEntryLineNumbers(ed *IATEntryDetail, startIndex int) int {
-	n := startIndex
+	_ = "STUB: not implemented"
+
 	// Moov addenda order: 10, 11, 12, 13, 14, 15, 16, [17], [18], 98, 99
-	if ed == nil {
-		return n
-	}
-
-	ed.LineNumber = n
-	n++
-
-	if ed.Addenda10 != nil {
-		ed.Addenda10.LineNumber = n
-		n++
-	}
-	if ed.Addenda11 != nil {
-		ed.Addenda11.LineNumber = n
-		n++
-	}
-	if ed.Addenda12 != nil {
-		ed.Addenda12.LineNumber = n
-		n++
-	}
-	if ed.Addenda13 != nil {
-		ed.Addenda13.LineNumber = n
-		n++
-	}
-	if ed.Addenda14 != nil {
-		ed.Addenda14.LineNumber = n
-		n++
-	}
-	if ed.Addenda15 != nil {
-		ed.Addenda15.LineNumber = n
-		n++
-	}
-	if ed.Addenda16 != nil {
-		ed.Addenda16.LineNumber = n
-		n++
-	}
-	for _, addenda17 := range ed.Addenda17 {
-		if addenda17 != nil {
-			addenda17.LineNumber = n
-			n++
-		}
-	}
-	for _, addenda18 := range ed.Addenda18 {
-		if addenda18 != nil {
-			addenda18.LineNumber = n
-			n++
-		}
-	}
-	if ed.Addenda98 != nil {
-		ed.Addenda98.LineNumber = n
-		n++
-	}
-	if ed.Addenda99 != nil {
-		ed.Addenda99.LineNumber = n
-		n++
-	}
-
-	return n
+	return 0
 }
 
 // Create will modify the File to tabulate and assemble it into a valid state.
@@ -747,146 +263,47 @@ func annotateIATEntryLineNumbers(ed *IATEntryDetail, startIndex int) int {
 // Batch.Create should be done before Create.
 //
 // To check if the File is Nacha compliant, call Validate or ValidateWith.
-func (f *File) Create() error {
-	opts := f.validateOpts
-	if opts == nil {
-		opts = &ValidateOpts{}
-	}
-	if !opts.SkipAll {
-		// Requires a valid FileHeader to build FileControl
-		if !opts.AllowMissingFileHeader {
-			if err := f.Header.Validate(); err != nil {
-				return err
-			}
-		}
+func (f *File) Create() error { _ = "STUB: not implemented"; return nil }
 
-		// If AllowZeroBatches is false, require at least one Batch in the new file.
-		if !opts.AllowZeroBatches && (len(f.Batches) <= 0 && len(f.IATBatches) <= 0) {
-			return ErrFileNoBatches
-		}
-	}
+// Requires a valid FileHeader to build FileControl
 
-	if !f.IsADV() {
-		// add 2 for FileHeader/control and reset if build was called twice do to error
-		totalRecordsInFile := 2
-		batchSeq := 1
-		fileEntryAddendaCount := 0
-		fileEntryHashSum := 0
-		totalDebitAmount := 0
-		totalCreditAmount := 0
+// If AllowZeroBatches is false, require at least one Batch in the new file.
 
-		for i, batch := range f.Batches {
-			// create ascending batch numbers unless batch number has been provided
-			if f.Batches[i].GetHeader().BatchNumber <= 1 {
-				f.Batches[i].GetHeader().BatchNumber = batchSeq
-				f.Batches[i].GetControl().BatchNumber = batchSeq
-			}
-			batchSeq++
-			// sum file entry and addenda records. Assume batch.Create batch properly calculated control
-			fileEntryAddendaCount = fileEntryAddendaCount + batch.GetControl().EntryAddendaCount
-			// add 2 for Batch header/control + entry added count
-			totalRecordsInFile = totalRecordsInFile + 2 + batch.GetControl().EntryAddendaCount
-			// sum hash from batch control. Assume Batch.Build properly calculated field.
-			fileEntryHashSum = fileEntryHashSum + batch.GetControl().EntryHash
-			totalDebitAmount = totalDebitAmount + batch.GetControl().TotalDebitEntryDollarAmount
-			totalCreditAmount = totalCreditAmount + batch.GetControl().TotalCreditEntryDollarAmount
-		}
-		for i, iatBatch := range f.IATBatches {
-			// create ascending batch numbers
-			if f.IATBatches[i].GetHeader().BatchNumber <= 1 {
-				f.IATBatches[i].GetHeader().BatchNumber = batchSeq
-				f.IATBatches[i].GetControl().BatchNumber = batchSeq
-			}
-			batchSeq++
-			// sum file entry and addenda records. Assume batch.Create batch properly calculated control
-			fileEntryAddendaCount = fileEntryAddendaCount + iatBatch.GetControl().EntryAddendaCount
-			// add 2 for Batch header/control + entry added count
-			totalRecordsInFile = totalRecordsInFile + 2 + iatBatch.GetControl().EntryAddendaCount
-			// sum hash from batch control. Assume Batch.Build properly calculated field.
-			fileEntryHashSum = fileEntryHashSum + iatBatch.GetControl().EntryHash
-			totalDebitAmount = totalDebitAmount + iatBatch.GetControl().TotalDebitEntryDollarAmount
-			totalCreditAmount = totalCreditAmount + iatBatch.GetControl().TotalCreditEntryDollarAmount
-		}
+// add 2 for FileHeader/control and reset if build was called twice do to error
 
-		// create FileControl from calculated values
-		fc := NewFileControl()
-		fc.ID = f.ID
-		fc.BatchCount = batchSeq - 1
-		// blocking factor of 10 is static default value in f.Header.blockingFactor.
-		if (totalRecordsInFile % 10) != 0 {
-			fc.BlockCount = totalRecordsInFile/10 + 1
-		} else {
-			fc.BlockCount = totalRecordsInFile / 10
-		}
-		fc.EntryAddendaCount = fileEntryAddendaCount
+// create ascending batch numbers unless batch number has been provided
 
-		// If greater than 10 digits, truncate
-		fc.EntryHash = fc.converters.leastSignificantDigits(fileEntryHashSum, 10)
+// sum file entry and addenda records. Assume batch.Create batch properly calculated control
 
-		fc.TotalDebitEntryDollarAmountInFile = totalDebitAmount
-		fc.TotalCreditEntryDollarAmountInFile = totalCreditAmount
-		f.Control = fc
-	} else {
-		if err := f.createFileADV(); err != nil {
-			return err
-		}
-	}
-	f.annotateLineNumbers()
-	return nil
-}
+// add 2 for Batch header/control + entry added count
+
+// sum hash from batch control. Assume Batch.Build properly calculated field.
+
+// create ascending batch numbers
+
+// sum file entry and addenda records. Assume batch.Create batch properly calculated control
+
+// add 2 for Batch header/control + entry added count
+
+// sum hash from batch control. Assume Batch.Build properly calculated field.
+
+// create FileControl from calculated values
+
+// blocking factor of 10 is static default value in f.Header.blockingFactor.
+
+// If greater than 10 digits, truncate
 
 // AddBatch appends a Batch to the ach.File
-func (f *File) AddBatch(batch Batcher) []Batcher {
-	if batch == nil {
-		return f.Batches
-	}
-	if batch.Category() == CategoryNOC {
-		f.NotificationOfChange = append(f.NotificationOfChange, batch)
-	}
-	if batch.Category() == CategoryReturn {
-		f.ReturnEntries = append(f.ReturnEntries, batch)
-	}
-	f.Batches = append(f.Batches, batch)
-	return f.Batches
-}
+func (f *File) AddBatch(batch Batcher) []Batcher { _ = "STUB: not implemented"; return nil }
 
 // RemoveBatch will delete a given Batcher from an ach.File
-func (f *File) RemoveBatch(batch Batcher) {
-	if batch.Category() == CategoryNOC {
-		for i := 0; i < len(f.NotificationOfChange); i++ {
-			if f.NotificationOfChange[i].Equal(batch) {
-				f.NotificationOfChange = append(f.NotificationOfChange[:i], f.NotificationOfChange[i+1:]...)
-				i--
-			}
-		}
-	}
-	if batch.Category() == CategoryReturn {
-		for i := 0; i < len(f.ReturnEntries); i++ {
-			if f.ReturnEntries[i].Equal(batch) {
-				f.ReturnEntries = append(f.ReturnEntries[:i], f.ReturnEntries[i+1:]...)
-				i--
-			}
-		}
-	}
-	for i := 0; i < len(f.Batches); i++ {
-		if f.Batches[i].Equal(batch) {
-			f.Batches = append(f.Batches[:i], f.Batches[i+1:]...)
-			i--
-		}
-	}
-}
+func (f *File) RemoveBatch(batch Batcher) { _ = "STUB: not implemented"; return }
 
 // AddIATBatch appends a IATBatch to the ach.File
-func (f *File) AddIATBatch(iatBatch IATBatch) []IATBatch {
-	f.IATBatches = append(f.IATBatches, iatBatch)
-	return f.IATBatches
-}
+func (f *File) AddIATBatch(iatBatch IATBatch) []IATBatch { _ = "STUB: not implemented"; return nil }
 
 // SetHeader allows for header to be built.
-func (f *File) SetHeader(h FileHeader) *File {
-	f.Header = h
-	return f
-}
+func (f *File) SetHeader(h FileHeader) *File { _ = "STUB: not implemented"; return nil }
 
 // Validate performs checks on each record according to Nacha guidelines.
 // Validate will never modify the File.
@@ -895,27 +312,13 @@ func (f *File) SetHeader(h FileHeader) *File {
 // The underlying Batches and Entries on this File will use their own ValidateOpts if they are set.
 //
 // The first error encountered is returned.
-func (f *File) Validate() error {
-	return f.ValidateWith(f.validateOpts)
-}
+func (f *File) Validate() error { _ = "STUB: not implemented"; return nil }
 
-func (f *File) GetValidation() *ValidateOpts {
-	if f == nil {
-		return nil
-	}
-	return f.validateOpts
-}
+func (f *File) GetValidation() *ValidateOpts { _ = "STUB: not implemented"; return nil }
 
 // SetValidation stores ValidateOpts on the File which are to be used to override
 // the default NACHA validation rules.
-func (f *File) SetValidation(opts *ValidateOpts) {
-	if f == nil {
-		return
-	}
-
-	f.validateOpts = opts
-	f.Header.SetValidation(opts)
-}
+func (f *File) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // ValidateOpts contains specific overrides from the default set of validations
 // performed on a NACHA file, records and various fields within.
@@ -1011,47 +414,9 @@ type ValidateOpts struct {
 
 // merge will combine two ValidateOpts structs and keep any non-zero field values.
 func (v *ValidateOpts) merge(other *ValidateOpts) *ValidateOpts {
+	_ = "STUB: not implemented"
 	// If either ValidateOpts is nil return the other
-	if v == nil {
-		return other
-	}
-	if other == nil {
-		return v
-	}
-
-	out := &ValidateOpts{
-		SkipAll:                          v.SkipAll || other.SkipAll,
-		RequireABAOrigin:                 v.RequireABAOrigin || other.RequireABAOrigin,
-		BypassOriginValidation:           v.BypassOriginValidation || other.BypassOriginValidation,
-		BypassDestinationValidation:      v.BypassDestinationValidation || other.BypassDestinationValidation,
-		CustomTraceNumbers:               v.CustomTraceNumbers || other.CustomTraceNumbers,
-		AllowZeroBatches:                 v.AllowZeroBatches || other.AllowZeroBatches,
-		AllowMissingFileHeader:           v.AllowMissingFileHeader || other.AllowMissingFileHeader,
-		AllowMissingFileControl:          v.AllowMissingFileControl || other.AllowMissingFileControl,
-		BypassCompanyIdentificationMatch: v.BypassCompanyIdentificationMatch || other.BypassCompanyIdentificationMatch,
-		CustomReturnCodes:                v.CustomReturnCodes || other.CustomReturnCodes,
-		UnequalServiceClassCode:          v.UnequalServiceClassCode || other.UnequalServiceClassCode,
-		AllowUnorderedBatchNumbers:       v.AllowUnorderedBatchNumbers || other.AllowUnorderedBatchNumbers,
-		AllowInvalidCheckDigit:           v.AllowInvalidCheckDigit || other.AllowInvalidCheckDigit,
-		UnequalAddendaCounts:             v.UnequalAddendaCounts || other.UnequalAddendaCounts,
-		PreserveSpaces:                   v.PreserveSpaces || other.PreserveSpaces,
-		AllowInvalidAmounts:              v.AllowInvalidAmounts || other.AllowInvalidAmounts,
-		AllowZeroEntryAmount:             v.AllowZeroEntryAmount || other.AllowZeroEntryAmount,
-		AllowSpecialCharacters:           v.AllowSpecialCharacters || other.AllowSpecialCharacters,
-		AllowEmptyIndividualName:         v.AllowEmptyIndividualName || other.AllowEmptyIndividualName,
-		BypassBatchValidation:            v.BypassBatchValidation || other.BypassBatchValidation,
-		SkipFileCreationValidation:       v.SkipFileCreationValidation || other.SkipFileCreationValidation,
-		SkipBatchHeaderCompanyValidation: v.SkipBatchHeaderCompanyValidation || other.SkipBatchHeaderCompanyValidation,
-	}
-
-	if v.CheckTransactionCode != nil {
-		out.CheckTransactionCode = v.CheckTransactionCode
-	}
-	if other.CheckTransactionCode != nil {
-		out.CheckTransactionCode = other.CheckTransactionCode
-	}
-
-	return out
+	return nil
 }
 
 // ValidateWith performs checks on each record according to Nacha guidelines.
@@ -1062,300 +427,90 @@ func (v *ValidateOpts) merge(other *ValidateOpts) *ValidateOpts {
 // The underlying Batches and Entries on this File will use their own ValidateOpts if they are set.
 //
 // The first error encountered is returned.
-func (f *File) ValidateWith(opts *ValidateOpts) error {
-	if opts == nil {
-		opts = &ValidateOpts{}
-	}
+func (f *File) ValidateWith(opts *ValidateOpts) error { _ = "STUB: not implemented"; return nil }
 
-	if opts.SkipAll {
-		return nil
-	}
+// The value of the Batch Count Field is equal to the number of Company/Batch/Header Records in the file.
 
-	if !opts.AllowMissingFileHeader {
-		if err := f.Header.ValidateWith(opts); err != nil {
-			return err
-		}
-	}
+// File contains ADV batches BatchADV
 
-	if !f.IsADV() {
-		// The value of the Batch Count Field is equal to the number of Company/Batch/Header Records in the file.
-		if f.Control.BatchCount != (len(f.Batches) + len(f.IATBatches)) {
-			return NewErrFileCalculatedControlEquality("BatchCount", len(f.Batches), f.Control.BatchCount)
-		}
-
-		if !opts.BypassBatchValidation {
-			for _, b := range f.Batches {
-				if err := b.Validate(); err != nil {
-					return err
-				}
-			}
-		}
-
-		if !opts.AllowMissingFileControl {
-			if err := f.Control.Validate(); err != nil {
-				return err
-			}
-		}
-		if !opts.AllowUnorderedBatchNumbers {
-			if err := f.isSequenceAscending(); err != nil {
-				return err
-			}
-		}
-		return f.ValidateTotals()
-	}
-
-	// File contains ADV batches BatchADV
-
-	// The value of the Batch Count Field is equal to the number of Company/Batch/Header Records in the file.
-	if f.ADVControl.BatchCount != len(f.Batches) {
-		return NewErrFileCalculatedControlEquality("BatchCount", len(f.Batches), f.ADVControl.BatchCount)
-	}
-	if !opts.AllowMissingFileControl {
-		if err := f.ADVControl.Validate(); err != nil {
-			return err
-		}
-	}
-	return f.ValidateTotals()
-}
+// The value of the Batch Count Field is equal to the number of Company/Batch/Header Records in the file.
 
 // ValidateTotals performs checks on: 1.File entry addenda counts 2. File credit/debit totals 3. File entry hash 4. File batch count
 // ValidateTotals will also call the ValidateTotals function on all contained batches
 // ValidateTotals will never modify the File or contained Batches.
 //
 // The first error encountered is returned.
-func (f *File) ValidateTotals() error {
-	isADV := f.IsADV()
-	if err := f.isEntryAddendaCount(isADV); err != nil {
-		return err
-	}
-	if err := f.isFileAmount(isADV); err != nil {
-		return err
-	}
-	if err := f.isEntryHash(isADV); err != nil {
-		return err
-	}
-	for _, b := range f.Batches {
-		if err := b.ValidateTotals(); err != nil {
-			return err
-		}
-	}
-	for _, b := range f.IATBatches {
-		if err := b.ValidateTotals(); err != nil {
-			return err
-		}
-	}
-	return f.isBatchCount(isADV)
-}
+func (f *File) ValidateTotals() error { _ = "STUB: not implemented"; return nil }
 
 // isBatchCount validates that the batch count is equal to the number of batches in the file
-func (f *File) isBatchCount(IsADV bool) error {
-	var batchCount int
-	if IsADV {
-		batchCount = f.ADVControl.BatchCount
-	} else {
-		batchCount = f.Control.BatchCount
-	}
-	calculatedBatchCount := len(f.Batches) + len(f.IATBatches)
-	if calculatedBatchCount != batchCount {
-		return NewErrFileCalculatedControlEquality("BatchCount", calculatedBatchCount, batchCount)
-	}
-	return nil
-}
+func (f *File) isBatchCount(IsADV bool) error { _ = "STUB: not implemented"; return nil }
 
 // isEntryAddendaCount is prepared by hashing the RDFI's 8-digit Routing Number in each entry.
 // The Entry Hash provides a check against inadvertent alteration of data
 func (f *File) isEntryAddendaCount(IsADV bool) error {
+	_ = "STUB: not implemented"
 	// IsADV
 	// true: the file contains ADV batches
 	// false: the file contains other batch types
-
-	count := 0
-
-	// we assume that each batch block has already validated the addenda count is accurate in batch control.
-
-	if !IsADV {
-		for _, batch := range f.Batches {
-			count += batch.GetControl().EntryAddendaCount
-		}
-		for _, iatBatch := range f.IATBatches {
-			count += iatBatch.GetControl().EntryAddendaCount
-		}
-		if f.Control.EntryAddendaCount != count {
-			if f.validateOpts != nil && f.validateOpts.UnequalAddendaCounts {
-				return nil
-			}
-			return NewErrFileCalculatedControlEquality("EntryAddendaCount", count, f.Control.EntryAddendaCount)
-		}
-	} else {
-		for _, batch := range f.Batches {
-			count += batch.GetADVControl().EntryAddendaCount
-		}
-		if f.ADVControl.EntryAddendaCount != count {
-			if f.validateOpts != nil && f.validateOpts.UnequalAddendaCounts {
-				return nil
-			}
-			return NewErrFileCalculatedControlEquality("EntryAddendaCount", count, f.ADVControl.EntryAddendaCount)
-		}
-	}
 	return nil
 }
+
+// we assume that each batch block has already validated the addenda count is accurate in batch control.
 
 // isFileAmount The Total Debit and Credit Entry Dollar Amounts Fields contain accumulated
 // Entry Detail debit and credit totals within the file
 func (f *File) isFileAmount(IsADV bool) error {
+	_ = "STUB: not implemented"
 	// IsADV
 	// true: the file contains ADV batches
 	// false: the file contains other batch types
-
-	debit := 0
-	credit := 0
-
-	if !IsADV {
-		for _, batch := range f.Batches {
-			debit += batch.GetControl().TotalDebitEntryDollarAmount
-			credit += batch.GetControl().TotalCreditEntryDollarAmount
-		}
-		// IAT
-		for _, iatBatch := range f.IATBatches {
-			debit += iatBatch.GetControl().TotalDebitEntryDollarAmount
-			credit += iatBatch.GetControl().TotalCreditEntryDollarAmount
-		}
-
-		if f.Control.TotalDebitEntryDollarAmountInFile != debit {
-			return NewErrFileCalculatedControlEquality("TotalDebitEntryDollarAmountInFile", debit, f.Control.TotalDebitEntryDollarAmountInFile)
-		}
-		if f.Control.TotalCreditEntryDollarAmountInFile != credit {
-			return NewErrFileCalculatedControlEquality("TotalCreditEntryDollarAmountInFile", credit, f.Control.TotalCreditEntryDollarAmountInFile)
-		}
-	} else {
-		for _, batch := range f.Batches {
-			debit += batch.GetADVControl().TotalDebitEntryDollarAmount
-			credit += batch.GetADVControl().TotalCreditEntryDollarAmount
-		}
-
-		if f.ADVControl.TotalDebitEntryDollarAmountInFile != debit {
-			return NewErrFileCalculatedControlEquality("TotalDebitEntryDollarAmountInFile", debit, f.ADVControl.TotalDebitEntryDollarAmountInFile)
-		}
-		if f.ADVControl.TotalCreditEntryDollarAmountInFile != credit {
-			return NewErrFileCalculatedControlEquality("TotalCreditEntryDollarAmountInFile", credit, f.ADVControl.TotalCreditEntryDollarAmountInFile)
-
-		}
-	}
 	return nil
 }
 
+// IAT
+
 // isEntryHash validates the hash by recalculating the result
 func (f *File) isEntryHash(IsADV bool) error {
+	_ = "STUB: not implemented"
 	// IsADV
 	// true: the file contains ADV batches
 	// false: the file contains other batch types but not ADV
-
-	hashField := f.calculateEntryHash(IsADV)
-
-	if !IsADV {
-		if hashField != f.Control.EntryHash {
-			return NewErrFileCalculatedControlEquality("EntryHash", hashField, f.Control.EntryHash)
-		}
-	} else {
-		if hashField != f.ADVControl.EntryHash {
-			return NewErrFileCalculatedControlEquality("EntryHash", hashField, f.ADVControl.EntryHash)
-		}
-	}
 	return nil
 }
 
 // calculateEntryHash This field is prepared by hashing the 8-digit Routing Number in each batch.
 // The Entry Hash provides a check against inadvertent alteration of data
 func (f *File) calculateEntryHash(IsADV bool) int {
+	_ = "STUB: not implemented"
 	// IsADV
 	// true: the file contains ADV batches
 	// false: the file contains other batch types but not ADV
-
-	hash := 0
-
-	if !IsADV {
-		for _, batch := range f.Batches {
-			hash = hash + batch.GetControl().EntryHash
-		}
-		// IAT
-		for _, iatBatch := range f.IATBatches {
-			hash = hash + iatBatch.GetControl().EntryHash
-		}
-	} else {
-		for _, batch := range f.Batches {
-			hash = hash + batch.GetADVControl().EntryHash
-		}
-	}
-
-	// Ensure the entry hash cannot exceed 10 digits
-	// If greater than 10 digits, truncate
-	return f.Control.leastSignificantDigits(hash, 10)
+	return 0
 }
+
+// IAT
+
+// Ensure the entry hash cannot exceed 10 digits
+// If greater than 10 digits, truncate
 
 // IsADV determines if the File is a File containing ADV batches
-func (f *File) IsADV() bool {
-	for i := range f.Batches {
-		if v := f.Batches[i].GetHeader(); v == nil {
-			f.Batches[i].SetHeader(NewBatchHeader())
-		}
-		if v := f.Batches[i].GetControl(); v == nil {
-			f.Batches[i].SetControl(NewBatchControl())
-		}
-		if f.Batches[i].GetHeader().StandardEntryClassCode == ADV {
-			return true
-		}
-	}
-	return false
-}
+func (f *File) IsADV() bool { _ = "STUB: not implemented"; return false }
 
 func (f *File) createFileADV() error {
+	_ = "STUB: not implemented"
 	// add 2 for FileHeader/control and reset if build was called twice do to error
-	totalRecordsInFile := 2
-	batchSeq := 1
-	fileEntryAddendaCount := 0
-	fileEntryHashSum := 0
-	totalDebitAmount := 0
-	totalCreditAmount := 0
-
-	for i, batch := range f.Batches {
-		// create ascending batch numbers
-
-		if batch.GetHeader().StandardEntryClassCode != ADV {
-			return ErrFileADVOnly
-		}
-
-		if f.Batches[i].GetHeader().BatchNumber <= 1 {
-			f.Batches[i].GetHeader().BatchNumber = batchSeq
-			f.Batches[i].GetADVControl().BatchNumber = batchSeq
-		}
-		batchSeq++
-		// sum file entry and addenda records. Assume batch.Create batch properly calculated control
-		fileEntryAddendaCount = fileEntryAddendaCount + batch.GetADVControl().EntryAddendaCount
-		// add 2 for Batch header/control + entry added count
-		totalRecordsInFile = totalRecordsInFile + 2 + batch.GetADVControl().EntryAddendaCount
-		// sum hash from batch control. Assume Batch.Build properly calculated field.
-		fileEntryHashSum = fileEntryHashSum + batch.GetADVControl().EntryHash
-		totalDebitAmount = totalDebitAmount + batch.GetADVControl().TotalDebitEntryDollarAmount
-		totalCreditAmount = totalCreditAmount + batch.GetADVControl().TotalCreditEntryDollarAmount
-	}
-
-	fc := NewADVFileControl()
-	fc.ID = f.ID
-	fc.BatchCount = batchSeq - 1
-	// blocking factor of 10 is static default value in f.Header.blockingFactor.
-	if (totalRecordsInFile % 10) != 0 {
-		fc.BlockCount = totalRecordsInFile/10 + 1
-	} else {
-		fc.BlockCount = totalRecordsInFile / 10
-	}
-	fc.EntryAddendaCount = fileEntryAddendaCount
-	fc.EntryHash = fileEntryHashSum
-	fc.TotalDebitEntryDollarAmountInFile = totalDebitAmount
-	fc.TotalCreditEntryDollarAmountInFile = totalCreditAmount
-	f.ADVControl = fc
-
 	return nil
 }
+
+// create ascending batch numbers
+
+// sum file entry and addenda records. Assume batch.Create batch properly calculated control
+
+// add 2 for Batch header/control + entry added count
+
+// sum hash from batch control. Assume Batch.Build properly calculated field.
+
+// blocking factor of 10 is static default value in f.Header.blockingFactor.
 
 // SegmentFile takes a valid ACH File and returns 2 segmented ACH Files, one ACH File containing credit entries
 // and one ACH File containing debit entries.  The return is 2 Files a Credit File and Debit File, or an error.
@@ -1365,275 +520,58 @@ func (f *File) createFileADV() error {
 // The File returned may not be valid and callers should confirm with Validate. Invalid files may be rejected
 // by other Financial Institutions or ACH tools.
 func (f *File) SegmentFile(_ *SegmentFileConfiguration) (*File, *File, error) {
-	if err := f.Validate(); err != nil {
-		return nil, nil, err
-	}
-
-	creditFile := NewFile()
-	debitFile := NewFile()
-
-	if f.validateOpts != nil {
-		creditFile.SetValidation(f.validateOpts)
-		debitFile.SetValidation(f.validateOpts)
-	}
-
-	if f.Batches != nil {
-		err := f.segmentFileBatches(creditFile, debitFile)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-
-	if f.IATBatches != nil {
-		f.segmentFileIATBatches(creditFile, debitFile)
-	}
-
-	// Additional Sorting to be FI specific
-	if len(creditFile.Batches) != 0 || len(creditFile.IATBatches) != 0 {
-		f.addFileHeaderData(creditFile)
-		if err := creditFile.Create(); err != nil {
-			return nil, nil, err
-		}
-		if err := creditFile.Validate(); err != nil {
-			return nil, nil, err
-		}
-	}
-	if len(debitFile.Batches) != 0 || len(debitFile.IATBatches) != 0 {
-		f.addFileHeaderData(debitFile)
-		if err := debitFile.Create(); err != nil {
-			return nil, nil, err
-		}
-		if err := debitFile.Validate(); err != nil {
-			return nil, nil, err
-		}
-	}
-	return creditFile, debitFile, nil
+	_ = "STUB: not implemented"
+	return nil, nil, nil
 }
 
+// Additional Sorting to be FI specific
+
 func (f *File) segmentFileBatches(creditFile, debitFile *File) error {
-	for _, batch := range f.Batches {
-		bh := batch.GetHeader()
-
-		var creditBatch Batcher
-		var debitBatch Batcher
-
-		switch bh.StandardEntryClassCode {
-		case ADV:
-			switch bh.ServiceClassCode {
-			case AutomatedAccountingAdvices:
-				bh := createSegmentFileBatchHeader(AutomatedAccountingAdvices, bh)
-				creditBatch, _ = NewBatch(bh)
-				debitBatch, _ = NewBatch(bh)
-
-				entries := batch.GetADVEntries()
-				for _, entry := range entries {
-					err := segmentFileBatchAddADVEntry(creditBatch, debitBatch, entry)
-					if err != nil {
-						return err
-					}
-				}
-				// Add the Entry to its Batch
-				if creditBatch != nil && len(creditBatch.GetADVEntries()) > 0 {
-					_ = creditBatch.Create()
-					creditFile.AddBatch(creditBatch)
-				}
-
-				if debitBatch != nil && len(debitBatch.GetADVEntries()) > 0 {
-					_ = debitBatch.Create()
-					debitFile.AddBatch(debitBatch)
-				}
-			}
-		default:
-			switch bh.ServiceClassCode {
-			case MixedDebitsAndCredits:
-				cbh := createSegmentFileBatchHeader(CreditsOnly, bh)
-				creditBatch, _ = NewBatch(cbh)
-
-				dbh := createSegmentFileBatchHeader(DebitsOnly, bh)
-				debitBatch, _ = NewBatch(dbh)
-
-				entries := batch.GetEntries()
-				for _, entry := range entries {
-					err := segmentFileBatchAddEntry(creditBatch, debitBatch, entry)
-					if err != nil {
-						return err
-					}
-				}
-
-				if creditBatch != nil && len(creditBatch.GetEntries()) > 0 {
-					_ = creditBatch.Create()
-					creditFile.AddBatch(creditBatch)
-				}
-				if debitBatch != nil && len(debitBatch.GetEntries()) > 0 {
-					_ = debitBatch.Create()
-					debitFile.AddBatch(debitBatch)
-				}
-			case CreditsOnly:
-				creditFile.AddBatch(batch)
-			case DebitsOnly:
-				debitFile.AddBatch(batch)
-			}
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// Add the Entry to its Batch
+
 // segmentFileIATBatches segments IAT batches debits and credits into debit and credit files
 func (f *File) segmentFileIATBatches(creditFile, debitFile *File) {
-	for _, iatb := range f.IATBatches {
-		IATBh := iatb.GetHeader()
-
-		switch IATBh.ServiceClassCode {
-		case MixedDebitsAndCredits:
-			cbh := createSegmentFileIATBatchHeader(CreditsOnly, IATBh)
-			creditIATBatch := NewIATBatch(cbh)
-
-			dbh := createSegmentFileIATBatchHeader(DebitsOnly, IATBh)
-			debitIATBatch := NewIATBatch(dbh)
-
-			entries := iatb.GetEntries()
-			for _, IATEntry := range entries {
-				IATEntry.TraceNumber = "" // unset so Batch.build generates a TraceNumber
-				switch IATEntry.TransactionCode {
-				case CheckingCredit, CheckingReturnNOCCredit, CheckingPrenoteCredit, CheckingZeroDollarRemittanceCredit,
-					SavingsCredit, SavingsReturnNOCCredit, SavingsPrenoteCredit, SavingsZeroDollarRemittanceCredit,
-					GLCredit, GLReturnNOCCredit, GLPrenoteCredit, GLZeroDollarRemittanceCredit,
-					LoanCredit, LoanReturnNOCCredit, LoanPrenoteCredit, LoanZeroDollarRemittanceCredit:
-					creditIATBatch.AddEntry(IATEntry)
-				case CheckingDebit, CheckingReturnNOCDebit, CheckingPrenoteDebit, CheckingZeroDollarRemittanceDebit,
-					SavingsDebit, SavingsReturnNOCDebit, SavingsPrenoteDebit, SavingsZeroDollarRemittanceDebit,
-					GLDebit, GLReturnNOCDebit, GLPrenoteDebit, GLZeroDollarRemittanceDebit,
-					LoanDebit, LoanReturnNOCDebit:
-					debitIATBatch.AddEntry(IATEntry)
-				}
-			}
-
-			if len(creditIATBatch.GetEntries()) > 0 {
-				_ = creditIATBatch.Create()
-				creditFile.AddIATBatch(creditIATBatch)
-			}
-			if len(debitIATBatch.GetEntries()) > 0 {
-				_ = debitIATBatch.Create()
-				debitFile.AddIATBatch(debitIATBatch)
-			}
-		case CreditsOnly:
-			creditFile.AddIATBatch(iatb)
-		case DebitsOnly:
-			debitFile.AddIATBatch(iatb)
-		}
-	}
-
+	_ = "STUB: not implemented"
+	return
 }
+
+// unset so Batch.build generates a TraceNumber
 
 // createSegmentFileBatchHeader adds BatchHeader data for a debit/credit Segment File
 func createSegmentFileBatchHeader(serviceClassCode int, bh *BatchHeader) *BatchHeader {
-	nbh := NewBatchHeader()
-	nbh.ID = base.ID()
-	nbh.ServiceClassCode = serviceClassCode
-	nbh.CompanyName = bh.CompanyName
-	nbh.CompanyDiscretionaryData = bh.CompanyDiscretionaryData
-	nbh.CompanyIdentification = bh.CompanyIdentification
-	nbh.StandardEntryClassCode = bh.StandardEntryClassCode
-	nbh.CompanyEntryDescription = bh.CompanyEntryDescription
-	nbh.CompanyDescriptiveDate = bh.CompanyDescriptiveDate
-	nbh.EffectiveEntryDate = bh.EffectiveEntryDate
-	nbh.SettlementDate = bh.SettlementDate
-	if serviceClassCode == AutomatedAccountingAdvices {
-		nbh.OriginatorStatusCode = 0 // ADV requires this be 0
-	} else {
-		nbh.OriginatorStatusCode = bh.OriginatorStatusCode
-	}
-	nbh.ODFIIdentification = bh.ODFIIdentification
-	return nbh
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// ADV requires this be 0
 
 // createSegmentFileIATBatchHeader adds IATBatchHeader data for a debit/credit Segment File
 func createSegmentFileIATBatchHeader(serviceClassCode int, IATBh *IATBatchHeader) *IATBatchHeader {
-	nbh := NewIATBatchHeader()
-	nbh.ID = base.ID()
-	nbh.ServiceClassCode = serviceClassCode
-	nbh.ForeignExchangeIndicator = IATBh.ForeignExchangeIndicator
-	nbh.ForeignExchangeReferenceIndicator = IATBh.ForeignExchangeReferenceIndicator
-	nbh.ISODestinationCountryCode = IATBh.ISODestinationCountryCode
-	nbh.OriginatorIdentification = IATBh.OriginatorIdentification
-	nbh.StandardEntryClassCode = IATBh.StandardEntryClassCode
-	nbh.CompanyEntryDescription = IATBh.CompanyEntryDescription
-	nbh.ISOOriginatingCurrencyCode = IATBh.ISOOriginatingCurrencyCode
-	nbh.ISODestinationCurrencyCode = IATBh.ISODestinationCurrencyCode
-	nbh.ODFIIdentification = IATBh.ODFIIdentification
-	return nbh
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // addFileHeaderData adds FileHeader data for a debit/credit Segment File
-func (f *File) addFileHeaderData(file *File) *File {
-	file.ID = base.ID()
-	file.Header.ID = base.ID()
-	file.Header.ImmediateOrigin = f.Header.ImmediateOrigin
-	file.Header.ImmediateDestination = f.Header.ImmediateDestination
-	file.Header.FileCreationDate = time.Now().Format("060102")
-	file.Header.FileCreationTime = time.Now().AddDate(0, 0, 1).Format("1504") // HHmm
-	file.Header.FileIDModifier = f.Header.FileIDModifier
-	file.Header.ImmediateDestinationName = f.Header.ImmediateDestinationName
-	file.Header.ImmediateOriginName = f.Header.ImmediateOriginName
-	return file
-}
+func (f *File) addFileHeaderData(file *File) *File { _ = "STUB: not implemented"; return nil }
+
+// HHmm
 
 // segmentFileBatchAddEntry adds entries to batches in a segmented file
 // Applies to All SEC Codes except ADV (Automated Accounting Advice)
 func segmentFileBatchAddEntry(creditBatch, debitBatch Batcher, entry *EntryDetail) error {
-	switch entry.TransactionCode {
-	case CheckingCredit, CheckingReturnNOCCredit, CheckingPrenoteCredit, CheckingZeroDollarRemittanceCredit,
-		SavingsCredit, SavingsReturnNOCCredit, SavingsPrenoteCredit, SavingsZeroDollarRemittanceCredit,
-		GLCredit, GLReturnNOCCredit, GLPrenoteCredit, GLZeroDollarRemittanceCredit,
-		LoanCredit, LoanReturnNOCCredit, LoanPrenoteCredit, LoanZeroDollarRemittanceCredit:
-		if creditBatch == nil {
-			return errors.New("missing creditBatch")
-		}
-		creditBatch.AddEntry(entry)
-
-	case CheckingDebit, CheckingReturnNOCDebit, CheckingPrenoteDebit, CheckingZeroDollarRemittanceDebit,
-		SavingsDebit, SavingsReturnNOCDebit, SavingsPrenoteDebit, SavingsZeroDollarRemittanceDebit,
-		GLDebit, GLReturnNOCDebit, GLPrenoteDebit, GLZeroDollarRemittanceDebit,
-		LoanDebit, LoanReturnNOCDebit:
-		if debitBatch == nil {
-			return errors.New("missing debitBatch")
-		}
-		debitBatch.AddEntry(entry)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 // segmentFileBatchAddADVEntry adds entries to batches in a segment file for SEC Code ADV (Automated Accounting Advice)
 func segmentFileBatchAddADVEntry(creditBatch Batcher, debitBatch Batcher, entry *ADVEntryDetail) error {
-	switch entry.TransactionCode {
-	case CreditForDebitsOriginated, CreditForCreditsReceived, CreditForCreditsRejected, CreditSummary:
-		if creditBatch == nil {
-			return errors.New("missing creditBatch")
-		}
-		creditBatch.AddADVEntry(entry)
-
-	case DebitForCreditsOriginated, DebitForDebitsReceived, DebitForDebitsRejectedBatches, DebitSummary:
-		if debitBatch == nil {
-			return errors.New("missing debitBatch")
-		}
-		debitBatch.AddADVEntry(entry)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 // Validates that the batch numbers are ascending
-func (f *File) isSequenceAscending() error {
-	lastSeq := 0
-	for _, batch := range f.Batches {
-		current := batch.GetHeader().BatchNumber
-		if f.validateOpts == nil || !f.validateOpts.CustomTraceNumbers {
-			if current <= lastSeq {
-				return NewErrFileBatchNumberAscending(lastSeq, current)
-			}
-		}
-
-		lastSeq = current
-	}
-
-	return nil
-}
+func (f *File) isSequenceAscending() error { _ = "STUB: not implemented"; return nil }

@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"github.com/moov-io/ach/internal/usabbrev"
-)
-
 // BatchPOS holds the BatchHeader and BatchControl and all EntryDetail for POS Entries.
 //
 // A POS Entry is a debit Entry initiated at an “electronic terminal” to a consumer
@@ -40,88 +36,28 @@ type BatchPOS struct {
 }
 
 // NewBatchPOS returns a *BatchPOS
-func NewBatchPOS(bh *BatchHeader) *BatchPOS {
-	batch := new(BatchPOS)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchPOS(bh *BatchHeader) *BatchPOS { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchPOS) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchPOS) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
+// basic verification of the batch before we validate specific rules.
 
-	// Add configuration and type specific validation for this type.
+// Add configuration and type specific validation for this type.
 
-	if batch.Header.StandardEntryClassCode != POS {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, POS)
-	}
-
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchPOS) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchPOS) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		if err := entry.isCardTransactionType(entry.DiscretionaryData); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("CardTransactionType", ErrBatchInvalidCardTransactionType, entry.DiscretionaryData),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		if entry.Category == CategoryForward {
-			if entry.Addenda02 != nil {
-				if !usabbrev.Valid(entry.Addenda02.TerminalState) {
-					out = append(out, InvalidEntry{
-						Entry: entry,
-						Error: batch.Error("TerminalState", ErrValidState, entry.Addenda02.TerminalState),
-					})
-				}
-			}
-		}
-	}
+// Verify the Amount is valid for SEC code and TransactionCode
 
-	return out
-}
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -129,11 +65,10 @@ func (batch *BatchPOS) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchPOS) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	// Additional steps specific to batch type
-	// ...
-	return batch.Validate()
+	return nil
 }
+
+// Additional steps specific to batch type
+// ...

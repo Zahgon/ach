@@ -19,7 +19,6 @@ package ach
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -61,17 +60,17 @@ type RecordWrongLengthErr struct {
 
 // NewRecordWrongLengthErr creates a new error of the RecordWrongLengthErr type
 func NewRecordWrongLengthErr(length int) RecordWrongLengthErr {
-	return RecordWrongLengthErr{
-		Message: fmt.Sprintf("must be 94 characters and found %d", length),
-		Length:  length,
-	}
+	_ = "STUB: not implemented"
+	return *new(RecordWrongLengthErr)
 }
 
 func (e RecordWrongLengthErr) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrUnknownRecordType is the error given when a record does not have a known type
+	return ""
 }
 
-// ErrUnknownRecordType is the error given when a record does not have a known type
 type ErrUnknownRecordType struct {
 	Message string
 	Type    string
@@ -79,17 +78,17 @@ type ErrUnknownRecordType struct {
 
 // NewErrUnknownRecordType creates a new error of the ErrUnknownRecordType type
 func NewErrUnknownRecordType(recordType string) ErrUnknownRecordType {
-	return ErrUnknownRecordType{
-		Message: recordType + " is an unknown record type",
-		Type:    recordType,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrUnknownRecordType)
 }
 
 func (e ErrUnknownRecordType) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrFileUnknownSEC is the error given when a record does not have a known type
+	return ""
 }
 
-// ErrFileUnknownSEC is the error given when a record does not have a known type
 type ErrFileUnknownSEC struct {
 	Message string
 	SEC     string
@@ -97,17 +96,17 @@ type ErrFileUnknownSEC struct {
 
 // NewErrFileUnknownSEC creates a new error of the ErrFileUnknownSEC type
 func NewErrFileUnknownSEC(secType string) ErrFileUnknownSEC {
-	return ErrFileUnknownSEC{
-		Message: secType + " Standard Entry Class Code is not implemented",
-		SEC:     secType,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrFileUnknownSEC)
 }
 
 func (e ErrFileUnknownSEC) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrFileCalculatedControlEquality is the error given when the control record does not match the calculated value
+	return ""
 }
 
-// ErrFileCalculatedControlEquality is the error given when the control record does not match the calculated value
 type ErrFileCalculatedControlEquality struct {
 	Message         string
 	Field           string
@@ -117,19 +116,17 @@ type ErrFileCalculatedControlEquality struct {
 
 // NewErrFileCalculatedControlEquality creates a new error of the ErrFileCalculatedControlEquality type
 func NewErrFileCalculatedControlEquality(field string, calculated, control int) ErrFileCalculatedControlEquality {
-	return ErrFileCalculatedControlEquality{
-		Message:         fmt.Sprintf("%v calculated %v is out-of-balance with file control %v", field, calculated, control),
-		Field:           field,
-		CalculatedValue: calculated,
-		ControlValue:    control,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrFileCalculatedControlEquality)
 }
 
 func (e ErrFileCalculatedControlEquality) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrFileBatchNumberAscending is the error given when the batch numbers in a file are not in ascending order
+	return ""
 }
 
-// ErrFileBatchNumberAscending is the error given when the batch numbers in a file are not in ascending order
 type ErrFileBatchNumberAscending struct {
 	Message       string
 	PreviousBatch int
@@ -138,13 +135,8 @@ type ErrFileBatchNumberAscending struct {
 
 // NewErrFileBatchNumberAscending creates a new error of the ErrFileBatchNumberAscending type
 func NewErrFileBatchNumberAscending(previous, current int) ErrFileBatchNumberAscending {
-	return ErrFileBatchNumberAscending{
-		Message:       fmt.Sprintf("Batch numbers must be in ascending order, batch %v is less than or equal to the previous batch: %v", current, previous),
-		PreviousBatch: previous,
-		CurrentBatch:  current,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrFileBatchNumberAscending)
 }
 
-func (e ErrFileBatchNumberAscending) Error() string {
-	return e.Message
-}
+func (e ErrFileBatchNumberAscending) Error() string { _ = "STUB: not implemented"; return "" }

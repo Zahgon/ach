@@ -5,7 +5,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -112,27 +111,6 @@ func main() {
 	}
 }
 
-func readValidationOpts(path string) *ach.ValidateOpts {
-	var opts ach.ValidateOpts
+func readValidationOpts(path string) *ach.ValidateOpts { _ = "STUB: not implemented"; return nil }
 
-	if *flagSkipValidation {
-		opts.SkipAll = true
-		return &opts
-	}
-
-	if path != "" {
-		// read config file
-		bs, readErr := os.ReadFile(path)
-		if readErr != nil {
-			fmt.Printf("ERROR: reading validate opts failed: %v\n", readErr)
-			os.Exit(1)
-		}
-
-		if err := json.Unmarshal(bs, &opts); err != nil {
-			fmt.Printf("ERROR: unmarshal of validate opts failed: %v\n", err)
-			os.Exit(1)
-		}
-		return &opts
-	}
-	return nil
-}
+// read config file

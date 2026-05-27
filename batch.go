@@ -17,17 +17,6 @@
 
 package ach
 
-import (
-	"cmp"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"slices"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // Batch holds the Batch Header and Batch Control and all Entry Records
 type Batch struct {
 	// id is an identifier only used by the moov-io/ach HTTP server as a way to identify a batch.
@@ -134,835 +123,224 @@ const (
 	XCK = "XCK"
 )
 
-func (batch *Batch) MarshalJSON() ([]byte, error) {
-	type Alias Batch
-	aux := struct {
-		*Alias
-		Offset *Offset `json:"offset"`
-	}{
-		(*Alias)(batch),
-		batch.offset,
-	}
-	return json.Marshal(aux)
-}
+func (batch *Batch) MarshalJSON() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
-func (batch *Batch) UnmarshalJSON(p []byte) error {
-	if batch == nil {
-		batch = &Batch{}
-	}
-	// blank out the fields of our Batch before reading
-	batch.Header = NewBatchHeader()
-	batch.Control = NewBatchControl()
-	batch.ADVControl = NewADVBatchControl()
+func (batch *Batch) UnmarshalJSON(p []byte) error { _ = "STUB: not implemented"; return nil }
 
-	type Alias Batch
-	aux := struct {
-		*Alias
-		Offset *Offset `json:"offset"`
-	}{
-		(*Alias)(batch),
-		nil,
-	}
-	if err := json.Unmarshal(p, &aux); err != nil {
-		if e, ok := err.(*json.UnmarshalTypeError); ok {
-			return fmt.Errorf("%s: %v", e.Field, err)
-		}
-		return err
-	}
-	if aux.Offset != nil {
-		batch.offset = aux.Offset
-	}
-	return nil
-}
+// blank out the fields of our Batch before reading
 
 // NewBatch takes a BatchHeader and returns a matching SEC code batch type that is a batcher. Returns an error if the SEC code is not supported.
 func NewBatch(bh *BatchHeader) (Batcher, error) {
-	if bh == nil {
-		return nil, errors.New("nil BatchHeader provided")
-	}
-
-	switch bh.StandardEntryClassCode {
-	case ACK:
-		return NewBatchACK(bh), nil
-	case ADV:
-		return NewBatchADV(bh), nil
-	case ARC:
-		return NewBatchARC(bh), nil
-	case ATX:
-		return NewBatchATX(bh), nil
-	case BOC:
-		return NewBatchBOC(bh), nil
-	case CCD:
-		return NewBatchCCD(bh), nil
-	case CIE:
-		return NewBatchCIE(bh), nil
-	case COR:
-		return NewBatchCOR(bh), nil
-	case CTX:
-		return NewBatchCTX(bh), nil
-	case DNE:
-		return NewBatchDNE(bh), nil
-	case ENR:
-		return NewBatchENR(bh), nil
-	case IAT:
-		return nil, ErrFileIATSEC
-	case MTE:
-		return NewBatchMTE(bh), nil
-	case POP:
-		return NewBatchPOP(bh), nil
-	case POS:
-		return NewBatchPOS(bh), nil
-	case PPD:
-		return NewBatchPPD(bh), nil
-	case RCK:
-		return NewBatchRCK(bh), nil
-	case SHR:
-		return NewBatchSHR(bh), nil
-	case TEL:
-		return NewBatchTEL(bh), nil
-	case TRC:
-		return NewBatchTRC(bh), nil
-	case TRX:
-		return NewBatchTRX(bh), nil
-	case WEB:
-		return NewBatchWEB(bh), nil
-	case XCK:
-		return NewBatchXCK(bh), nil
-	default:
-	}
-	return nil, NewErrFileUnknownSEC(bh.StandardEntryClassCode)
+	_ = "STUB: not implemented"
+	return *new(Batcher), nil
 }
 
 // ConvertBatchType will take a batch object and convert it into one of the correct batch type
-func ConvertBatchType(b Batch) Batcher {
-	switch b.Header.StandardEntryClassCode {
-	case ACK:
-		return &BatchACK{b}
-	case ADV:
-		return &BatchADV{b}
-	case ARC:
-		return &BatchARC{b}
-	case ATX:
-		return &BatchATX{b}
-	case BOC:
-		return &BatchBOC{b}
-	case CCD:
-		return &BatchCCD{b}
-	case CIE:
-		return &BatchCIE{b}
-	case COR:
-		return &BatchCOR{b}
-	case CTX:
-		return &BatchCTX{b}
-	case DNE:
-		return &BatchDNE{b}
-	case ENR:
-		return &BatchENR{b}
-	case MTE:
-		return &BatchMTE{b}
-	case POP:
-		return &BatchPOP{b}
-	case POS:
-		return &BatchPOS{b}
-	case PPD:
-		return &BatchPPD{b}
-	case RCK:
-		return &BatchRCK{b}
-	case SHR:
-		return &BatchSHR{b}
-	case TEL:
-		return &BatchTEL{b}
-	case TRC:
-		return &BatchTRC{b}
-	case TRX:
-		return &BatchTRX{b}
-	case WEB:
-		return &BatchWEB{b}
-	case XCK:
-		return &BatchXCK{b}
-	default:
-		return &b
-	}
-}
+func ConvertBatchType(b Batch) Batcher { _ = "STUB: not implemented"; return *new(Batcher) }
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
 //
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
-func (batch *Batch) Create() error {
-	return errors.New("use an implementation of batch or NewBatch")
-}
+func (batch *Batch) Create() error { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *Batch) Validate() error {
-	return errors.New("use an implementation of batch or NewBatch")
-}
+func (batch *Batch) Validate() error { _ = "STUB: not implemented"; return nil }
 
 // ValidateTotals performs checks on: 1. Batch entry count 2. Batch credit/debit totals of the 3. Batch entry hash
 // ValidateTotals will never modify the Batch.
 //
 // The first error encountered is returned.
-func (batch *Batch) ValidateTotals() error {
-	if err := batch.isBatchEntryCount(); err != nil {
-		return err
-	}
-	if err := batch.isBatchAmount(); err != nil {
-		return err
-	}
-	if err := batch.isEntryHash(); err != nil {
-		return err
-	}
-	return nil
-}
+func (batch *Batch) ValidateTotals() error { _ = "STUB: not implemented"; return nil }
 
 // SetValidation stores ValidateOpts on the Batch which are to be used to override
 // the default NACHA validation rules.
-func (batch *Batch) SetValidation(opts *ValidateOpts) {
-	if batch == nil {
-		return
-	}
-
-	batch.validateOpts = opts
-
-	if batch.Header != nil {
-		batch.Header.SetValidation(opts)
-	}
-	if batch.Control != nil {
-		batch.Control.SetValidation(opts)
-	}
-}
+func (batch *Batch) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // verify checks basic valid NACHA batch rules. Assumes properly parsed records. This does not mean it is a valid batch as validity is tied to each batch type
 func (batch *Batch) verify() error {
+	_ = "STUB: not implemented"
 	// No entries in batch
-	if len(batch.Entries) <= 0 && len(batch.ADVEntries) <= 0 {
-		return batch.Error("entries", ErrBatchNoEntries)
-	}
-	// verify field inclusion in all the records of the batch.
-	if err := batch.isFieldInclusion(); err != nil {
-		// convert the field error in to a batch error for a consistent api
-		return batch.Error("FieldError", err)
-	}
-
-	if !batch.IsADV() {
-		// validate batch header and control codes are the same
-		if (batch.validateOpts == nil || !batch.validateOpts.UnequalServiceClassCode) &&
-			batch.Header.ServiceClassCode != batch.Control.ServiceClassCode {
-			return batch.Error("ServiceClassCode",
-				NewErrBatchHeaderControlEquality(batch.Header.ServiceClassCode, batch.Control.ServiceClassCode))
-		}
-		// Company Identification in the batch header and control must match if bypassCompanyIdentificationMatch is not enabled.
-		if batch.Header.CompanyIdentification != batch.Control.CompanyIdentification &&
-			!(batch.validateOpts != nil && batch.validateOpts.BypassCompanyIdentificationMatch) {
-			return batch.Error("CompanyIdentification",
-				NewErrBatchHeaderControlEquality(batch.Header.CompanyIdentification, batch.Control.CompanyIdentification))
-		}
-
-		// Control ODFIIdentification must be the same as batch header
-		if batch.Header.ODFIIdentification != batch.Control.ODFIIdentification {
-			return batch.Error("ODFIIdentification",
-				NewErrBatchHeaderControlEquality(batch.Header.ODFIIdentification, batch.Control.ODFIIdentification))
-		}
-		// batch number header and control must match
-		if batch.Header.BatchNumber != batch.Control.BatchNumber {
-			return batch.Error("BatchNumber",
-				NewErrBatchHeaderControlEquality(batch.Header.BatchNumber, batch.Control.BatchNumber))
-		}
-	} else {
-		if (batch.validateOpts == nil || !batch.validateOpts.UnequalServiceClassCode) &&
-			batch.Header.ServiceClassCode != batch.ADVControl.ServiceClassCode {
-			return batch.Error("ServiceClassCode",
-				NewErrBatchHeaderControlEquality(batch.Header.ServiceClassCode, batch.ADVControl.ServiceClassCode))
-		}
-		// Control ODFIIdentification must be the same as batch header
-		if batch.Header.ODFIIdentification != batch.ADVControl.ODFIIdentification {
-			return batch.Error("ODFIIdentification",
-				NewErrBatchHeaderControlEquality(batch.Header.ODFIIdentification, batch.ADVControl.ODFIIdentification))
-		}
-		// batch number header and control must match
-		if batch.Header.BatchNumber != batch.ADVControl.BatchNumber {
-			return batch.Error("BatchNumber",
-				NewErrBatchHeaderControlEquality(batch.Header.BatchNumber, batch.ADVControl.BatchNumber))
-		}
-	}
-	if err := batch.ValidateTotals(); err != nil {
-		return err
-	}
-	if batch.validateOpts == nil || !batch.validateOpts.CustomTraceNumbers {
-		if err := batch.isSequenceAscending(); err != nil {
-			return err
-		}
-	}
-	if err := batch.isOriginatorDNE(); err != nil {
-		return err
-	}
-	if batch.validateOpts == nil || !batch.validateOpts.CustomTraceNumbers {
-		if err := batch.isTraceNumberODFI(); err != nil {
-			return err
-		}
-		if err := batch.isAddendaSequence(); err != nil {
-			return err
-		}
-	}
-	if err := batch.isCategory(); err != nil {
-		return err
-	}
 	return nil
 }
+
+// verify field inclusion in all the records of the batch.
+
+// convert the field error in to a batch error for a consistent api
+
+// validate batch header and control codes are the same
+
+// Company Identification in the batch header and control must match if bypassCompanyIdentificationMatch is not enabled.
+
+// Control ODFIIdentification must be the same as batch header
+
+// batch number header and control must match
+
+// Control ODFIIdentification must be the same as batch header
+
+// batch number header and control must match
 
 // Build creates valid batch by building sequence numbers and batch control. An error is returned if
 // the batch being built has invalid records.
 func (batch *Batch) build() error {
+	_ = "STUB: not implemented"
 	// Requires a valid BatchHeader
-	if err := batch.Header.Validate(); err != nil {
-		return err
-	}
-	if len(batch.Entries) <= 0 && len(batch.ADVEntries) <= 0 {
-		return batch.Error("entries", ErrBatchNoEntries)
-	}
-	// Create record sequence numbers
-	entryCount := 0
-	seq := 1
-
-	if !batch.IsADV() {
-		for i, entry := range batch.Entries {
-			entryCount += 1 + entry.addendaCount()
-
-			currentTraceNumberODFI, err := strconv.Atoi(entry.TraceNumberField()[:8])
-			if err != nil {
-				return err
-			}
-
-			batchHeaderODFI, err := strconv.Atoi(batch.Header.ODFIIdentificationField()[:8])
-			if err != nil {
-				return err
-			}
-
-			// Add a sequenced TraceNumber if one is not already set. Have to keep original trance number Return and NOC entries
-			if currentTraceNumberODFI != batchHeaderODFI {
-				if opts := batch.validateOpts; opts == nil {
-					entry.SetTraceNumber(batch.Header.ODFIIdentification, seq)
-				} else {
-					// Automatically set the TraceNumber if we are validating Origin and don't have custom trace numbers
-					if !opts.BypassOriginValidation && !opts.CustomTraceNumbers {
-						entry.SetTraceNumber(batch.Header.ODFIIdentification, seq)
-					}
-				}
-			}
-			seq++
-			addendaSeq := 1
-			for _, a := range entry.Addenda05 {
-				// sequences don't exist in NOC or Return addenda
-				a.SequenceNumber = addendaSeq
-				a.EntryDetailSequenceNumber = batch.parseNumField(batch.Entries[i].TraceNumberField()[8:])
-				addendaSeq++
-			}
-		}
-
-		// build a BatchControl record
-		bc := NewBatchControl()
-		bc.ServiceClassCode = batch.Header.ServiceClassCode
-		bc.CompanyIdentification = batch.Header.CompanyIdentification
-		bc.ODFIIdentification = batch.Header.ODFIIdentification
-		bc.BatchNumber = batch.Header.BatchNumber
-		bc.EntryAddendaCount = entryCount
-		bc.EntryHash = batch.calculateEntryHash()
-		bc.TotalCreditEntryDollarAmount, bc.TotalDebitEntryDollarAmount = batch.calculateBatchAmounts()
-		batch.Control = bc
-	} else {
-		for i, entry := range batch.ADVEntries {
-			entryCount++
-
-			if entry.Addenda99 != nil {
-				entryCount++
-			}
-			// Set Sequence Number
-			batch.ADVEntries[i].SequenceNumber = seq
-
-			seq++
-
-			if seq > 9999 {
-				return batch.Error("SequenceNumber", ErrBatchADVCount)
-			}
-		}
-		// build a BatchADVControl record
-		bcADV := NewADVBatchControl()
-		bcADV.validateOpts = batch.validateOpts
-		bcADV.ServiceClassCode = batch.Header.ServiceClassCode
-		bcADV.ACHOperatorData = batch.Header.CompanyName
-		bcADV.ODFIIdentification = batch.Header.ODFIIdentification
-		bcADV.BatchNumber = batch.Header.BatchNumber
-		bcADV.EntryAddendaCount = entryCount
-		bcADV.EntryHash = batch.calculateEntryHash()
-		bcADV.TotalCreditEntryDollarAmount, bcADV.TotalDebitEntryDollarAmount = batch.calculateADVBatchAmounts()
-		batch.ADVControl = bcADV
-	}
-	return batch.upsertOffsets()
+	return nil
 }
+
+// Create record sequence numbers
+
+// Add a sequenced TraceNumber if one is not already set. Have to keep original trance number Return and NOC entries
+
+// Automatically set the TraceNumber if we are validating Origin and don't have custom trace numbers
+
+// sequences don't exist in NOC or Return addenda
+
+// build a BatchControl record
+
+// Set Sequence Number
+
+// build a BatchADVControl record
 
 // SetHeader appends an BatchHeader to the Batch
-func (batch *Batch) SetHeader(batchHeader *BatchHeader) {
-	batch.Header = batchHeader
-}
+func (batch *Batch) SetHeader(batchHeader *BatchHeader) { _ = "STUB: not implemented"; return }
 
 // GetHeader returns the current Batch header
-func (batch *Batch) GetHeader() *BatchHeader {
-	return batch.Header
-}
+func (batch *Batch) GetHeader() *BatchHeader { _ = "STUB: not implemented"; return nil }
 
 // SetControl appends an BatchControl to the Batch
-func (batch *Batch) SetControl(batchControl *BatchControl) {
-	batch.Control = batchControl
-}
+func (batch *Batch) SetControl(batchControl *BatchControl) { _ = "STUB: not implemented"; return }
 
 // GetControl returns the current Batch Control
-func (batch *Batch) GetControl() *BatchControl {
-	return batch.Control
-}
+func (batch *Batch) GetControl() *BatchControl { _ = "STUB: not implemented"; return nil }
 
 // SetADVControl appends an BatchADVControl to the Batch
 func (batch *Batch) SetADVControl(batchADVControl *ADVBatchControl) {
-	batch.ADVControl = batchADVControl
+	_ = "STUB: not implemented"
+	return
 }
 
 // GetADVControl returns the current Batch ADVControl
-func (batch *Batch) GetADVControl() *ADVBatchControl {
-	return batch.ADVControl
-}
+func (batch *Batch) GetADVControl() *ADVBatchControl { _ = "STUB: not implemented"; return nil }
 
 // GetEntries returns a slice of entry details for the batch
-func (batch *Batch) GetEntries() []*EntryDetail {
-	return batch.Entries
-}
+func (batch *Batch) GetEntries() []*EntryDetail { _ = "STUB: not implemented"; return nil }
 
 // AddEntry appends an EntryDetail to the Batch
-func (batch *Batch) AddEntry(entry *EntryDetail) {
-	if entry == nil {
-		return
-	}
-
-	entry.secCode = cmp.Or(entry.secCode, strings.ToUpper(batch.Header.StandardEntryClassCode))
-
-	batch.category = entry.Category
-	batch.Entries = append(batch.Entries, entry)
-}
+func (batch *Batch) AddEntry(entry *EntryDetail) { _ = "STUB: not implemented"; return }
 
 // DeleteEntries deletes all Entries from the Batch where del() == true
-func (batch *Batch) DeleteEntries(del func(e *EntryDetail) bool) {
-	batch.Entries = slices.DeleteFunc(batch.Entries, del)
-}
+func (batch *Batch) DeleteEntries(del func(e *EntryDetail) bool) { _ = "STUB: not implemented"; return }
 
 // AddADVEntry appends an ADV EntryDetail to the Batch
-func (batch *Batch) AddADVEntry(entry *ADVEntryDetail) {
-	batch.category = entry.Category
-	batch.ADVEntries = append(batch.ADVEntries, entry)
-}
+func (batch *Batch) AddADVEntry(entry *ADVEntryDetail) { _ = "STUB: not implemented"; return }
 
 // DeleteADVEntries deletes all ADV Entries from the Batch where del() == true
 func (batch *Batch) DeleteADVEntries(del func(e *ADVEntryDetail) bool) {
-	batch.ADVEntries = slices.DeleteFunc(batch.ADVEntries, del)
+	_ = "STUB: not implemented"
+	return
 }
 
 // GetADVEntries returns a slice of entry details for the batch
-func (batch *Batch) GetADVEntries() []*ADVEntryDetail {
-	return batch.ADVEntries
-}
+func (batch *Batch) GetADVEntries() []*ADVEntryDetail { _ = "STUB: not implemented"; return nil }
 
 // Category returns batch category
-func (batch *Batch) Category() string {
-	if len(batch.Entries) == 0 && batch.category != "" {
-		return batch.category
-	}
-	// If an Entry has NOC or Return that's the Batch's category
-	for i := range batch.Entries {
-		switch batch.Entries[i].Category {
-		case CategoryReturn, CategoryNOC:
-			return batch.Entries[i].Category
-		}
-	}
-	for i := range batch.ADVEntries {
-		switch batch.ADVEntries[i].Category {
-		case CategoryReturn, CategoryNOC:
-			return batch.ADVEntries[i].Category
-		}
-	}
-	return CategoryForward
-}
+func (batch *Batch) Category() string { _ = "STUB: not implemented"; return "" }
+
+// If an Entry has NOC or Return that's the Batch's category
 
 // ID returns the id of the batch
 func (batch *Batch) ID() string {
-	return batch.id
+	_ = "STUB: not implemented"
+
+	// SetID sets the batch id
+	return ""
 }
 
-// SetID sets the batch id
 func (batch *Batch) SetID(id string) {
-	batch.id = id
+	_ = "STUB: not implemented"
+
+	// isFieldInclusion iterates through all the records in the batch and verifies against default fields
+	return
 }
 
-// isFieldInclusion iterates through all the records in the batch and verifies against default fields
-func (batch *Batch) isFieldInclusion() error {
-	if err := batch.Header.Validate(); err != nil {
-		return err
-	}
+func (batch *Batch) isFieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
-	if !batch.IsADV() {
-		for _, entry := range batch.Entries {
-			if err := entry.Validate(); err != nil {
-				return err
-			}
+// Some SEC codes require IndividualName is non-blank (and non-zeros)
 
-			// Some SEC codes require IndividualName is non-blank (and non-zeros)
-			switch batch.Header.StandardEntryClassCode {
-			case ARC, BOC, CIE, DNE, ENR, MTE, POP, POS, PPD, RCK, SHR, TEL, WEB:
-				// Verify IndividualName is populated
-				if batch.validateOpts == nil || !batch.validateOpts.AllowEmptyIndividualName {
-					if err := entry.isNonZero(entry.IndividualName); err != nil {
-						return fieldError("IndividualName", err, entry.IndividualName)
-					}
-				}
-			}
+// Verify IndividualName is populated
 
-			if entry.Addenda02 != nil {
-				if err := entry.Addenda02.Validate(); err != nil {
-					return err
-				}
-			}
-			for _, addenda05 := range entry.Addenda05 {
-				if err := addenda05.Validate(); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda98 != nil {
-				if err := entry.Addenda98.Validate(); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda98Refused != nil {
-				if err := entry.Addenda98Refused.Validate(); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda99 != nil {
-				if err := entry.Addenda99.Validate(); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda99Dishonored != nil {
-				if err := entry.Addenda99Dishonored.Validate(); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda99Contested != nil {
-				if err := entry.Addenda99Contested.Validate(); err != nil {
-					return err
-				}
-			}
-
-		}
-		return batch.Control.Validate()
-	}
-	// ADV File/Batch
-	for _, entry := range batch.ADVEntries {
-		if err := entry.Validate(); err != nil {
-			return err
-		}
-		if entry.Addenda99 != nil {
-			if err := entry.Addenda99.Validate(); err != nil {
-				return err
-			}
-		}
-	}
-	return batch.ADVControl.Validate()
-}
+// ADV File/Batch
 
 // isBatchEntryCount validate Entry count is accurate
 // The Entry/Addenda Count Field is a tally of each Entry Detail and Addenda
 // Record processed within the batch
-func (batch *Batch) isBatchEntryCount() error {
-	entryCount := 0
-
-	if !batch.IsADV() {
-		for _, entry := range batch.Entries {
-			entryCount += 1 + entry.addendaCount()
-		}
-		if entryCount != batch.Control.EntryAddendaCount {
-			if batch.validateOpts != nil && batch.validateOpts.UnequalAddendaCounts {
-				return nil
-			}
-			return batch.Error("EntryAddendaCount",
-				NewErrBatchCalculatedControlEquality(entryCount, batch.Control.EntryAddendaCount))
-		}
-	} else {
-		for _, entry := range batch.ADVEntries {
-			entryCount++
-			if entry.Addenda99 != nil {
-				entryCount++
-			}
-		}
-		if entryCount != batch.ADVControl.EntryAddendaCount {
-			if batch.validateOpts != nil && batch.validateOpts.UnequalAddendaCounts {
-				return nil
-			}
-			return batch.Error("EntryAddendaCount",
-				NewErrBatchCalculatedControlEquality(entryCount, batch.ADVControl.EntryAddendaCount))
-		}
-	}
-	return nil
-}
+func (batch *Batch) isBatchEntryCount() error { _ = "STUB: not implemented"; return nil }
 
 // isBatchAmount validate Amount is the same as what is in the Entries
 // The Total Debit and Credit Entry Dollar Amount fields contain accumulated
 // Entry Detail debit and credit totals within a given batch
-func (batch *Batch) isBatchAmount() error {
-	var credit, debit int
+func (batch *Batch) isBatchAmount() error { _ = "STUB: not implemented"; return nil }
 
-	// ToDo: Consider going back to one function for calculating BatchAmounts, but I'm not sure I want to have
-	// calculateBatchAmounts with ADV TransactionCodes.  In addition the smaller functions help keep the -over for
-	// gocyclo lower, although since we are currently at 25 (originally it was 18 or 19) it probably won't matter now
-	// in this case.  Based on what I see in other github go code, I'm not sure 25 is a high enough number either.
-	// Balancing easy to understand functions without having to create functions just for the purpose of meeting the
-	// -over number convinces me that it should be higher than 25.
-
-	if !batch.IsADV() {
-		credit, debit = batch.calculateBatchAmounts()
-		if debit != batch.Control.TotalDebitEntryDollarAmount {
-			return batch.Error("TotalDebitEntryDollarAmount",
-				NewErrBatchCalculatedControlEquality(debit, batch.Control.TotalDebitEntryDollarAmount))
-		}
-		if credit != batch.Control.TotalCreditEntryDollarAmount {
-			return batch.Error("TotalCreditEntryDollarAmount",
-				NewErrBatchCalculatedControlEquality(credit, batch.Control.TotalCreditEntryDollarAmount))
-		}
-	} else {
-		credit, debit = batch.calculateADVBatchAmounts()
-		if debit != batch.ADVControl.TotalDebitEntryDollarAmount {
-			return batch.Error("TotalDebitEntryDollarAmount",
-				NewErrBatchCalculatedControlEquality(debit, batch.ADVControl.TotalDebitEntryDollarAmount))
-		}
-		if credit != batch.ADVControl.TotalCreditEntryDollarAmount {
-			return batch.Error("TotalCreditEntryDollarAmount",
-				NewErrBatchCalculatedControlEquality(credit, batch.ADVControl.TotalCreditEntryDollarAmount))
-		}
-	}
-	return nil
-}
+// ToDo: Consider going back to one function for calculating BatchAmounts, but I'm not sure I want to have
+// calculateBatchAmounts with ADV TransactionCodes.  In addition the smaller functions help keep the -over for
+// gocyclo lower, although since we are currently at 25 (originally it was 18 or 19) it probably won't matter now
+// in this case.  Based on what I see in other github go code, I'm not sure 25 is a high enough number either.
+// Balancing easy to understand functions without having to create functions just for the purpose of meeting the
+// -over number convinces me that it should be higher than 25.
 
 func (batch *Batch) calculateBatchAmounts() (credit int, debit int) {
-	for _, entry := range batch.Entries {
-		switch entry.TransactionCode {
-		case CheckingCredit, CheckingReturnNOCCredit, CheckingPrenoteCredit, CheckingZeroDollarRemittanceCredit,
-			SavingsCredit, SavingsReturnNOCCredit, SavingsPrenoteCredit, SavingsZeroDollarRemittanceCredit, GLCredit,
-			GLReturnNOCCredit, GLPrenoteCredit, GLZeroDollarRemittanceCredit, LoanCredit, LoanReturnNOCCredit,
-			LoanPrenoteCredit, LoanZeroDollarRemittanceCredit:
-			credit = credit + entry.Amount
-		case CheckingDebit, CheckingReturnNOCDebit, CheckingPrenoteDebit, CheckingZeroDollarRemittanceDebit,
-			SavingsDebit, SavingsReturnNOCDebit, SavingsPrenoteDebit, SavingsZeroDollarRemittanceDebit, GLDebit,
-			GLReturnNOCDebit, GLPrenoteDebit, GLZeroDollarRemittanceDebit, LoanDebit, LoanReturnNOCDebit:
-			debit = debit + entry.Amount
-		}
-	}
-	return credit, debit
+	_ = "STUB: not implemented"
+	return 0, 0
 }
 
 func (batch *Batch) calculateADVBatchAmounts() (credit int, debit int) {
-	for _, entry := range batch.ADVEntries {
-		if entry.TransactionCode == CreditForDebitsOriginated ||
-			entry.TransactionCode == CreditForCreditsReceived ||
-			entry.TransactionCode == CreditForCreditsRejected ||
-			entry.TransactionCode == CreditSummary {
-			credit = credit + entry.Amount
-		}
-		if entry.TransactionCode == DebitForCreditsOriginated ||
-			entry.TransactionCode == DebitForDebitsReceived ||
-			entry.TransactionCode == DebitForDebitsRejectedBatches ||
-			entry.TransactionCode == DebitSummary {
-			debit = debit + entry.Amount
-		}
-	}
-	return credit, debit
+	_ = "STUB: not implemented"
+	return 0, 0
 }
 
 // isSequenceAscending Individual Entry Detail Records within individual batches must
 // be in ascending Trace Number order (although Trace Numbers need not necessarily be consecutive).
-func (batch *Batch) isSequenceAscending() error {
-	if !batch.IsADV() {
-		lastSeq := "0"
-		for _, entry := range batch.Entries {
-			if batch.validateOpts == nil || !batch.validateOpts.CustomTraceNumbers {
-				if entry.TraceNumber <= lastSeq {
-					return batch.Error("TraceNumber", NewErrBatchAscending(lastSeq, entry.TraceNumber))
-				}
-			}
-			lastSeq = entry.TraceNumber
-		}
-	}
-	return nil
-}
+func (batch *Batch) isSequenceAscending() error { _ = "STUB: not implemented"; return nil }
 
 // isEntryHash validates the hash by recalculating the result
-func (batch *Batch) isEntryHash() error {
-
-	hashField := batch.calculateEntryHash()
-	if !batch.IsADV() {
-		if hashField != batch.Control.EntryHash {
-			return batch.Error("EntryHash",
-				NewErrBatchCalculatedControlEquality(hashField, batch.Control.EntryHash))
-		}
-	} else {
-		if hashField != batch.ADVControl.EntryHash {
-			return batch.Error("EntryHash",
-				NewErrBatchCalculatedControlEquality(hashField, batch.ADVControl.EntryHash))
-		}
-	}
-	return nil
-}
+func (batch *Batch) isEntryHash() error { _ = "STUB: not implemented"; return nil }
 
 // calculateEntryHash This field is prepared by hashing the 8-digit Routing Number in each entry.
 // The Entry Hash provides a check against inadvertent alteration of data
-func (batch *Batch) calculateEntryHash() int {
-	hash := 0
+func (batch *Batch) calculateEntryHash() int { _ = "STUB: not implemented"; return 0 }
 
-	if !batch.IsADV() {
-		for _, entry := range batch.Entries {
-			entryRDFI, _ := strconv.Atoi(aba8(entry.RDFIIdentification))
-			hash += entryRDFI
-		}
-	} else {
-		for _, entry := range batch.ADVEntries {
-			entryRDFI, _ := strconv.Atoi(aba8(entry.RDFIIdentification))
-			hash += entryRDFI
-		}
-	}
-
-	// EntryHash is essentially the sum of all the RDFI routing numbers in the batch. If the sum exceeds 10 digits
-	// (because you have lots of Entry Detail Records), lop off the most significant digits of the sum until there
-	// are only 10.
-	return batch.leastSignificantDigits(hash, 10)
-}
+// EntryHash is essentially the sum of all the RDFI routing numbers in the batch. If the sum exceeds 10 digits
+// (because you have lots of Entry Detail Records), lop off the most significant digits of the sum until there
+// are only 10.
 
 // "Only an agency of the United States Government may originate a DNE entry" - NACHA Operating Rules
 // Origination code '2' is for government agencies. Codes 21, 23, 31, and 33 are the only transaction codes
 // allowed for DNEs. Tranaction codes 21 and 31 are just for returns or NOCs of the 23 and 33 codes.
 // So we check that the Originator Status Code is not equal to “2” for DNE if the Transaction Code is 23 or 33
-func (batch *Batch) isOriginatorDNE() error {
-	if batch.Header.OriginatorStatusCode != 2 && batch.Header.StandardEntryClassCode == DNE {
-		for _, entry := range batch.Entries {
-			if entry.TransactionCode == CheckingPrenoteCredit || entry.TransactionCode == SavingsPrenoteCredit {
-				return batch.Error("OriginatorStatusCode", ErrBatchOriginatorDNE, batch.Header.OriginatorStatusCode)
-			}
-		}
-	}
-	return nil
-}
+func (batch *Batch) isOriginatorDNE() error { _ = "STUB: not implemented"; return nil }
 
 // isTraceNumberODFI checks if the first 8 positions of the entry detail trace number
 // match the batch header ODFI
-func (batch *Batch) isTraceNumberODFI() error {
-	if batch.validateOpts != nil && batch.validateOpts.BypassOriginValidation {
-		return nil
-	}
-	bhODFI := batch.Header.ODFIIdentificationField()
-	for _, entry := range batch.Entries {
-		var entryODFI string
-		if len(entry.TraceNumber) >= 8 {
-			entryODFI = entry.TraceNumber[:8]
-		}
-		if bhODFI != entryODFI {
-			return batch.Error("ODFIIdentificationField", NewErrBatchTraceNumberNotODFI(bhODFI, entryODFI))
-		}
-	}
-	return nil
-}
+func (batch *Batch) isTraceNumberODFI() error { _ = "STUB: not implemented"; return nil }
 
 // isAddendaSequence check multiple errors on addenda records in the batch entries
-func (batch *Batch) isAddendaSequence() error {
-	for _, entry := range batch.Entries {
+func (batch *Batch) isAddendaSequence() error { _ = "STUB: not implemented"; return nil }
 
-		if entry.Addenda02 != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-		if len(entry.Addenda05) > 0 {
-			// addenda without indicator flag of 1
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-			lastSeq := -1
-			// check if sequence is ascending
-			for _, a := range entry.Addenda05 {
-				// sequences don't exist in NOC or Return addenda
+// addenda without indicator flag of 1
 
-				if a.SequenceNumber < lastSeq {
-					return batch.Error("SequenceNumber", NewErrBatchAscending(lastSeq, a.SequenceNumber))
-				}
-				lastSeq = a.SequenceNumber
-				// check that we are in the correct Entry Detail
-				if !(a.EntryDetailSequenceNumberField() == entry.TraceNumberField()[8:]) {
-					return batch.Error("TraceNumber", NewErrBatchAscending(lastSeq, a.SequenceNumber))
-				}
-			}
-		}
-		if entry.Addenda98 != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-		if entry.Addenda98Refused != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-		if entry.Addenda99 != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-		if entry.Addenda99Dishonored != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-		if entry.Addenda99Contested != nil {
-			if entry.AddendaRecordIndicator != 1 {
-				return batch.Error("AddendaRecordIndicator", ErrBatchAddendaIndicator)
-			}
-		}
-	}
-	return nil
-}
+// check if sequence is ascending
+
+// sequences don't exist in NOC or Return addenda
+
+// check that we are in the correct Entry Detail
 
 // isCategory verifies that a Forward and Return Category are not in the same batch
-func (batch *Batch) isCategory() error {
-	if !batch.IsADV() {
-		category := batch.GetEntries()[0].Category
-		if len(batch.Entries) > 1 {
-			for i := 0; i < len(batch.Entries); i++ {
-				if batch.Entries[i].Category == CategoryNOC {
-					continue
-				}
-				if batch.Entries[i].Category != category {
-					return batch.Error("Category", NewErrBatchCategory(batch.Entries[i].Category, category))
-				}
-			}
-		}
-	} else {
-		category := batch.GetADVEntries()[0].Category
-		if len(batch.ADVEntries) > 1 {
-			for i := 0; i < len(batch.ADVEntries); i++ {
-				if batch.ADVEntries[i].Category != category {
-					return batch.Error("Category", NewErrBatchCategory(batch.ADVEntries[i].Category, category))
-				}
-			}
-		}
-	}
-
-	return nil
-}
+func (batch *Batch) isCategory() error { _ = "STUB: not implemented"; return nil }
 
 // addendaFieldInclusion verifies Addenda* Field Inclusion based on entry.Category and
 // batchHeader.StandardEntryClassCode
@@ -975,378 +353,130 @@ func (batch *Batch) isCategory() error {
 // Return:
 // Addenda99, Addenda99Dishonored, Addenda99Contested
 func (batch *Batch) addendaFieldInclusion(entry *EntryDetail) error {
-	switch entry.Category {
-	case CategoryForward:
-		if err := batch.addendaFieldInclusionForward(entry); err != nil {
-			return err
-		}
-	case CategoryNOC:
-		if err := batch.addendaFieldInclusionNOC(entry); err != nil {
-			return err
-		}
-	case CategoryReturn, CategoryDishonoredReturn, CategoryDishonoredReturnContested:
-		if err := batch.addendaFieldInclusionReturn(entry); err != nil {
-			return err
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 // addendaFieldInclusionForward verifies Addenda* Field Inclusion for entry.Category Forward
 func (batch *Batch) addendaFieldInclusionForward(entry *EntryDetail) error {
-	switch batch.Header.StandardEntryClassCode {
-	case MTE, POS, SHR:
-		if entry.Addenda02 == nil {
-			return batch.Error("Addenda02", ErrFieldInclusion)
-		}
-		if entry.Addenda05 != nil {
-			return batch.Error("Addenda05", ErrBatchAddendaCategory, entry.Category)
-		}
-	// ACK, ATX, CCD, CIE, CTX, DNE, ENR WEB, PPD, TRX can only have Addenda05
-	case ACK, ATX, CCD, CIE, CTX, DNE, ENR, WEB, PPD, TRX:
-		if entry.Addenda02 != nil {
-			return batch.Error("Addenda02", ErrBatchAddendaCategory, entry.Category)
-		}
-	case ARC, BOC, COR, POP, RCK, TEL, TRC, XCK:
-		if entry.Addenda02 != nil {
-			return batch.Error("Addenda02", ErrBatchAddendaCategory, entry.Category)
-		}
-		if entry.Addenda05 != nil {
-			return batch.Error("Addenda05", ErrBatchAddendaCategory, entry.Category)
-		}
-	}
-	if batch.Header.StandardEntryClassCode != COR {
-		if entry.Addenda98 != nil || entry.Addenda98Refused != nil {
-			return batch.Error("Addenda98", ErrBatchAddendaCategory, entry.Category)
-		}
-	}
-	if entry.Addenda99 != nil {
-		return batch.Error("Addenda99", ErrBatchAddendaCategory, entry.Category)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// ACK, ATX, CCD, CIE, CTX, DNE, ENR WEB, PPD, TRX can only have Addenda05
+
 // addendaFieldInclusionNOC verifies Addenda* Field Inclusion for entry.Category NOC
 func (batch *Batch) addendaFieldInclusionNOC(entry *EntryDetail) error {
-	if entry.Addenda02 != nil {
-		return batch.Error("Addenda02", ErrBatchAddendaCategory, entry.Category)
-	}
-	if entry.Addenda05 != nil {
-		return batch.Error("Addenda05", ErrBatchAddendaCategory, entry.Category)
-	}
-	if batch.Header.StandardEntryClassCode != COR {
-		if entry.Addenda98 != nil || entry.Addenda98Refused != nil {
-			return batch.Error("Addenda98", ErrFieldInclusion)
-		}
-	}
-	if entry.Addenda99 != nil {
-		return batch.Error("Addenda99", ErrBatchAddendaCategory, entry.Category)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 // addendaFieldInclusionReturn verifies Addenda* Field Inclusion for entry.Category Return
 func (batch *Batch) addendaFieldInclusionReturn(entry *EntryDetail) error {
-	if entry.Addenda02 != nil {
-		return batch.Error("Addenda02", ErrBatchAddendaCategory, entry.Category)
-	}
-	if entry.Addenda05 != nil {
-		switch entry.Category {
-		case CategoryDishonoredReturn, CategoryDishonoredReturnContested:
-			switch batch.Header.StandardEntryClassCode {
-			case ATX, CTX, PPD, TRX, WEB:
-				// do nothing, these SEC codes allow multiple Addenda05 records alongside the DishonoredReturn addenda
-			default:
-				return batch.Error("Addenda05", ErrBatchAddendaCategory, entry.Category)
-			}
-		default:
-			switch batch.Header.StandardEntryClassCode {
-			case CTX:
-				// do nothing, CTX allows Addenda05 records for Return
-			default:
-				return batch.Error("Addenda05", ErrBatchAddendaCategory, entry.Category)
-			}
-		}
-	}
-	if entry.Addenda98 != nil || entry.Addenda98Refused != nil {
-		return batch.Error("Addenda98", ErrBatchAddendaCategory, entry.Category)
-	}
-	if entry.Addenda99 == nil && entry.Addenda99Dishonored == nil && entry.Addenda99Contested == nil {
-		// Offset entries within a Return batch will not have an Addenda99 record as they might be
-		// used to zero accounting entries.
-		//
-		// See: https://github.com/moov-io/ach/issues/1010
-		if entry.IndividualName == offsetIndividualName {
-			return nil
-		}
-		return batch.Error("Addenda99", ErrFieldInclusion)
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
+
+// do nothing, these SEC codes allow multiple Addenda05 records alongside the DishonoredReturn addenda
+
+// do nothing, CTX allows Addenda05 records for Return
+
+// Offset entries within a Return batch will not have an Addenda99 record as they might be
+// used to zero accounting entries.
+//
+// See: https://github.com/moov-io/ach/issues/1010
 
 // IsADV determines if a batch is batch type ADV - BatchADV
-func (batch *Batch) IsADV() bool {
-	ok := batch.GetHeader().StandardEntryClassCode == ADV
-	return ok
-}
+func (batch *Batch) IsADV() bool { _ = "STUB: not implemented"; return false }
 
 func (batch *Batch) ValidAmountForCodes(entry *EntryDetail) error {
-	if batch.validateOpts != nil && batch.validateOpts.AllowInvalidAmounts {
-		return nil
-	}
-
-	if entry != nil && (entry.Addenda98 != nil || entry.Addenda98Refused != nil) {
-		// NOC entries will have a zero'd amount value
-		if entry.Amount != 0 {
-			return ErrBatchAmountNonZero
-		}
-		return nil
-	}
-	if entry != nil && (entry.Addenda99 != nil || entry.Addenda99Contested != nil || entry.Addenda99Dishonored != nil) {
-		// Returned prenotes can have a zero amount, so allow returns through
-		return nil
-	}
-
-	// If the entry is a PRENOTE force it's amount to be zero
-	isPrenoteTxCode := entry.isPrenote(entry.TransactionCode)
-	if isPrenoteTxCode {
-		if entry.Amount == 0 {
-			return nil
-		}
-		return fieldError("Amount", ErrBatchAmountNonZero, entry.Amount)
-	} else {
-		if entry.Amount == 0 {
-			if batch.validateOpts != nil && batch.validateOpts.AllowZeroEntryAmount {
-				return nil
-			}
-
-			switch batch.Header.StandardEntryClassCode {
-			case ACK, ATX:
-				if entry.TransactionCode == CheckingZeroDollarRemittanceCredit || entry.TransactionCode == SavingsZeroDollarRemittanceCredit {
-					return nil
-				}
-			}
-
-			return fieldError("Amount", ErrBatchAmountZero, entry.Amount)
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
+
+// NOC entries will have a zero'd amount value
+
+// Returned prenotes can have a zero amount, so allow returns through
+
+// If the entry is a PRENOTE force it's amount to be zero
 
 // ValidTranCodeForServiceClassCode validates a TransactionCode is valid for a ServiceClassCode
 func (batch *Batch) ValidTranCodeForServiceClassCode(entry *EntryDetail) error {
+	_ = "STUB: not implemented"
 	// ADV should use ADVEntryDetail
-	switch entry.TransactionCode {
-	case CreditForDebitsOriginated, CreditForCreditsReceived, CreditForCreditsRejected, CreditSummary,
-		DebitForCreditsOriginated, DebitForDebitsReceived, DebitForDebitsRejectedBatches, DebitSummary:
-		return batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode)
-	}
-
-	if entry.validateOpts != nil && entry.validateOpts.CheckTransactionCode != nil {
-		// We're unable to validate the ServiceClassCode with custom TransactionCode validation.
-		return nil
-	}
-
-	switch batch.Header.ServiceClassCode {
-	case AutomatedAccountingAdvices:
-		return batch.Error("ServiceClassCode", ErrBatchServiceClassCode, batch.Header.ServiceClassCode)
-
-	case MixedDebitsAndCredits:
-		return nil
-
-	case CreditsOnly:
-		if entry.CreditOrDebit() != "C" {
-			return batch.Error("TransactionCode", NewErrBatchServiceClassTranCode(batch.Header.ServiceClassCode, entry.TransactionCode))
-		}
-	case DebitsOnly:
-		if entry.CreditOrDebit() != "D" {
-			return batch.Error("TransactionCode", NewErrBatchServiceClassTranCode(batch.Header.ServiceClassCode, entry.TransactionCode))
-		}
-	}
 	return nil
 }
+
+// We're unable to validate the ServiceClassCode with custom TransactionCode validation.
 
 // Equal returns true only if two Batch (or any Batcher) objects are equal. Equality is determined by
 // many of the ACH Batch and EntryDetail properties.
 func (batch *Batch) Equal(other Batcher) bool {
+	_ = "STUB: not implemented"
 	// Some fields are intentionally not compared as they could vary between batches that would otherwise be the same.
-	if batch == nil || other == nil || batch.Header == nil || other.GetHeader() == nil {
-		return false
-	}
-	if !batch.Header.Equal(other.GetHeader()) {
-		return false
-	}
-	oentries := other.GetEntries()
-	if len(batch.Entries) != len(oentries) {
-		return false
-	}
-	equalEntries := 0
-	for i := range batch.Entries {
-		for j := range oentries {
-			if batch.Entries[i].TransactionCode != oentries[j].TransactionCode {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].RDFIIdentification != oentries[j].RDFIIdentification {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].CheckDigit != oentries[j].CheckDigit {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].DFIAccountNumber != oentries[j].DFIAccountNumber {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].Amount != oentries[j].Amount {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].IdentificationNumber != oentries[j].IdentificationNumber {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].IndividualName != oentries[j].IndividualName {
-				continue // skip to next EntryDetail
-			}
-			if batch.Entries[i].DiscretionaryData != oentries[j].DiscretionaryData {
-				continue // skip to next EntryDetail
-			}
-			equalEntries++
-		}
-	}
-	return len(batch.Entries) == equalEntries && equalEntries != 0
+	return false
 }
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
+
+// skip to next EntryDetail
 
 // WithOffset sets the Offset information onto a Batch so that during Create a balanced offset record(s) at the end of each batch.
 //
 // If there are debits, there is a credit offset matching the sum of the debits. If there are credits, there is a debit offset matching
 // the sum of the credits. They are mutually exclusive.
-func (b *Batch) WithOffset(off *Offset) {
-	b.offset = off
-}
+func (b *Batch) WithOffset(off *Offset) { _ = "STUB: not implemented"; return }
 
 const offsetIndividualName = "OFFSET"
 
-func (b *Batch) upsertOffsets() error {
-	if b == nil || b.offset == nil {
-		return nil
-	}
-	if err := CheckRoutingNumber(b.offset.RoutingNumber); err != nil {
-		return fmt.Errorf("offset: invalid routing number %s: %v", b.offset.RoutingNumber, err)
-	}
+func (b *Batch) upsertOffsets() error { _ = "STUB: not implemented"; return nil }
 
-	// remove any Offset records already on the batch
-	for i := 0; i < len(b.Entries); i++ {
-		// TODO(adam): Should we remove this based on checking the last element is
-		// debit/credit and sums to all the other elements (which are mutually exclusive to
-		// the last record being debit or credit)?
-		// See: https://github.com/moov-io/ach/issues/540
-		if strings.EqualFold(b.Entries[i].IndividualName, offsetIndividualName) {
-			// fixup BatchControl records for our conditional after this for loop
-			if b.Entries[i].TransactionCode == CheckingCredit || b.Entries[i].TransactionCode == SavingsCredit {
-				b.Control.TotalCreditEntryDollarAmount -= b.Entries[i].Amount
-			} else {
-				b.Control.TotalDebitEntryDollarAmount -= b.Entries[i].Amount
-			}
-			// remove the EntryDetail
-			b.Control.EntryAddendaCount -= 1
-			b.Entries = append(b.Entries[:i], b.Entries[i+1:]...)
-			i--
-		}
-	}
+// remove any Offset records already on the batch
 
-	// Make sure the offset account type is valid
-	if err := b.offset.AccountType.validate(); err != nil {
-		return err
-	}
+// TODO(adam): Should we remove this based on checking the last element is
+// debit/credit and sums to all the other elements (which are mutually exclusive to
+// the last record being debit or credit)?
+// See: https://github.com/moov-io/ach/issues/540
 
-	offsetCount := 1
+// fixup BatchControl records for our conditional after this for loop
 
-	// Create our debit offset EntryDetail
-	debitED := createOffsetEntryDetail(b.offset, b)
-	debitED.TraceNumber = fmt.Sprintf("%15.15d", lastTraceNumber(b.Entries)+offsetCount)
-	debitED.Amount = b.Control.TotalCreditEntryDollarAmount
-	switch b.offset.AccountType {
-	case OffsetChecking:
-		debitED.TransactionCode = CheckingDebit
-	case OffsetSavings:
-		debitED.TransactionCode = SavingsDebit
-	}
-	if debitED.Amount == 0 {
-		debitED = nil // zero out so we don't add an empty OFFSET EntryDetail
-	} else {
-		offsetCount += 1
-	}
+// remove the EntryDetail
 
-	// Create our credit offset EntryDetail
-	creditED := createOffsetEntryDetail(b.offset, b)
-	creditED.TraceNumber = fmt.Sprintf("%15.15d", lastTraceNumber(b.Entries)+offsetCount)
-	creditED.Amount = b.Control.TotalDebitEntryDollarAmount
-	switch b.offset.AccountType {
-	case OffsetChecking:
-		creditED.TransactionCode = CheckingCredit
-	case OffsetSavings:
-		creditED.TransactionCode = SavingsCredit
-	}
-	if creditED.Amount == 0 {
-		creditED = nil // zero out so we don't add an empty OFFSET EntryDetail
-	}
+// Make sure the offset account type is valid
 
-	// Add both EntryDetails to our Batch and recalculate some fields
-	if debitED != nil {
-		b.AddEntry(debitED)
-		b.Control.EntryAddendaCount += 1
-		b.Control.TotalDebitEntryDollarAmount += debitED.Amount
-	}
-	if creditED != nil {
-		b.AddEntry(creditED)
-		b.Control.EntryAddendaCount += 1
-		b.Control.TotalCreditEntryDollarAmount += creditED.Amount
-	}
-	b.Header.ServiceClassCode = MixedDebitsAndCredits
+// Create our debit offset EntryDetail
 
-	b.Control.ServiceClassCode = MixedDebitsAndCredits
-	b.Control.EntryHash = b.calculateEntryHash()
+// zero out so we don't add an empty OFFSET EntryDetail
 
+// Create our credit offset EntryDetail
+
+// zero out so we don't add an empty OFFSET EntryDetail
+
+// Add both EntryDetails to our Batch and recalculate some fields
+
+func createOffsetEntryDetail(off *Offset, batch *Batch) *EntryDetail {
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func createOffsetEntryDetail(off *Offset, batch *Batch) *EntryDetail {
-	ed := NewEntryDetail()
-	ed.RDFIIdentification = batch.offset.RoutingNumber[:8]
-	ed.CheckDigit = batch.offset.RoutingNumber[8:9]
-	ed.DFIAccountNumber = batch.offset.AccountNumber
-	ed.IdentificationNumber = "" // left empty
-	ed.IndividualName = offsetIndividualName
-	ed.DiscretionaryData = batch.offset.Description
-	if len(batch.Entries) > 0 {
-		ed.Category = batch.Entries[0].Category
-	}
-	return ed
-}
+// left empty
 
 // aba8 returns the first 8 digits of an ABA routing number.
 // If the input is invalid then an empty string is returned.
-func aba8(rtn string) string {
-	n := utf8.RuneCountInString(rtn)
-	switch {
-	case n > 10:
-		return ""
-	case n == 10:
-		if rtn[0] == '0' || rtn[0] == '1' {
-			return rtn[1:9] // ACH server will prefix with space, 0, or 1
-		}
-		return ""
-	case n != 8 && n != 9:
-		return ""
-	default:
-		return rtn[:8]
-	}
-}
+func aba8(rtn string) string { _ = "STUB: not implemented"; return "" }
 
-func lastTraceNumber(entries []*EntryDetail) int {
-	if len(entries) == 0 {
-		return 0
-	}
-	n, err := strconv.Atoi(entries[len(entries)-1].TraceNumber)
-	if err != nil {
-		return 0
-	}
-	return n
-}
+// ACH server will prefix with space, 0, or 1
+
+func lastTraceNumber(entries []*EntryDetail) int { _ = "STUB: not implemented"; return 0 }

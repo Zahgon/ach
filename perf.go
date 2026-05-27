@@ -30,21 +30,8 @@ var (
 	}
 )
 
-func newBuffer() *bytes.Buffer {
-	var sb bytes.Buffer
-	sb.Grow(94)
-	return &sb
-}
+func newBuffer() *bytes.Buffer { _ = "STUB: not implemented"; return nil }
 
-func getBuffer() *bytes.Buffer {
-	sb, ok := byteBufferPool.Get().(*bytes.Buffer)
-	if !ok {
-		return newBuffer()
-	}
-	return sb
-}
+func getBuffer() *bytes.Buffer { _ = "STUB: not implemented"; return nil }
 
-func saveBuffer(sb *bytes.Buffer) {
-	sb.Reset()
-	byteBufferPool.Put(sb)
-}
+func saveBuffer(sb *bytes.Buffer) { _ = "STUB: not implemented"; return }

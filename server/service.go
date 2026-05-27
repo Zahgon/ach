@@ -18,17 +18,11 @@
 package server
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"time"
 
 	"github.com/moov-io/ach"
-	"github.com/moov-io/base"
 )
 
 var (
@@ -81,313 +75,122 @@ type service struct {
 }
 
 // NewService creates a new concrete service
-func NewService(r Repository) Service {
-	return &service{
-		store: r,
-	}
-}
+func NewService(r Repository) Service { _ = "STUB: not implemented"; return *new(Service) }
 
 // CreateFile add a file to storage
 // TODO(adam): the HTTP endpoint accepts malformed bodies (and missing data)
 func (s *service) CreateFile(fh *ach.FileHeader) (string, error) {
+	_ = "STUB: not implemented"
 	// create a new file
-	f := ach.NewFile()
-	f.SetHeader(*fh)
-	// set resource id's
-	if fh.ID == "" {
-		id := base.ID()
-		f.ID = id
-		f.Header.ID = id
-		f.Control.ID = id
-	} else {
-		f.ID = fh.ID
-		f.Control.ID = fh.ID
-	}
-
-	if err := s.store.StoreFile(f); err != nil {
-		return "", err
-	}
-	return f.ID, nil
+	return "", nil
 }
+
+// set resource id's
 
 // GetFile returns a files based on the supplied id
-func (s *service) GetFile(id string) (*ach.File, error) {
-	f, err := s.store.FindFile(id)
-	if err != nil {
-		return nil, ErrNotFound
-	}
-	return f, nil
-}
+func (s *service) GetFile(id string) (*ach.File, error) { _ = "STUB: not implemented"; return nil, nil }
 
-func (s *service) GetFiles() []*ach.File {
-	return s.store.FindAllFiles()
-}
+func (s *service) GetFiles() []*ach.File { _ = "STUB: not implemented"; return nil }
 
 // BuildFile tabulates file values according to the Nacha spec
 func (s *service) BuildFile(id string) (*ach.File, error) {
-	original, err := s.GetFile(id)
-	if err != nil {
-		return nil, fmt.Errorf("build file: error reading file %s: %w", id, err)
-	}
-
-	// Clone the file to avoid mutating the original in the repository
-	file, err := cloneFile(original)
-	if err != nil {
-		return nil, fmt.Errorf("build file: error cloning file %s: %w", id, err)
-	}
-
-	err = file.Create()
-	return file, err
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func (s *service) DeleteFile(id string) error {
-	return s.store.DeleteFile(id)
-}
+// Clone the file to avoid mutating the original in the repository
+
+func (s *service) DeleteFile(id string) error { _ = "STUB: not implemented"; return nil }
 
 func (s *service) GetFileContents(id string, opts *ach.WriteOpts) (io.Reader, error) {
-	original, err := s.GetFile(id)
-	if err != nil {
-		return nil, fmt.Errorf("problem reading file %s: %w", id, err)
-	}
-
-	// Clone the file to avoid mutating the original in the repository
-	f, err := cloneFile(original)
-	if err != nil {
-		return nil, fmt.Errorf("problem cloning file %s: %w", id, err)
-	}
-
-	if err := f.Create(); err != nil {
-		return nil, fmt.Errorf("problem creating file %s: %w", id, err)
-	}
-
-	var buf bytes.Buffer
-	w := ach.NewWriterWithOpts(&buf, opts)
-	if err := w.Write(f); err != nil {
-		return nil, fmt.Errorf("problem writing plaintext file %s: %w", id, err)
-	}
-	if err := w.Flush(); err != nil {
-		return nil, err
-	}
-
-	if buf.Len() == 0 {
-		return nil, errors.New("empty ACH file contents")
-	}
-
-	return &buf, nil
+	_ = "STUB: not implemented"
+	return *new(io.Reader), nil
 }
 
+// Clone the file to avoid mutating the original in the repository
+
 func (s *service) ValidateFile(id string, opts *ach.ValidateOpts) error {
-	f, err := s.GetFile(id)
-	if err != nil {
-		return fmt.Errorf("problem reading file %s: %w", id, err)
-	}
-	return f.ValidateWith(opts)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (s *service) CreateBatch(fileID string, batch ach.Batcher) (string, error) {
-	if batch == nil {
-		return "", errors.New("no batch provided")
-	}
-	if batch.GetHeader().ID == "" {
-		id := base.ID()
-		batch.SetID(id)
-		batch.GetHeader().ID = id
-		batch.GetControl().ID = id
-	} else {
-		batch.SetID(batch.GetHeader().ID)
-		batch.GetControl().ID = batch.GetHeader().ID
-	}
-	if err := s.store.StoreBatch(fileID, batch); err != nil {
-		return "", err
-	}
-	return batch.ID(), nil
+	_ = "STUB: not implemented"
+	return "", nil
 }
 
 func (s *service) GetBatch(fileID string, batchID string) (ach.Batcher, error) {
-	b, err := s.store.FindBatch(fileID, batchID)
-	if err != nil {
-		return nil, ErrNotFound
-	}
-	return b, nil
+	_ = "STUB: not implemented"
+	return *new(ach.Batcher), nil
 }
 
-func (s *service) GetBatches(fileID string) []ach.Batcher {
-	return s.store.FindAllBatches(fileID)
-}
+func (s *service) GetBatches(fileID string) []ach.Batcher { _ = "STUB: not implemented"; return nil }
 
 func (s *service) DeleteBatch(fileID string, batchID string) error {
-	return s.store.DeleteBatch(fileID, batchID)
+	_ = "STUB: not implemented"
+	return nil
 }
 
 func (s *service) BalanceFile(fileID string, off *ach.Offset) (*ach.File, error) {
-	original, err := s.GetFile(fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Clone the file to avoid mutating the original in the repository
-	f, err := cloneFile(original)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := f.Create(); err != nil {
-		return nil, err
-	}
-	// Apply the Offset to each Batch and then re-create (to tabulate new EntryDetail records)
-	for i := range f.Batches {
-		f.Batches[i].WithOffset(off)
-		if err := f.Batches[i].Create(); err != nil {
-			return nil, err
-		}
-	}
-	f.ID = base.ID() // overwrite the ID so it's new and unique
-	if err := f.Create(); err != nil {
-		return nil, err
-	}
-	// Save our new file
-	if err := s.store.StoreFile(f); err != nil {
-		return nil, err
-	}
-	return f, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Clone the file to avoid mutating the original in the repository
+
+// Apply the Offset to each Batch and then re-create (to tabulate new EntryDetail records)
+
+// overwrite the ID so it's new and unique
+
+// Save our new file
 
 // SegmentFileID takes an ACH FileID and segments the files into a credit ACH File and debit ACH File and adds to in memory storage.
 func (s *service) SegmentFileID(fileID string, opts *ach.SegmentFileConfiguration) (*ach.File, *ach.File, error) {
-	original, err := s.GetFile(fileID)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Clone the file to avoid mutating the original in the repository
-	f, err := cloneFile(original)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cloning file: %w", err)
-	}
-
-	return s.SegmentFile(f, opts)
+	_ = "STUB: not implemented"
+	return nil, nil, nil
 }
+
+// Clone the file to avoid mutating the original in the repository
 
 // SegmentFile takes an ACH File and segments the files into a credit ACH File and debit ACH File and adds to in memory storage.
 func (s *service) SegmentFile(file *ach.File, opts *ach.SegmentFileConfiguration) (*ach.File, *ach.File, error) {
+	_ = "STUB: not implemented"
 	// Build/tabulate file in the case it is malformed.
-	if err := file.Create(); err != nil {
-		return nil, nil, err
-	}
-
-	creditFile, debitFile, err := file.SegmentFile(opts)
-	if err != nil {
-		return nil, nil, err
-	}
-	return creditFile, debitFile, nil
+	return nil, nil, nil
 }
 
 // FlattenBatches consolidates batches that have the same BatchHeader
 func (s *service) FlattenBatches(fileID string) (*ach.File, error) {
-	original, err := s.GetFile(fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Clone the file to avoid mutating the original in the repository
-	f, err := cloneFile(original)
-	if err != nil {
-		return nil, fmt.Errorf("cloning file: %w", err)
-	}
-
-	// File Create in the case a file is malformed.
-	if err := f.Create(); err != nil {
-		return nil, err
-	}
-	ff, err := f.FlattenBatches()
-	if err != nil {
-		return nil, err
-	}
-	return ff, err
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Clone the file to avoid mutating the original in the repository
+
+// File Create in the case a file is malformed.
 
 func (s *service) MergeFiles(fileIDs []string, files []*ach.File, conditions *ach.Conditions) ([]*ach.File, error) {
-	for idx := range fileIDs {
-		file, err := s.store.FindFile(fileIDs[idx])
-		if err != nil {
-			return nil, fmt.Errorf("file not found: %v", fileIDs[idx])
-		}
-
-		files = append(files, file)
-	}
-
-	var merged []*ach.File
-	var err error
-	if conditions != nil {
-		merged, err = ach.MergeFilesWith(files, *conditions)
-	} else {
-		merged, err = ach.MergeFiles(files)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("merging files: %w", err)
-	}
-
-	for idx := range merged {
-		var buf bytes.Buffer
-		err := ach.NewWriter(&buf).Write(merged[idx])
-		if err != nil {
-			return nil, fmt.Errorf("problem hashing merged file: %w", err)
-		}
-
-		merged[idx].ID = hash(buf.Bytes())
-	}
-
-	return merged, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func hash(data []byte) string {
-	ss := sha256.New()
-	ss.Write(data)
-	return hex.EncodeToString(ss.Sum(nil))
-}
+func hash(data []byte) string { _ = "STUB: not implemented"; return "" }
 
 // ReverseFile creates a NACHA compliant reversal of the ACH file
 func (s *service) ReverseFile(fileID string, effectiveEntryDate time.Time) (*ach.File, error) {
-	f, err := s.GetFile(fileID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Clone the file to avoid modifying the original in the repository
-	var buf bytes.Buffer
-	if err := ach.NewWriter(&buf).Write(f); err != nil {
-		return nil, fmt.Errorf("cloning file for reversal: %w", err)
-	}
-	cloned, err := ach.NewReader(&buf).Read()
-	if err != nil {
-		return nil, fmt.Errorf("reading cloned file: %w", err)
-	}
-
-	if err := cloned.Reversal(effectiveEntryDate); err != nil {
-		return nil, err
-	}
-	cloned.ID = base.ID() // new ID for reversed file
-	return &cloned, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Clone the file to avoid modifying the original in the repository
+
+// new ID for reversed file
 
 // cloneFile creates a deep copy of the file via JSON serialization.
 // This prevents mutations to the returned file from affecting the original in the repository.
 // JSON is used instead of ACH Writer/Reader because it can handle files that haven't been built yet.
-func cloneFile(f *ach.File) (*ach.File, error) {
-	data, err := json.Marshal(f)
-	if err != nil {
-		return nil, fmt.Errorf("cloning file: %w", err)
-	}
-	if len(data) > 64*1024*1024 {
-		return nil, fmt.Errorf("json data of %d bytes is too large", len(data))
-	}
+func cloneFile(f *ach.File) (*ach.File, error) { _ = "STUB: not implemented"; return nil, nil }
 
-	// Use SkipAll to avoid validation during cloning - we just want an exact copy
-	cloned, err := ach.FileFromJSONWith(data, &ach.ValidateOpts{SkipAll: true})
-	if err != nil {
-		return nil, fmt.Errorf("cloning file: %w", err)
-	}
-	// Restore original validation options (or clear the SkipAll we used for cloning)
-	cloned.SetValidation(f.GetValidation())
-	return cloned, nil
-}
+// Use SkipAll to avoid validation during cloning - we just want an exact copy
+
+// Restore original validation options (or clear the SkipAll we used for cloning)

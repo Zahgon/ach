@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"fmt"
-)
-
 // Batcher abstract the different ACH batch types that can exist in a file.
 // Each batch type is defined by SEC (Standard Entry Class) code in the Batch Header
 // * SEC identifies the payment type (product) found within an ACH batch-using a 3-character code
@@ -70,11 +66,4 @@ const (
 	OffsetSavings  OffsetAccountType = "savings"
 )
 
-func (t OffsetAccountType) validate() error {
-	switch t {
-	case OffsetChecking, OffsetSavings:
-		return nil
-	default:
-		return fmt.Errorf("unknown offset account type: %s", t)
-	}
-}
+func (t OffsetAccountType) validate() error { _ = "STUB: not implemented"; return nil }

@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"encoding/json"
-)
-
 type InvalidEntry struct {
 	Entry    *EntryDetail
 	ADVEntry *ADVEntryDetail
@@ -35,13 +31,4 @@ type invalidEntryJSON struct {
 	Error string `json:"error"`
 }
 
-func (ee InvalidEntry) MarshalJSON() ([]byte, error) {
-	out := invalidEntryJSON{
-		Entry:    ee.Entry,
-		ADVEntry: ee.ADVEntry,
-	}
-	if ee.Error != nil {
-		out.Error = ee.Error.Error()
-	}
-	return json.Marshal(out)
-}
+func (ee InvalidEntry) MarshalJSON() ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }

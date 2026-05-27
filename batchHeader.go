@@ -18,10 +18,7 @@
 package ach
 
 import (
-	"strconv"
-	"strings"
 	"time"
-	"unicode/utf8"
 )
 
 // BatchHeader identifies the originating entity and the type of transactions
@@ -139,280 +136,113 @@ const (
 )
 
 // NewBatchHeader returns a new BatchHeader with default values for non exported fields
-func NewBatchHeader() *BatchHeader {
-	bh := &BatchHeader{
-		OriginatorStatusCode: 1, // Prepared by a financial institution
-		BatchNumber:          1,
-	}
-	return bh
-}
+func NewBatchHeader() *BatchHeader { _ = "STUB: not implemented"; return nil }
+
+// Prepared by a financial institution
 
 // Parse takes the input record string and parses the BatchHeader values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (bh *BatchHeader) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (bh *BatchHeader) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 2-4 MixedCreditsAnDebits (200), CreditsOnly (220), DebitsOnly (225)
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 1:
-			reset()
-		case 4:
-			// 2-4 MixedCreditsAnDebits (200), CreditsOnly (220), DebitsOnly (225)
-			bh.ServiceClassCode = bh.parseNumField(reset())
-		case 20:
-			// 5-20 Your company's name. This name may appear on the receivers' statements prepared by the RDFI.
-			bh.CompanyName = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 40:
-			// 21-40 Optional field you may use to describe the batch for internal accounting purposes
-			bh.CompanyDiscretionaryData = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 50:
-			// 41-50 A 10-digit number assigned to you by the ODFI once they approve you to
-			// originate ACH files through them. This is the same as the "Immediate origin" field in File Header Record
-			bh.CompanyIdentification = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 53:
-			// 51-53 If the entries are PPD (credits/debits towards consumer account), use PPD.
-			// If the entries are CCD (credits/debits towards corporate account), use CCD.
-			// The difference between the 2 SEC codes are outside of the scope of this post.
-			bh.StandardEntryClassCode = reset()
-		case 63:
-			// 54-63 Your description of the transaction. This text will appear on the receivers' bank statement.
-			// For example: "Payroll   "
-			bh.CompanyEntryDescription = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 69:
-			// 64-69 The date you choose to identify the transactions in YYMMDD format.
-			// This date may be printed on the receivers' bank statement by the RDFI
-			bh.CompanyDescriptiveDate = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 75:
-			// 70-75 Date transactions are to be posted to the receivers' account.
-			// You almost always want the transaction to post as soon as possible, so put tomorrow's date in YYMMDD format
-			bh.EffectiveEntryDate = bh.validateSimpleDate(reset())
-		case 78:
-			// 76-78 Always blank if creating batches (just fill with spaces).
-			// Set to file value when parsing. Julian day format.
-			bh.SettlementDate = bh.validateSettlementDate(reset())
-		case 79:
-			// 79-79 Always 1
-			bh.OriginatorStatusCode = bh.parseNumField(reset())
-		case 87:
-			// 80-87 Your ODFI's routing number without the last digit. The last digit is simply a
-			// checksum digit, which is why it is not necessary
-			bh.ODFIIdentification = bh.parseStringFieldWithOpts(reset(), bh.validateOpts)
-		case 94:
-			// 88-94 Sequential number of this Batch Header Record
-			// For example, put "1" if this is the first Batch Header Record in the file
-			bh.BatchNumber = bh.parseNumField(reset())
-		}
-	}
-}
+// 5-20 Your company's name. This name may appear on the receivers' statements prepared by the RDFI.
+
+// 21-40 Optional field you may use to describe the batch for internal accounting purposes
+
+// 41-50 A 10-digit number assigned to you by the ODFI once they approve you to
+// originate ACH files through them. This is the same as the "Immediate origin" field in File Header Record
+
+// 51-53 If the entries are PPD (credits/debits towards consumer account), use PPD.
+// If the entries are CCD (credits/debits towards corporate account), use CCD.
+// The difference between the 2 SEC codes are outside of the scope of this post.
+
+// 54-63 Your description of the transaction. This text will appear on the receivers' bank statement.
+// For example: "Payroll   "
+
+// 64-69 The date you choose to identify the transactions in YYMMDD format.
+// This date may be printed on the receivers' bank statement by the RDFI
+
+// 70-75 Date transactions are to be posted to the receivers' account.
+// You almost always want the transaction to post as soon as possible, so put tomorrow's date in YYMMDD format
+
+// 76-78 Always blank if creating batches (just fill with spaces).
+// Set to file value when parsing. Julian day format.
+
+// 79-79 Always 1
+
+// 80-87 Your ODFI's routing number without the last digit. The last digit is simply a
+// checksum digit, which is why it is not necessary
+
+// 88-94 Sequential number of this Batch Header Record
+// For example, put "1" if this is the first Batch Header Record in the file
 
 // String writes the BatchHeader struct to a 94 character string.
-func (bh *BatchHeader) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(batchHeaderPos)
-	buf.WriteString(strconv.Itoa(bh.ServiceClassCode))
-	buf.WriteString(bh.CompanyNameField())
-	buf.WriteString(bh.CompanyDiscretionaryDataField())
-	buf.WriteString(bh.CompanyIdentificationField())
-	buf.WriteString(bh.StandardEntryClassCode)
-	buf.WriteString(bh.CompanyEntryDescriptionField())
-	buf.WriteString(bh.CompanyDescriptiveDateField())
-	buf.WriteString(bh.EffectiveEntryDateField())
-	buf.WriteString(bh.SettlementDateField())
-	buf.WriteString(strconv.Itoa(bh.OriginatorStatusCode))
-	buf.WriteString(bh.ODFIIdentificationField())
-	buf.WriteString(bh.BatchNumberField())
-	return buf.String()
-}
+func (bh *BatchHeader) String() string { _ = "STUB: not implemented"; return "" }
 
 // Equal returns true only if two BatchHeaders are equal.
 // Equality is determined by the Nacha defined fields of each record.
-func (bh *BatchHeader) Equal(other *BatchHeader) bool {
-	if bh == nil || other == nil {
-		return false
-	}
-
-	if bh.ServiceClassCode != other.ServiceClassCode {
-		return false
-	}
-	if !strings.EqualFold(bh.CompanyName, other.CompanyName) {
-		return false
-	}
-	if bh.CompanyIdentification != other.CompanyIdentification {
-		return false
-	}
-	if bh.StandardEntryClassCode != other.StandardEntryClassCode {
-		return false
-	}
-	if bh.CompanyEntryDescription != other.CompanyEntryDescription {
-		return false
-	}
-	if bh.EffectiveEntryDate != other.EffectiveEntryDate {
-		return false
-	}
-	if bh.ODFIIdentification != other.ODFIIdentification {
-		return false
-	}
-	return true
-}
+func (bh *BatchHeader) Equal(other *BatchHeader) bool { _ = "STUB: not implemented"; return false }
 
 // SetValidation stores ValidateOpts on the BatchHeader which are to be used to override
 // the default NACHA validation rules.
-func (bh *BatchHeader) SetValidation(opts *ValidateOpts) {
-	if bh == nil {
-		return
-	}
-	bh.validateOpts = opts
-}
+func (bh *BatchHeader) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (bh *BatchHeader) Validate() error {
-	if err := bh.fieldInclusion(); err != nil {
-		return err
-	}
-	if bh.validateOpts == nil || bh.validateOpts.CheckTransactionCode == nil {
-		// Ensure the ServiceClassCode follows NACHA standards if we have no TransactionCode
-		// validation overrides. Custom TransactionCode's don't allow for standard validation.
-		if err := bh.isServiceClass(bh.ServiceClassCode); err != nil {
-			return fieldError("ServiceClassCode", err, bh.ServiceClassCode)
-		}
-	}
-	if err := bh.isSECCode(bh.StandardEntryClassCode); err != nil {
-		return fieldError("StandardEntryClassCode", err, bh.StandardEntryClassCode)
-	}
-	if err := bh.isOriginatorStatusCode(bh.OriginatorStatusCode); err != nil {
-		return fieldError("OriginatorStatusCode", err, bh.OriginatorStatusCode)
-	}
+func (bh *BatchHeader) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// Originator status code 0 is used for ADV batches only
-	if bh.StandardEntryClassCode != ADV && bh.OriginatorStatusCode == 0 {
-		return fieldError("OriginatorStatusCode", ErrOrigStatusCode, bh.OriginatorStatusCode)
-	}
+// Ensure the ServiceClassCode follows NACHA standards if we have no TransactionCode
+// validation overrides. Custom TransactionCode's don't allow for standard validation.
 
-	if bh.validateOpts == nil || (!bh.validateOpts.AllowSpecialCharacters && !bh.validateOpts.SkipBatchHeaderCompanyValidation) {
-		if err := bh.isAlphanumeric(bh.CompanyName); err != nil {
-			return fieldError("CompanyName", err, bh.CompanyName)
-		}
-		if err := bh.isNonZero(bh.CompanyName); err != nil {
-			return fieldError("CompanyName", err, bh.CompanyName)
-		}
-
-		if err := bh.isAlphanumeric(bh.CompanyDiscretionaryData); err != nil {
-			return fieldError("CompanyDiscretionaryData", err, bh.CompanyDiscretionaryData)
-		}
-
-		if err := bh.isAlphanumeric(bh.CompanyIdentification); err != nil {
-			return fieldError("CompanyIdentification", err, bh.CompanyIdentification)
-		}
-		if err := bh.isNonZero(bh.CompanyIdentification); err != nil {
-			return fieldError("CompanyIdentification", err, bh.CompanyIdentification)
-		}
-
-		if err := bh.isAlphanumeric(bh.CompanyEntryDescription); err != nil {
-			return fieldError("CompanyEntryDescription", err, bh.CompanyEntryDescription)
-		}
-		if err := bh.isNonZero(bh.CompanyEntryDescription); err != nil {
-			return fieldError("CompanyEntryDescription", err, bh.CompanyEntryDescription)
-		}
-	}
-	return nil
-}
+// Originator status code 0 is used for ADV batches only
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (bh *BatchHeader) fieldInclusion() error {
-	if bh.ServiceClassCode == 0 {
-		return fieldError("ServiceClassCode", ErrConstructor, strconv.Itoa(bh.ServiceClassCode))
-	}
-	if bh.CompanyName == "" {
-		return fieldError("CompanyName", ErrConstructor, bh.CompanyName)
-	}
-	if bh.CompanyIdentification == "" {
-		return fieldError("CompanyIdentification", ErrConstructor, bh.CompanyIdentification)
-	}
-	if bh.StandardEntryClassCode == "" {
-		return fieldError("StandardEntryClassCode", ErrConstructor, bh.StandardEntryClassCode)
-	}
-	if bh.CompanyEntryDescription == "" {
-		return fieldError("CompanyEntryDescription", ErrConstructor, bh.CompanyEntryDescription)
-	}
-	if bh.ODFIIdentification == "" {
-		return fieldError("ODFIIdentification", ErrConstructor, bh.ODFIIdentificationField())
-	}
-	return nil
-}
+func (bh *BatchHeader) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // CompanyNameField get the CompanyName left padded
-func (bh *BatchHeader) CompanyNameField() string {
-	return bh.alphaField(bh.CompanyName, 16)
-}
+func (bh *BatchHeader) CompanyNameField() string { _ = "STUB: not implemented"; return "" }
 
 // CompanyDiscretionaryDataField get the CompanyDiscretionaryData left padded
-func (bh *BatchHeader) CompanyDiscretionaryDataField() string {
-	return bh.alphaField(bh.CompanyDiscretionaryData, 20)
-}
+func (bh *BatchHeader) CompanyDiscretionaryDataField() string { _ = "STUB: not implemented"; return "" }
 
 // CompanyIdentificationField get the CompanyIdentification left padded
-func (bh *BatchHeader) CompanyIdentificationField() string {
-	return bh.alphaField(bh.CompanyIdentification, 10)
-}
+func (bh *BatchHeader) CompanyIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // CompanyEntryDescriptionField get the CompanyEntryDescription left padded
-func (bh *BatchHeader) CompanyEntryDescriptionField() string {
-	return bh.alphaField(bh.CompanyEntryDescription, 10)
-}
+func (bh *BatchHeader) CompanyEntryDescriptionField() string { _ = "STUB: not implemented"; return "" }
 
 // CompanyDescriptiveDateField get the CompanyDescriptiveDate left padded
-func (bh *BatchHeader) CompanyDescriptiveDateField() string {
-	return bh.alphaField(bh.CompanyDescriptiveDate, 6)
-}
+func (bh *BatchHeader) CompanyDescriptiveDateField() string { _ = "STUB: not implemented"; return "" }
 
 // EffectiveEntryDateField get the EffectiveEntryDate in YYMMDD format
 func (bh *BatchHeader) EffectiveEntryDateField() string {
+	_ = "STUB: not implemented"
 	// ENR records require EffectiveEntryDate to be space filled. NACHA Page OR108
-	if bh.CompanyEntryDescription == "AUTOENROLL" && bh.StandardEntryClassCode == ENR {
-		return bh.alphaField("", 6)
-	}
-	return bh.stringField(bh.EffectiveEntryDate, 6) // YYMMDD
+	return ""
 }
+
+// YYMMDD
 
 // ODFIIdentificationField get the odfi number zero padded
-func (bh *BatchHeader) ODFIIdentificationField() string {
-	return bh.stringField(bh.ODFIIdentification, 8)
-}
+func (bh *BatchHeader) ODFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // BatchNumberField get the batch number zero padded
-func (bh *BatchHeader) BatchNumberField() string {
-	return bh.numericField(bh.BatchNumber, 7)
-}
+func (bh *BatchHeader) BatchNumberField() string { _ = "STUB: not implemented"; return "" }
 
-func (bh *BatchHeader) SettlementDateField() string {
-	return bh.alphaField(bh.SettlementDate, 3)
-}
+func (bh *BatchHeader) SettlementDateField() string { _ = "STUB: not implemented"; return "" }
 
 func (bh *BatchHeader) LiftEffectiveEntryDate() (time.Time, error) {
-	return time.Parse("060102", bh.EffectiveEntryDate) // YYMMDD
+	_ = "STUB: not implemented"
+	return *new(time.Time), nil
 }
+
+// YYMMDD

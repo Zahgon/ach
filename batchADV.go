@@ -27,69 +27,20 @@ type BatchADV struct {
 }
 
 // NewBatchADV returns a *BatchADV
-func NewBatchADV(bh *BatchHeader) *BatchADV {
-	batch := new(BatchADV)
-	batch.SetADVControl(NewADVBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchADV(bh *BatchHeader) *BatchADV { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchADV) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchADV) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if batch.Header.StandardEntryClassCode != ADV {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, ADV)
-	}
-	if batch.Header.ServiceClassCode != AutomatedAccountingAdvices {
-		return batch.Error("ServiceClassCode", ErrBatchServiceClassCode, batch.Header.ServiceClassCode)
-	}
-	if batch.Header.OriginatorStatusCode != 0 {
-		return batch.Error("OriginatorStatusCode", ErrOrigStatusCode, batch.Header.OriginatorStatusCode)
-	}
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
+// basic verification of the batch before we validate specific rules.
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchADV) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
-	for _, entry := range batch.ADVEntries {
-		if entry.Category == CategoryForward {
-			switch entry.TransactionCode {
-			case CreditForDebitsOriginated, CreditForCreditsReceived, CreditForCreditsRejected, CreditSummary,
-				DebitForCreditsOriginated, DebitForDebitsReceived, DebitForDebitsRejectedBatches, DebitSummary:
-			default:
-				out = append(out, InvalidEntry{
-					ADVEntry: entry,
-					Error:    batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-				})
-			}
-			if entry.Addenda99 != nil {
-				out = append(out, InvalidEntry{
-					ADVEntry: entry,
-					Error:    batch.Error("Addenda99", ErrBatchAddendaCategory, entry.Category),
-				})
-			}
-		}
-	}
-	return out
-}
+func (batch *BatchADV) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -97,11 +48,10 @@ func (batch *BatchADV) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchADV) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	// Additional steps specific to batch type
-	// ...
-	return batch.Validate()
+	return nil
 }
+
+// Additional steps specific to batch type
+// ...

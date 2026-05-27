@@ -19,7 +19,6 @@ package ach
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -124,32 +123,17 @@ type FieldError struct {
 // FieldName Msg Value
 // Example1: BatchCount $% has none alphanumeric characters
 // Example2: BatchCount 5 is out-of-balance with file count 6
-func (e *FieldError) Error() string {
-	return fmt.Sprintf("%s %v %s", e.FieldName, e.Value, e.Err)
-}
+func (e *FieldError) Error() string { _ = "STUB: not implemented"; return "" }
 
 // Unwrap implements the base.UnwrappableError interface for FieldError
-func (e *FieldError) Unwrap() error {
-	return e.Err
-}
+func (e *FieldError) Unwrap() error { _ = "STUB: not implemented"; return nil }
 
 func fieldError(field string, err error, values ...interface{}) error {
-	if err == nil {
-		return nil
-	}
-	if _, ok := err.(*FieldError); ok {
-		return err
-	}
-	fe := FieldError{
-		FieldName: field,
-		Err:       err,
-	}
-	// only the first value counts
-	if len(values) > 0 {
-		fe.Value = values[0]
-	}
-	return &fe
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// only the first value counts
 
 // ErrValidCheckDigit is the error given when the observed check digit does not match the calculated one
 type ErrValidCheckDigit struct {
@@ -159,17 +143,17 @@ type ErrValidCheckDigit struct {
 
 // NewErrValidCheckDigit creates a new error of the ErrValidCheckDigit type
 func NewErrValidCheckDigit(digit int) ErrValidCheckDigit {
-	return ErrValidCheckDigit{
-		Message:              fmt.Sprintf("does not match calculated check digit %v", digit),
-		CalculatedCheckDigit: digit,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrValidCheckDigit)
 }
 
 func (e ErrValidCheckDigit) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrValidFieldLength is the error given when the field does not have the correct length
+	return ""
 }
 
-// ErrValidFieldLength is the error given when the field does not have the correct length
 type ErrValidFieldLength struct {
 	Message        string
 	ExpectedLength int
@@ -177,17 +161,17 @@ type ErrValidFieldLength struct {
 
 // NewErrValidFieldLength creates a new error of the ErrValidFieldLength type
 func NewErrValidFieldLength(expectedLength int) ErrValidFieldLength {
-	return ErrValidFieldLength{
-		Message:        fmt.Sprintf("is not length %v", expectedLength),
-		ExpectedLength: expectedLength,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrValidFieldLength)
 }
 
 func (e ErrValidFieldLength) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrRecordType is the error given when the field does not have the right record type
+	return ""
 }
 
-// ErrRecordType is the error given when the field does not have the right record type
 type ErrRecordType struct {
 	Message      string
 	ExpectedType int
@@ -195,12 +179,8 @@ type ErrRecordType struct {
 
 // NewErrRecordType creates a new error of the ErrRecordType type
 func NewErrRecordType(expectedType int) ErrRecordType {
-	return ErrRecordType{
-		Message:      fmt.Sprintf("received expecting %v", expectedType),
-		ExpectedType: expectedType,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrRecordType)
 }
 
-func (e ErrRecordType) Error() string {
-	return e.Message
-}
+func (e ErrRecordType) Error() string { _ = "STUB: not implemented"; return "" }

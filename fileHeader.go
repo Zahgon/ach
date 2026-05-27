@@ -18,13 +18,7 @@
 package ach
 
 import (
-	"cmp"
-	"errors"
 	"strings"
-	"time"
-	"unicode/utf8"
-
-	"github.com/moov-io/base"
 )
 
 // FileHeader is a Record designating physical file characteristics and identify
@@ -110,98 +104,53 @@ type FileHeader struct {
 }
 
 // NewFileHeader returns a new FileHeader with default values for none exported fields
-func NewFileHeader() FileHeader {
-	fh := FileHeader{
-		priorityCode:   "01",
-		FileIDModifier: "A",
-		recordSize:     "094",
-		blockingFactor: "10",
-		FormatCode:     "1",
-	}
-	return fh
-}
+func NewFileHeader() FileHeader { _ = "STUB: not implemented"; return *new(FileHeader) }
 
 // Parse takes the input record string and parses the FileHeader values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (fh *FileHeader) Parse(record string) {
-	if utf8.RuneCountInString(record) != 94 {
-		return
-	}
-	runes := []rune(record)
+func (fh *FileHeader) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	// (character position 1-1) Always "1"
-	// (2-3) Always "01"
-	fh.priorityCode = "01"
-	// (4-13) A blank space followed by your ODFI's routing number. For example: " 121140399"
-	fh.ImmediateDestination = trimRoutingNumberLeadingZero(fh.parseStringField(string(runes[3:13])))
-	// (14-23) A 10-digit number assigned to you by the ODFI once they approve you to originate ACH files through them
-	fh.ImmediateOrigin = trimRoutingNumberLeadingZero(fh.parseStringField(string(runes[13:23])))
-	// 24-29 Today's date in YYMMDD format
-	// must be after today's date.
-	fh.FileCreationDate = fh.validateSimpleDate(string(runes[23:29]))
-	// 30-33 The current time in HHmm format
-	fh.FileCreationTime = fh.validateSimpleTime(string(runes[29:33]))
-	// 35-37 Always "A"
-	fh.FileIDModifier = string(runes[33:34])
-	// 35-37 always "094"
-	fh.recordSize = "094"
-	// 38-39 always "10"
-	fh.blockingFactor = "10"
-	// 40 always "1"
-	fh.FormatCode = fh.parseStringField(string(runes[39:40]))
-	// 41-63 The name of the ODFI. example "SILICON VALLEY BANK    "
-	fh.ImmediateDestinationName = fh.parseStringFieldWithOpts(string(runes[40:63]), fh.validateOpts)
-	// 64-86 ACH operator or sending point that is sending the file
-	fh.ImmediateOriginName = fh.parseStringFieldWithOpts(string(runes[63:86]), fh.validateOpts)
-	// 87-94 Optional field that may be used to describe the ACH file for internal accounting purposes
-	fh.ReferenceCode = fh.parseStringFieldWithOpts(string(runes[86:94]), fh.validateOpts)
-}
+// (character position 1-1) Always "1"
+// (2-3) Always "01"
 
-func trimRoutingNumberLeadingZero(s string) string {
-	if utf8.RuneCountInString(s) == 10 && s[0] == '0' && s != "0000000000" {
-		// trim off a leading 0 as ImmediateOriginField or ImmediateDestinationField will pad it back
-		return strings.TrimSpace(s[1:])
-	}
-	return strings.TrimSpace(s)
-}
+// (4-13) A blank space followed by your ODFI's routing number. For example: " 121140399"
+
+// (14-23) A 10-digit number assigned to you by the ODFI once they approve you to originate ACH files through them
+
+// 24-29 Today's date in YYMMDD format
+// must be after today's date.
+
+// 30-33 The current time in HHmm format
+
+// 35-37 Always "A"
+
+// 35-37 always "094"
+
+// 38-39 always "10"
+
+// 40 always "1"
+
+// 41-63 The name of the ODFI. example "SILICON VALLEY BANK    "
+
+// 64-86 ACH operator or sending point that is sending the file
+
+// 87-94 Optional field that may be used to describe the ACH file for internal accounting purposes
+
+func trimRoutingNumberLeadingZero(s string) string { _ = "STUB: not implemented"; return "" }
+
+// trim off a leading 0 as ImmediateOriginField or ImmediateDestinationField will pad it back
 
 // String writes the FileHeader struct to a 94 character string.
-func (fh *FileHeader) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(fileHeaderPos)
-	buf.WriteString(fh.priorityCode)
-	buf.WriteString(fh.ImmediateDestinationField())
-	buf.WriteString(fh.ImmediateOriginField())
-	buf.WriteString(fh.FileCreationDateField())
-	buf.WriteString(fh.FileCreationTimeField())
-	buf.WriteString(fh.FileIDModifier)
-	buf.WriteString(fh.recordSize)
-	buf.WriteString(fh.blockingFactor)
-	buf.WriteString(fh.FormatCode)
-	buf.WriteString(fh.ImmediateDestinationNameField())
-	buf.WriteString(fh.ImmediateOriginNameField())
-	buf.WriteString(fh.ReferenceCodeField())
-
-	return buf.String()
-}
+func (fh *FileHeader) String() string { _ = "STUB: not implemented"; return "" }
 
 // SetValidation stores ValidateOpts on the FileHeader which are to be used to override
 // the default NACHA validation rules.
-func (fh *FileHeader) SetValidation(opts *ValidateOpts) {
-	if fh == nil {
-		return
-	}
-	fh.validateOpts = opts
-}
+func (fh *FileHeader) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops the parsing.
-func (fh *FileHeader) Validate() error {
-	return fh.ValidateWith(fh.validateOpts)
-}
+func (fh *FileHeader) Validate() error { _ = "STUB: not implemented"; return nil }
 
 var (
 	zeroRoutingNumber9  = strings.Repeat("0", 9)
@@ -211,181 +160,41 @@ var (
 // ValidateWith performs NACHA format rule checks on each record according to their specification
 // overlayed with any custom flags.
 // The first error encountered is returned and stops the parsing.
-func (fh *FileHeader) ValidateWith(opts *ValidateOpts) error {
-	if opts == nil {
-		opts = &ValidateOpts{}
-	}
-	if err := fh.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := fh.isUpperASCII(fh.FileIDModifier); err != nil {
-		return fieldError("FileIDModifier", err, fh.FileIDModifier)
-	}
-	if len(fh.FileIDModifier) != 1 {
-		return fieldError("FileIDModifier", NewErrValidFieldLength(1), fh.FileIDModifier)
-	}
-	if fh.recordSize != "094" {
-		return fieldError("recordSize", ErrRecordSize, fh.recordSize)
-	}
-	if fh.blockingFactor != "10" {
-		return fieldError("blockingFactor", ErrBlockingFactor, fh.blockingFactor)
-	}
-	if fh.FormatCode != "1" {
-		return fieldError("FormatCode", ErrFormatCode, fh.FormatCode)
-	}
-	if !opts.BypassOriginValidation {
-		if fh.ImmediateOrigin == zeroRoutingNumber9 || fh.ImmediateOrigin == zeroRoutingNumber10 {
-			return fieldError("ImmediateOrigin", ErrConstructor, fh.ImmediateOrigin)
-		}
-		if opts.RequireABAOrigin {
-			if err := CheckRoutingNumber(fh.ImmediateOrigin); err != nil {
-				return fieldError("ImmediateOrigin", err, fh.ImmediateOrigin)
-			}
-		}
-	}
-	if !opts.BypassDestinationValidation {
-		if fh.ImmediateDestination == "000000000" {
-			return fieldError("ImmediateDestination", ErrConstructor, fh.ImmediateDestination)
-		}
-		if err := CheckRoutingNumber(fh.ImmediateDestination); err != nil {
-			return fieldError("ImmediateDestination", err, fh.ImmediateDestination)
-		}
-	}
-	if fh.validateOpts == nil || !fh.validateOpts.AllowSpecialCharacters {
-		if err := fh.isAlphanumeric(fh.ImmediateDestinationName); err != nil {
-			return fieldError("ImmediateDestinationName", err, fh.ImmediateDestinationName)
-		}
-		if err := fh.isAlphanumeric(fh.ImmediateOriginName); err != nil {
-			return fieldError("ImmediateOriginName", err, fh.ImmediateOriginName)
-		}
-		if err := fh.isAlphanumeric(fh.ReferenceCode); err != nil {
-			return fieldError("ReferenceCode", err, fh.ReferenceCode)
-		}
-	}
-	if fh.validateOpts == nil || !fh.validateOpts.SkipFileCreationValidation {
-		if fh.FileCreationDate != "" {
-			_, err := datetimeParse(fh.FileCreationDate)
-			when := fh.FileCreationDateField()
-
-			if err != nil && when == "" {
-				err = cmp.Or(err, errors.New("invalid FileCreationDate"))
-				return fieldError("FileCreationDate", err, fh.FileCreationDate)
-			}
-		}
-		if fh.FileCreationTime != "" {
-			_, err := datetimeParse(fh.FileCreationTime)
-			when := fh.FileCreationTimeField()
-
-			if err != nil && when == "" {
-				err = cmp.Or(err, errors.New("invalid FileCreationTime"))
-				return fieldError("FileCreationTime", err, fh.FileCreationTime)
-			}
-		}
-	}
-
-	return nil
-}
+func (fh *FileHeader) ValidateWith(opts *ValidateOpts) error { _ = "STUB: not implemented"; return nil }
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (fh *FileHeader) fieldInclusion() error {
-	if fh.validateOpts != nil && fh.validateOpts.AllowMissingFileHeader {
-		return nil
-	}
-
-	if fh.ImmediateDestination == "" {
-		return fieldError("ImmediateDestination", ErrConstructor, fh.ImmediateDestinationField())
-	}
-	if fh.ImmediateOrigin == "" {
-		return fieldError("ImmediateOrigin", ErrConstructor, fh.ImmediateOriginField())
-	}
-	if fh.FileCreationDate == "" {
-		return fieldError("FileCreationDate", ErrConstructor, fh.FileCreationDate)
-	}
-	if fh.FileIDModifier == "" {
-		return fieldError("FileIDModifier", ErrConstructor, fh.FileIDModifier)
-	}
-	if fh.recordSize == "" {
-		return fieldError("recordSize", ErrConstructor, fh.recordSize)
-	}
-	if fh.blockingFactor == "" {
-		return fieldError("blockingFactor", ErrConstructor, fh.blockingFactor)
-	}
-	if fh.FormatCode == "" {
-		return fieldError("FormatCode", ErrConstructor, fh.FormatCode)
-	}
-	return nil
-}
+func (fh *FileHeader) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // ImmediateDestinationField gets the immediate destination number with zero padding
-func (fh *FileHeader) ImmediateDestinationField() string {
-	if fh.ImmediateDestination == "" {
-		return strings.Repeat(" ", 10)
-	}
-	fh.ImmediateDestination = strings.TrimSpace(fh.ImmediateDestination)
-	if fh.validateOpts != nil && fh.validateOpts.BypassDestinationValidation && len(fh.ImmediateDestination) == 10 {
-		return fh.ImmediateDestination
-	}
-	return " " + fh.stringField(fh.ImmediateDestination, 9)
-}
+func (fh *FileHeader) ImmediateDestinationField() string { _ = "STUB: not implemented"; return "" }
 
 // ImmediateOriginField gets the immediate origin number with 0 padding
-func (fh *FileHeader) ImmediateOriginField() string {
-	if fh.ImmediateOrigin == "" {
-		return strings.Repeat(" ", 10)
-	}
-	fh.ImmediateOrigin = strings.TrimSpace(fh.ImmediateOrigin)
-	if fh.validateOpts != nil && fh.validateOpts.BypassOriginValidation && len(fh.ImmediateOrigin) == 10 {
-		return fh.ImmediateOrigin
-	}
-	return " " + fh.stringField(fh.ImmediateOrigin, 9)
-}
+func (fh *FileHeader) ImmediateOriginField() string { _ = "STUB: not implemented"; return "" }
 
 // FileCreationDateField gets the file creation date in YYMMDD (year, month, day) format
 // A blank string is returned when an error occurred while parsing the timestamp. ISO 8601
 // is the only other format supported.
-func (fh *FileHeader) FileCreationDateField() string {
-	switch utf8.RuneCountInString(fh.FileCreationDate) {
-	case 0:
-		return time.Now().Format("060102")
-	case 6:
-		return fh.formatSimpleDate(fh.FileCreationDate) // YYMMDD
-	}
-	t, err := time.Parse(base.ISO8601Format, fh.FileCreationDate)
-	if err != nil {
-		return ""
-	}
-	return t.Format("060102") // YYMMDD
-}
+func (fh *FileHeader) FileCreationDateField() string { _ = "STUB: not implemented"; return "" }
+
+// YYMMDD
+
+// YYMMDD
 
 // FileCreationTimeField gets the file creation time in HHmm (hour, minute) format
 // A blank string is returned when an error occurred while parsing the timestamp. ISO 8601
 // is the only other format supported.
-func (fh *FileHeader) FileCreationTimeField() string {
-	switch utf8.RuneCountInString(fh.FileCreationTime) {
-	case 0:
-		return time.Now().Format("1504")
-	case 4:
-		return fh.formatSimpleTime(fh.FileCreationTime) // HHmm
-	}
-	t, err := time.Parse(base.ISO8601Format, fh.FileCreationTime)
-	if err != nil {
-		return ""
-	}
-	return t.Format("1504") // HHmm
-}
+func (fh *FileHeader) FileCreationTimeField() string { _ = "STUB: not implemented"; return "" }
+
+// HHmm
+
+// HHmm
 
 // ImmediateDestinationNameField gets the ImmediateDestinationName field padded
-func (fh *FileHeader) ImmediateDestinationNameField() string {
-	return fh.alphaField(fh.ImmediateDestinationName, 23)
-}
+func (fh *FileHeader) ImmediateDestinationNameField() string { _ = "STUB: not implemented"; return "" }
 
 // ImmediateOriginNameField gets the ImmImmediateOriginName field padded
-func (fh *FileHeader) ImmediateOriginNameField() string {
-	return fh.alphaField(fh.ImmediateOriginName, 23)
-}
+func (fh *FileHeader) ImmediateOriginNameField() string { _ = "STUB: not implemented"; return "" }
 
 // ReferenceCodeField gets the ReferenceCode field padded
-func (fh *FileHeader) ReferenceCodeField() string {
-	return fh.alphaField(fh.ReferenceCode, 8)
-}
+func (fh *FileHeader) ReferenceCodeField() string { _ = "STUB: not implemented"; return "" }

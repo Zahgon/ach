@@ -19,7 +19,6 @@ package ach
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -68,61 +67,30 @@ type BatchError struct {
 	Err         error
 }
 
-func (e *BatchError) Error() string {
-	if e.FieldValue == nil {
-		return fmt.Sprintf("batch #%d (%v) %s %v", e.BatchNumber, e.BatchType, e.FieldName, e.Err)
-	}
-	return fmt.Sprintf("batch #%d (%v) %s %v: %v", e.BatchNumber, e.BatchType, e.FieldName, e.Err, e.FieldValue)
-}
+func (e *BatchError) Error() string { _ = "STUB: not implemented"; return "" }
 
 // Unwrap implements the base.UnwrappableError interface for BatchError
 func (e *BatchError) Unwrap() error {
-	return e.Err
+	_ = "STUB: not implemented"
+
+	// error returns a new BatchError based on err
+	return nil
 }
 
-// error returns a new BatchError based on err
 func (b *Batch) Error(field string, err error, values ...interface{}) error {
-	if err == nil {
-		return nil
-	}
-	if _, ok := err.(*BatchError); ok {
-		return err
-	}
-	be := BatchError{
-		FieldName: field,
-		Err:       err,
-	}
-	if b != nil {
-		be.BatchNumber = b.Header.BatchNumber
-		be.BatchType = b.Header.StandardEntryClassCode
-	}
-	// only the first value counts
-	if len(values) > 0 {
-		be.FieldValue = values[0]
-	}
-	return &be
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// only the first value counts
 
 // error returns a new BatchError based on err
 func (iatBatch *IATBatch) Error(field string, err error, values ...interface{}) error {
-	if err == nil {
-		return nil
-	}
-	if _, ok := err.(*BatchError); ok {
-		return err
-	}
-	be := BatchError{
-		BatchNumber: iatBatch.Header.BatchNumber,
-		BatchType:   iatBatch.Header.StandardEntryClassCode,
-		FieldName:   field,
-		Err:         err,
-	}
-	// only the first value counts
-	if len(values) > 0 {
-		be.FieldValue = values[0]
-	}
-	return &be
+	_ = "STUB: not implemented"
+	return nil
 }
+
+// only the first value counts
 
 // ErrBatchHeaderControlEquality is the error given when the control record does not match the calculated value
 type ErrBatchHeaderControlEquality struct {
@@ -133,18 +101,17 @@ type ErrBatchHeaderControlEquality struct {
 
 // NewErrBatchHeaderControlEquality creates a new error of the ErrBatchHeaderControlEquality type
 func NewErrBatchHeaderControlEquality(header, control interface{}) ErrBatchHeaderControlEquality {
-	return ErrBatchHeaderControlEquality{
-		Message:      fmt.Sprintf("header %v is not equal to control %v", header, control),
-		HeaderValue:  header,
-		ControlValue: control,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchHeaderControlEquality)
 }
 
 func (e ErrBatchHeaderControlEquality) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchCalculatedControlEquality is the error given when the control record does not match the calculated value
+	return ""
 }
 
-// ErrBatchCalculatedControlEquality is the error given when the control record does not match the calculated value
 type ErrBatchCalculatedControlEquality struct {
 	Message         string
 	CalculatedValue interface{}
@@ -153,18 +120,17 @@ type ErrBatchCalculatedControlEquality struct {
 
 // NewErrBatchCalculatedControlEquality creates a new error of the ErrBatchCalculatedControlEquality type
 func NewErrBatchCalculatedControlEquality(calculated, control interface{}) ErrBatchCalculatedControlEquality {
-	return ErrBatchCalculatedControlEquality{
-		Message:         fmt.Sprintf("calculated %v is out-of-balance with batch control %v", calculated, control),
-		CalculatedValue: calculated,
-		ControlValue:    control,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchCalculatedControlEquality)
 }
 
 func (e ErrBatchCalculatedControlEquality) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchAscending is the error given when the trace numbers in a batch are not in ascending order
+	return ""
 }
 
-// ErrBatchAscending is the error given when the trace numbers in a batch are not in ascending order
 type ErrBatchAscending struct {
 	Message       string
 	PreviousTrace interface{}
@@ -173,18 +139,17 @@ type ErrBatchAscending struct {
 
 // NewErrBatchAscending creates a new error of the ErrBatchAscending type
 func NewErrBatchAscending(previous, current interface{}) ErrBatchAscending {
-	return ErrBatchAscending{
-		Message:       fmt.Sprintf("must be in ascending order, %v is less than or equal to last number %v", current, previous),
-		PreviousTrace: previous,
-		CurrentTrace:  current,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchAscending)
 }
 
 func (e ErrBatchAscending) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchCategory is the error given when a batch has entires with two different categories
+	return ""
 }
 
-// ErrBatchCategory is the error given when a batch has entires with two different categories
 type ErrBatchCategory struct {
 	Message   string
 	CategoryA string
@@ -193,18 +158,17 @@ type ErrBatchCategory struct {
 
 // NewErrBatchCategory creates a new error of the ErrBatchCategory type
 func NewErrBatchCategory(categoryA, categoryB string) ErrBatchCategory {
-	return ErrBatchCategory{
-		Message:   fmt.Sprintf("%v category found in batch with category %v", categoryA, categoryB),
-		CategoryA: categoryA,
-		CategoryB: categoryB,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchCategory)
 }
 
 func (e ErrBatchCategory) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchTraceNumberNotODFI is the error given when a batch's ODFI does not match an entry's trace number
+	return ""
 }
 
-// ErrBatchTraceNumberNotODFI is the error given when a batch's ODFI does not match an entry's trace number
 type ErrBatchTraceNumberNotODFI struct {
 	Message     string
 	ODFI        string
@@ -213,18 +177,17 @@ type ErrBatchTraceNumberNotODFI struct {
 
 // NewErrBatchTraceNumberNotODFI creates a new error of the ErrBatchTraceNumberNotODFI type
 func NewErrBatchTraceNumberNotODFI(odfi, trace string) ErrBatchTraceNumberNotODFI {
-	return ErrBatchTraceNumberNotODFI{
-		Message:     fmt.Sprintf("%v in header does not match entry trace number %v", odfi, trace),
-		ODFI:        odfi,
-		TraceNumber: trace,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchTraceNumberNotODFI)
 }
 
 func (e ErrBatchTraceNumberNotODFI) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchAddendaTraceNumber is the error given when the entry detail sequence number doesn't match the trace number
+	return ""
 }
 
-// ErrBatchAddendaTraceNumber is the error given when the entry detail sequence number doesn't match the trace number
 type ErrBatchAddendaTraceNumber struct {
 	Message           string
 	EntryDetailNumber string
@@ -233,18 +196,17 @@ type ErrBatchAddendaTraceNumber struct {
 
 // NewErrBatchAddendaTraceNumber creates a new error of the ErrBatchAddendaTraceNumber type
 func NewErrBatchAddendaTraceNumber(entryDetail, trace string) ErrBatchAddendaTraceNumber {
-	return ErrBatchAddendaTraceNumber{
-		Message:           fmt.Sprintf("%v does not match proceeding entry detail trace number %v", entryDetail, trace),
-		EntryDetailNumber: entryDetail,
-		TraceNumber:       trace,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchAddendaTraceNumber)
 }
 
 func (e ErrBatchAddendaTraceNumber) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchAddendaCount is the error given when there are too many addenda than allowed for the batch type
+	return ""
 }
 
-// ErrBatchAddendaCount is the error given when there are too many addenda than allowed for the batch type
 type ErrBatchAddendaCount struct {
 	Message      string
 	FoundCount   int
@@ -253,18 +215,17 @@ type ErrBatchAddendaCount struct {
 
 // NewErrBatchAddendaCount creates a new error of the ErrBatchAddendaCount type
 func NewErrBatchAddendaCount(found, allowed int) ErrBatchAddendaCount {
-	return ErrBatchAddendaCount{
-		Message:      fmt.Sprintf("%v addendum found where %v is allowed for this batch type", found, allowed),
-		FoundCount:   found,
-		AllowedCount: allowed,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchAddendaCount)
 }
 
 func (e ErrBatchAddendaCount) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchRequiredAddendaCount is the error given when the batch type requires a certain number of addenda, which is not met
+	return ""
 }
 
-// ErrBatchRequiredAddendaCount is the error given when the batch type requires a certain number of addenda, which is not met
 type ErrBatchRequiredAddendaCount struct {
 	Message       string
 	FoundCount    int
@@ -273,19 +234,18 @@ type ErrBatchRequiredAddendaCount struct {
 
 // NewErrBatchRequiredAddendaCount creates a new error of the ErrBatchRequiredAddendaCount type
 func NewErrBatchRequiredAddendaCount(found, required int) ErrBatchRequiredAddendaCount {
-	return ErrBatchRequiredAddendaCount{
-		Message:       fmt.Sprintf("%v addendum found where %v are required for this batch type", found, required),
-		FoundCount:    found,
-		RequiredCount: required,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchRequiredAddendaCount)
 }
 
 func (e ErrBatchRequiredAddendaCount) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchExpectedAddendaCount is the error given when the batch type has entries with a field
+	// for the number of addenda, and a different number of addenda are foound
+	return ""
 }
 
-// ErrBatchExpectedAddendaCount is the error given when the batch type has entries with a field
-// for the number of addenda, and a different number of addenda are foound
 type ErrBatchExpectedAddendaCount struct {
 	Message       string
 	FoundCount    int
@@ -294,18 +254,17 @@ type ErrBatchExpectedAddendaCount struct {
 
 // NewErrBatchExpectedAddendaCount creates a new error of the ErrBatchExpectedAddendaCount type
 func NewErrBatchExpectedAddendaCount(found, expected int) ErrBatchExpectedAddendaCount {
-	return ErrBatchExpectedAddendaCount{
-		Message:       fmt.Sprintf("%v addendum found where %v are expected for this batch type", found, expected),
-		FoundCount:    found,
-		ExpectedCount: expected,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchExpectedAddendaCount)
 }
 
 func (e ErrBatchExpectedAddendaCount) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchServiceClassTranCode is the error given when the transaction code is not valid for the batch's service class
+	return ""
 }
 
-// ErrBatchServiceClassTranCode is the error given when the transaction code is not valid for the batch's service class
 type ErrBatchServiceClassTranCode struct {
 	Message          string
 	ServiceClassCode int
@@ -314,18 +273,17 @@ type ErrBatchServiceClassTranCode struct {
 
 // NewErrBatchServiceClassTranCode creates a new error of the ErrBatchServiceClassTranCode type
 func NewErrBatchServiceClassTranCode(serviceClassCode, transactionCode int) ErrBatchServiceClassTranCode {
-	return ErrBatchServiceClassTranCode{
-		Message:          fmt.Sprintf("service class code %v does not support transaction code %v", serviceClassCode, transactionCode),
-		ServiceClassCode: serviceClassCode,
-		TransactionCode:  transactionCode,
-	}
+	_ = "STUB: not implemented"
+	return *new(ErrBatchServiceClassTranCode)
 }
 
 func (e ErrBatchServiceClassTranCode) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchAmount is the error given when the amount exceeds the batch type's limit
+	return ""
 }
 
-// ErrBatchAmount is the error given when the amount exceeds the batch type's limit
 type ErrBatchAmount struct {
 	Message string
 	Amount  int
@@ -334,19 +292,18 @@ type ErrBatchAmount struct {
 
 // NewErrBatchAmount creates a new error of the ErrBatchAmount type
 func NewErrBatchAmount(amount, limit int) ErrBatchAmount {
+	_ = "STUB: not implemented"
 	// TODO: pretty format the amounts to make it more readable
-	return ErrBatchAmount{
-		Message: fmt.Sprintf("amounts in this batch type are limited to %v, found amount of %v", limit, amount),
-		Amount:  amount,
-		Limit:   limit,
-	}
+	return *new(ErrBatchAmount)
 }
 
 func (e ErrBatchAmount) Error() string {
-	return e.Message
+	_ = "STUB: not implemented"
+
+	// ErrBatchIATNOC is the error given when an IAT batch has an NOC, and there are invalid values
+	return ""
 }
 
-// ErrBatchIATNOC is the error given when an IAT batch has an NOC, and there are invalid values
 type ErrBatchIATNOC struct {
 	Message  string
 	Found    interface{}
@@ -355,14 +312,9 @@ type ErrBatchIATNOC struct {
 
 // NewErrBatchIATNOC creates a new error of the ErrBatchIATNOC type
 func NewErrBatchIATNOC(found, expected interface{}) ErrBatchIATNOC {
+	_ = "STUB: not implemented"
 	// TODO: pretty format the amounts to make it more readable
-	return ErrBatchIATNOC{
-		Message:  fmt.Sprintf("%v invalid for IAT NOC, should be %v", found, expected),
-		Found:    found,
-		Expected: expected,
-	}
+	return *new(ErrBatchIATNOC)
 }
 
-func (e ErrBatchIATNOC) Error() string {
-	return e.Message
-}
+func (e ErrBatchIATNOC) Error() string { _ = "STUB: not implemented"; return "" }

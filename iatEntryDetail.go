@@ -17,12 +17,6 @@
 
 package ach
 
-import (
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // IATEntryDetail contains the actual transaction data for an individual entry.
 // Fields include those designating the entry as a deposit (credit) or
 // withdrawal (debit), the transit routing number for the entry recipient's financial
@@ -142,269 +136,109 @@ type IATEntryDetail struct {
 }
 
 // NewIATEntryDetail returns a new IATEntryDetail with default values for non exported fields
-func NewIATEntryDetail() *IATEntryDetail {
-	iatEd := &IATEntryDetail{
-		Category:               CategoryForward,
-		AddendaRecordIndicator: 1,
-	}
-	return iatEd
-}
+func NewIATEntryDetail() *IATEntryDetail { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the EntryDetail values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (iatEd *IATEntryDetail) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (iatEd *IATEntryDetail) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// do nothing, ignore "6" record type
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// do nothing, ignore "6" record type
-			reset()
+// 2-3 is checking credit 22 debit 27 savings credit 32 debit 37
 
-		case 3:
-			// 2-3 is checking credit 22 debit 27 savings credit 32 debit 37
-			iatEd.TransactionCode = iatEd.parseNumField(reset())
-		case 11:
-			// 4-11 the RDFI's routing number without the last digit.
-			iatEd.RDFIIdentification = iatEd.parseStringField(reset())
-		case 12:
-			// 12-12 The last digit of the RDFI's routing number
-			iatEd.CheckDigit = iatEd.parseStringField(reset())
-		case 16:
-			// 13-16 Number of addenda records
-			iatEd.AddendaRecords = iatEd.parseNumField(reset())
-		case 29:
-			// 17-29 reserved - Leave blank
-			reset()
-		case 39:
-			// 30-39 Number of cents you are debiting/crediting this account
-			iatEd.Amount = iatEd.parseNumField(reset())
-		case 74:
-			// 40-74 The foreign receiver's account number you are crediting/debiting
-			iatEd.DFIAccountNumber = iatEd.parseStringFieldWithOpts(reset(), iatEd.validateOpts)
-		case 76:
-			// 75-76 reserved Leave blank
-			reset()
-		case 77:
-			// 77 OFACScreeningIndicator
-			reset()
-			iatEd.OFACScreeningIndicator = " "
-		case 78:
-			// 78-78 Secondary SecondaryOFACScreeningIndicator
-			reset()
-			iatEd.SecondaryOFACScreeningIndicator = " "
-		case 79:
-			// 79-79 1 if addenda exists 0 if it does not
-			iatEd.AddendaRecordIndicator = iatEd.parseNumField(reset())
-		case 94:
-			// 80-94 An internal identification (alphanumeric) that you use to uniquely identify
-			// this Entry Detail Record This number should be unique to the transaction and will
-			// help identify the transaction in case of an inquiry
-			iatEd.TraceNumber = strings.TrimSpace(reset())
-		}
-	}
-}
+// 4-11 the RDFI's routing number without the last digit.
+
+// 12-12 The last digit of the RDFI's routing number
+
+// 13-16 Number of addenda records
+
+// 17-29 reserved - Leave blank
+
+// 30-39 Number of cents you are debiting/crediting this account
+
+// 40-74 The foreign receiver's account number you are crediting/debiting
+
+// 75-76 reserved Leave blank
+
+// 77 OFACScreeningIndicator
+
+// 78-78 Secondary SecondaryOFACScreeningIndicator
+
+// 79-79 1 if addenda exists 0 if it does not
+
+// 80-94 An internal identification (alphanumeric) that you use to uniquely identify
+// this Entry Detail Record This number should be unique to the transaction and will
+// help identify the transaction in case of an inquiry
 
 // String writes the EntryDetail struct to a 94 character string.
-func (iatEd *IATEntryDetail) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryDetailPos)
-	buf.WriteString(strconv.Itoa(iatEd.TransactionCode))
-	buf.WriteString(iatEd.RDFIIdentificationField())
-	buf.WriteString(iatEd.CheckDigit)
-	buf.WriteString(iatEd.AddendaRecordsField())
-	buf.WriteString("             ")
-	buf.WriteString(iatEd.AmountField())
-	buf.WriteString(iatEd.DFIAccountNumberField())
-	buf.WriteString("  ")
-	buf.WriteString(iatEd.OFACScreeningIndicatorField())
-	buf.WriteString(iatEd.SecondaryOFACScreeningIndicatorField())
-	buf.WriteString(strconv.Itoa(iatEd.AddendaRecordIndicator))
-	buf.WriteString(iatEd.TraceNumberField())
-
-	return buf.String()
-}
+func (iatEd *IATEntryDetail) String() string { _ = "STUB: not implemented"; return "" }
 
 // SetValidation stores ValidateOpts on the EntryDetail which are to be used to override
 // the default NACHA validation rules.
-func (iatEd *IATEntryDetail) SetValidation(opts *ValidateOpts) {
-	if iatEd == nil {
-		return
-	}
-	iatEd.validateOpts = opts
-}
+func (iatEd *IATEntryDetail) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (iatEd *IATEntryDetail) Validate() error {
-	if err := iatEd.fieldInclusion(); err != nil {
-		return err
-	}
-	if iatEd.validateOpts != nil && iatEd.validateOpts.CheckTransactionCode != nil {
-		if err := iatEd.validateOpts.CheckTransactionCode(iatEd.TransactionCode); err != nil {
-			return fieldError("TransactionCode", err, strconv.Itoa(iatEd.TransactionCode))
-		}
-	} else {
-		if err := iatEd.isTransactionCode(iatEd.TransactionCode); err != nil {
-			return fieldError("TransactionCode", err, strconv.Itoa(iatEd.TransactionCode))
-		}
-	}
-	if iatEd.validateOpts == nil || !iatEd.validateOpts.AllowSpecialCharacters {
-		if err := iatEd.isAlphanumeric(iatEd.DFIAccountNumber); err != nil {
-			return fieldError("DFIAccountNumber", err, iatEd.DFIAccountNumber)
-		}
-	}
-	// CheckDigit calculations
-	calculated := CalculateCheckDigit(iatEd.RDFIIdentificationField())
+func (iatEd *IATEntryDetail) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	edCheckDigit, err := strconv.Atoi(iatEd.CheckDigit)
-	if err != nil {
-		return fieldError("CheckDigit", err, iatEd.CheckDigit)
-	}
-	if calculated != edCheckDigit {
-		return fieldError("RDFIIdentification", NewErrValidCheckDigit(calculated), iatEd.CheckDigit)
-	}
-	return nil
-}
+// CheckDigit calculations
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (iatEd *IATEntryDetail) fieldInclusion() error {
-	if iatEd.TransactionCode == 0 {
-		return fieldError("TransactionCode", ErrConstructor, strconv.Itoa(iatEd.TransactionCode))
-	}
-	if iatEd.RDFIIdentification == "" {
-		return fieldError("RDFIIdentification", ErrConstructor, iatEd.RDFIIdentificationField())
-	}
-	if iatEd.AddendaRecords == 0 {
-		return fieldError("AddendaRecords", ErrConstructor, strconv.Itoa(iatEd.AddendaRecords))
-	}
-	if iatEd.DFIAccountNumber == "" {
-		return fieldError("DFIAccountNumber", ErrConstructor, iatEd.DFIAccountNumber)
-	}
-	if iatEd.AddendaRecordIndicator == 0 {
-		return fieldError("AddendaRecordIndicator", ErrConstructor, strconv.Itoa(iatEd.AddendaRecordIndicator))
-	}
-	if iatEd.TraceNumber == "" {
-		return fieldError("TraceNumber", ErrConstructor, iatEd.TraceNumberField())
-	}
-	return nil
-}
+func (iatEd *IATEntryDetail) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
-func (iatEd *IATEntryDetail) isCorrection() bool {
-	return iatEd.Addenda98 != nil
-}
+func (iatEd *IATEntryDetail) isCorrection() bool { _ = "STUB: not implemented"; return false }
 
 // SetRDFI takes the 9 digit RDFI account number and separates it for RDFIIdentification and CheckDigit
 func (iatEd *IATEntryDetail) SetRDFI(rdfi string) *IATEntryDetail {
-	s := iatEd.stringField(rdfi, 9)
-	iatEd.RDFIIdentification = iatEd.parseStringField(s[:8])
-	iatEd.CheckDigit = iatEd.parseStringField(s[8:9])
-	return iatEd
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // SetTraceNumber takes first 8 digits of ODFI and concatenates a sequence number onto the TraceNumber
 func (iatEd *IATEntryDetail) SetTraceNumber(ODFIIdentification string, seq int) {
-	iatEd.TraceNumber = iatEd.stringField(ODFIIdentification, 8) + iatEd.numericField(seq, 7)
+	_ = "STUB: not implemented"
+	return
 }
 
 // RDFIIdentificationField get the rdfiIdentification with zero padding
-func (iatEd *IATEntryDetail) RDFIIdentificationField() string {
-	return iatEd.stringField(iatEd.RDFIIdentification, 8)
-}
+func (iatEd *IATEntryDetail) RDFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // AddendaRecordsField returns a zero padded AddendaRecords string
-func (iatEd *IATEntryDetail) AddendaRecordsField() string {
-	return iatEd.numericField(iatEd.AddendaRecords, 4)
-}
+func (iatEd *IATEntryDetail) AddendaRecordsField() string { _ = "STUB: not implemented"; return "" }
 
 // AmountField returns a zero padded string of amount
-func (iatEd *IATEntryDetail) AmountField() string {
-	return iatEd.numericField(iatEd.Amount, 10)
-}
+func (iatEd *IATEntryDetail) AmountField() string { _ = "STUB: not implemented"; return "" }
 
 // DFIAccountNumberField gets the DFIAccountNumber with space padding
-func (iatEd *IATEntryDetail) DFIAccountNumberField() string {
-	return iatEd.alphaField(iatEd.DFIAccountNumber, 35)
-}
+func (iatEd *IATEntryDetail) DFIAccountNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // OFACScreeningIndicatorField gets the OFACScreeningIndicator
 func (iatEd *IATEntryDetail) OFACScreeningIndicatorField() string {
-	return iatEd.alphaField(iatEd.OFACScreeningIndicator, 1)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // SecondaryOFACScreeningIndicatorField gets the SecondaryOFACScreeningIndicator
 func (iatEd *IATEntryDetail) SecondaryOFACScreeningIndicatorField() string {
-	return iatEd.alphaField(iatEd.SecondaryOFACScreeningIndicator, 1)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TraceNumberField returns a zero padded TraceNumber string
-func (iatEd *IATEntryDetail) TraceNumberField() string {
-	return iatEd.stringField(iatEd.TraceNumber, 15)
-}
+func (iatEd *IATEntryDetail) TraceNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // AddAddenda17 appends an Addenda17 to the IATEntryDetail
-func (iatEd *IATEntryDetail) AddAddenda17(addenda17 *Addenda17) {
-	iatEd.Addenda17 = append(iatEd.Addenda17, addenda17)
-}
+func (iatEd *IATEntryDetail) AddAddenda17(addenda17 *Addenda17) { _ = "STUB: not implemented"; return }
 
 // AddAddenda18 appends an Addenda18 to the IATEntryDetail
-func (iatEd *IATEntryDetail) AddAddenda18(addenda18 *Addenda18) {
-	iatEd.Addenda18 = append(iatEd.Addenda18, addenda18)
-}
+func (iatEd *IATEntryDetail) AddAddenda18(addenda18 *Addenda18) { _ = "STUB: not implemented"; return }
 
-func (iatEd *IATEntryDetail) addendaCount() (n int) {
-	if iatEd.Addenda10 != nil {
-		n += 1
-	}
-	if iatEd.Addenda11 != nil {
-		n += 1
-	}
-	if iatEd.Addenda12 != nil {
-		n += 1
-	}
-	if iatEd.Addenda13 != nil {
-		n += 1
-	}
-	if iatEd.Addenda14 != nil {
-		n += 1
-	}
-	if iatEd.Addenda15 != nil {
-		n += 1
-	}
-	if iatEd.Addenda16 != nil {
-		n += 1
-	}
-	n += len(iatEd.Addenda17)
-	n += len(iatEd.Addenda18)
-	if iatEd.Addenda98 != nil {
-		n += 1
-	}
-	if iatEd.Addenda99 != nil {
-		n += 1
-	}
-	return n
-}
+func (iatEd *IATEntryDetail) addendaCount() (n int) { _ = "STUB: not implemented"; return 0 }

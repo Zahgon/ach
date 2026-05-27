@@ -5,8 +5,6 @@
 package describe
 
 import (
-	"fmt"
-
 	"github.com/moov-io/ach"
 )
 
@@ -64,18 +62,10 @@ var transactionCodes = map[int]string{
 	ach.LoanReturnNOCDebit: noc("Loan", debit),
 }
 
-func entry(s string, t transactionType) string {
-	return fmt.Sprintf("%-17.17s", fmt.Sprintf("(%s %s)", s, t))
-}
+func entry(s string, t transactionType) string { _ = "STUB: not implemented"; return "" }
 
-func noc(s string, t transactionType) string {
-	return fmt.Sprintf("%-28.28s", fmt.Sprintf("(%s Return NOC %s)", s, t))
-}
+func noc(s string, t transactionType) string { _ = "STUB: not implemented"; return "" }
 
-func prenote(s string, t transactionType) string {
-	return fmt.Sprintf("%-25.25s", fmt.Sprintf("(%s Prenote %s)", s, t))
-}
+func prenote(s string, t transactionType) string { _ = "STUB: not implemented"; return "" }
 
-func remittance(s string, t transactionType) string {
-	return fmt.Sprintf("%-40.40s", fmt.Sprintf("(%s Zero Dollar Remittance %s)", s, t))
-}
+func remittance(s string, t transactionType) string { _ = "STUB: not implemented"; return "" }

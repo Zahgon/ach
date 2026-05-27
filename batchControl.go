@@ -17,12 +17,6 @@
 
 package ach
 
-import (
-	"fmt"
-	"strconv"
-	"unicode/utf8"
-)
-
 // BatchControl contains entry counts, dollar total and has totals for all
 // entries contained in the preceding batch
 type BatchControl struct {
@@ -84,71 +78,39 @@ type BatchControl struct {
 	validateOpts *ValidateOpts
 }
 
-func (bc *BatchControl) SetValidation(opts *ValidateOpts) {
-	if bc == nil {
-		return
-	}
-	bc.validateOpts = opts
-}
+func (bc *BatchControl) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // Parse takes the input record string and parses the EntryDetail values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (bc *BatchControl) Parse(record string) {
-	if utf8.RuneCountInString(record) != 94 {
-		return
-	}
+func (bc *BatchControl) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	// 1-1 Always "8"
-	// 2-4 This is the same as the "Service code" field in previous Batch Header Record
-	bc.ServiceClassCode = bc.parseNumField(record[1:4])
-	// 5-10 Total number of Entry Detail Record in the batch
-	bc.EntryAddendaCount = bc.parseNumField(record[4:10])
-	// 11-20 Total of all positions 4-11 on each Entry Detail Record in the batch. This is essentially the sum of all the RDFI routing numbers in the batch.
-	// If the sum exceeds 10 digits (because you have lots of Entry Detail Records), lop off the most significant digits of the sum until there are only 10
-	bc.EntryHash = bc.parseNumField(record[10:20])
-	// 21-32 Number of cents of debit entries within the batch
-	bc.TotalDebitEntryDollarAmount = bc.parseNumField(record[20:32])
-	// 33-44 Number of cents of credit entries within the batch
-	bc.TotalCreditEntryDollarAmount = bc.parseNumField(record[32:44])
-	// 45-54 This is the same as the "Company identification" field in previous Batch Header Record
-	bc.CompanyIdentification = bc.parseStringFieldWithOpts(record[44:54], bc.validateOpts)
-	// 55-73 Seems to always be blank
-	bc.MessageAuthenticationCode = bc.parseStringFieldWithOpts(record[54:73], bc.validateOpts)
-	// 74-79 Always blank (just fill with spaces)
-	// 80-87 This is the same as the "ODFI identification" field in previous Batch Header Record
-	bc.ODFIIdentification = bc.parseStringFieldWithOpts(record[79:87], bc.validateOpts)
-	// 88-94 This is the same as the "Batch number" field in previous Batch Header Record
-	bc.BatchNumber = bc.parseNumField(record[87:94])
-}
+// 1-1 Always "8"
+// 2-4 This is the same as the "Service code" field in previous Batch Header Record
+
+// 5-10 Total number of Entry Detail Record in the batch
+
+// 11-20 Total of all positions 4-11 on each Entry Detail Record in the batch. This is essentially the sum of all the RDFI routing numbers in the batch.
+// If the sum exceeds 10 digits (because you have lots of Entry Detail Records), lop off the most significant digits of the sum until there are only 10
+
+// 21-32 Number of cents of debit entries within the batch
+
+// 33-44 Number of cents of credit entries within the batch
+
+// 45-54 This is the same as the "Company identification" field in previous Batch Header Record
+
+// 55-73 Seems to always be blank
+
+// 74-79 Always blank (just fill with spaces)
+// 80-87 This is the same as the "ODFI identification" field in previous Batch Header Record
+
+// 88-94 This is the same as the "Batch number" field in previous Batch Header Record
 
 // NewBatchControl returns a new BatchControl with default values for none exported fields
-func NewBatchControl() *BatchControl {
-	return &BatchControl{
-		ServiceClassCode: MixedDebitsAndCredits,
-		EntryHash:        1,
-		BatchNumber:      1,
-	}
-}
+func NewBatchControl() *BatchControl { _ = "STUB: not implemented"; return nil }
 
 // String writes the BatchControl struct to a 94 character string.
-func (bc *BatchControl) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(batchControlPos)
-	buf.WriteString(strconv.Itoa(bc.ServiceClassCode))
-	buf.WriteString(bc.EntryAddendaCountField())
-	buf.WriteString(bc.EntryHashField())
-	buf.WriteString(bc.TotalDebitEntryDollarAmountField())
-	buf.WriteString(bc.TotalCreditEntryDollarAmountField())
-	buf.WriteString(bc.CompanyIdentificationField())
-	buf.WriteString(bc.MessageAuthenticationCodeField())
-	buf.WriteString("      ")
-	buf.WriteString(bc.ODFIIdentificationField())
-	buf.WriteString(bc.BatchNumberField())
-	return buf.String()
-}
+func (bc *BatchControl) String() string { _ = "STUB: not implemented"; return "" }
 
 const (
 	// NachaBatchDebitCreditLimit is the maximum amount allowed by the Nacha format for a batch's debit/credit total (12 digits)
@@ -157,96 +119,45 @@ const (
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (bc *BatchControl) Validate() error {
-	if err := bc.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := bc.isServiceClass(bc.ServiceClassCode); err != nil {
-		return fieldError("ServiceClassCode", err, strconv.Itoa(bc.ServiceClassCode))
-	}
+func (bc *BatchControl) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if bc.validateOpts == nil || !bc.validateOpts.AllowSpecialCharacters {
-		if err := bc.isAlphanumeric(bc.CompanyIdentification); err != nil {
-			return fieldError("CompanyIdentification", err, bc.CompanyIdentification)
-		}
+func (bc *BatchControl) totalDebitsOverflowsField() error { _ = "STUB: not implemented"; return nil }
 
-		if err := bc.isAlphanumeric(bc.MessageAuthenticationCode); err != nil {
-			return fieldError("MessageAuthenticationCode", err, bc.MessageAuthenticationCode)
-		}
-	}
-
-	if err := bc.totalDebitsOverflowsField(); err != nil {
-		return fieldError("TotalDebitEntryDollarAmount", err, bc.TotalDebitEntryDollarAmount)
-	}
-	if err := bc.totalCreditsOverflowsField(); err != nil {
-		return fieldError("TotalCreditEntryDollarAmount", err, bc.TotalCreditEntryDollarAmount)
-	}
-
-	return nil
-}
-
-func (bc *BatchControl) totalDebitsOverflowsField() error {
-	if bc.TotalDebitEntryDollarAmount > NachaBatchDebitCreditLimit {
-		return fmt.Errorf("does not match formatted value %s", bc.TotalDebitEntryDollarAmountField())
-	}
-	return nil
-}
-
-func (bc *BatchControl) totalCreditsOverflowsField() error {
-	if bc.TotalCreditEntryDollarAmount > NachaBatchDebitCreditLimit {
-		return fmt.Errorf("does not match formatted value %s", bc.TotalCreditEntryDollarAmountField())
-	}
-	return nil
-}
+func (bc *BatchControl) totalCreditsOverflowsField() error { _ = "STUB: not implemented"; return nil }
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (bc *BatchControl) fieldInclusion() error {
-	if bc.ServiceClassCode == 0 {
-		return fieldError("ServiceClassCode", ErrConstructor, strconv.Itoa(bc.ServiceClassCode))
-	}
-	if bc.ODFIIdentification == "000000000" {
-		return fieldError("ODFIIdentification", ErrConstructor, bc.ODFIIdentificationField())
-	}
-	return nil
-}
+func (bc *BatchControl) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // EntryAddendaCountField gets a string of the addenda count zero padded
-func (bc *BatchControl) EntryAddendaCountField() string {
-	return bc.numericField(bc.EntryAddendaCount, 6)
-}
+func (bc *BatchControl) EntryAddendaCountField() string { _ = "STUB: not implemented"; return "" }
 
 // EntryHashField get a zero padded EntryHash
-func (bc *BatchControl) EntryHashField() string {
-	return bc.numericField(bc.EntryHash, 10)
-}
+func (bc *BatchControl) EntryHashField() string { _ = "STUB: not implemented"; return "" }
 
 // TotalDebitEntryDollarAmountField get a zero padded Debit Entry Amount
 func (bc *BatchControl) TotalDebitEntryDollarAmountField() string {
-	return bc.numericField(bc.TotalDebitEntryDollarAmount, 12)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TotalCreditEntryDollarAmountField get a zero padded Credit Entry Amount
 func (bc *BatchControl) TotalCreditEntryDollarAmountField() string {
-	return bc.numericField(bc.TotalCreditEntryDollarAmount, 12)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // CompanyIdentificationField get the CompanyIdentification right padded
-func (bc *BatchControl) CompanyIdentificationField() string {
-	return bc.alphaField(bc.CompanyIdentification, 10)
-}
+func (bc *BatchControl) CompanyIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // MessageAuthenticationCodeField get the MessageAuthenticationCode right padded
 func (bc *BatchControl) MessageAuthenticationCodeField() string {
-	return bc.alphaField(bc.MessageAuthenticationCode, 19)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ODFIIdentificationField get the odfi number zero padded
-func (bc *BatchControl) ODFIIdentificationField() string {
-	return bc.stringField(bc.ODFIIdentification, 8)
-}
+func (bc *BatchControl) ODFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // BatchNumberField gets a string of the batch number zero padded
-func (bc *BatchControl) BatchNumberField() string {
-	return bc.numericField(bc.BatchNumber, 7)
-}
+func (bc *BatchControl) BatchNumberField() string { _ = "STUB: not implemented"; return "" }

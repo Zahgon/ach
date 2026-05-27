@@ -19,7 +19,6 @@ package ach
 
 import (
 	"bufio"
-	"errors"
 	"io"
 	"strings"
 )
@@ -42,271 +41,37 @@ type WriteOpts struct {
 }
 
 // NewWriter returns a new Writer that writes to w.
-func NewWriter(w io.Writer) *Writer {
-	return NewWriterWithOpts(w, nil)
-}
+func NewWriter(w io.Writer) *Writer { _ = "STUB: not implemented"; return nil }
 
 // NewWriter returns a new Writer that writes to w.
-func NewWriterWithOpts(w io.Writer, opts *WriteOpts) *Writer {
-	lineEnding := "\n"
-	if opts != nil && opts.LineEnding != "" {
-		lineEnding = opts.LineEnding
-	}
-	return &Writer{
-		w:          bufio.NewWriter(w),
-		LineEnding: lineEnding,
-	}
-}
+func NewWriterWithOpts(w io.Writer, opts *WriteOpts) *Writer { _ = "STUB: not implemented"; return nil }
 
 var (
 	paddingLine = strings.Repeat("9", 94)
 )
 
 // Writer writes a single ach.file record to w
-func (w *Writer) Write(file *File) error {
-	if !w.BypassValidation {
-		if err := file.Validate(); err != nil {
-			return err
-		}
-	}
+func (w *Writer) Write(file *File) error { _ = "STUB: not implemented"; return nil }
 
-	w.lineNum = 0
-	// Iterate over all records in the file
-	if err := w.writeLine(&file.Header); err != nil {
-		return err
-	}
+// Iterate over all records in the file
 
-	isADV := file.IsADV()
-
-	if err := w.writeBatch(file, isADV); err != nil {
-		return err
-	}
-
-	if err := w.writeIATBatch(file); err != nil {
-		return err
-	}
-
-	if !isADV {
-		if err := w.writeLine(&file.Control); err != nil {
-			return err
-		}
-	} else {
-		if err := w.writeLine(&file.ADVControl); err != nil {
-			return err
-		}
-	}
-
-	// pad the final block
-	for i := 0; i < (10-(w.lineNum%10)) && w.lineNum%10 != 0; i++ {
-		_, err := w.w.WriteString(paddingLine)
-		if err != nil {
-			return err
-		}
-		_, err = w.w.WriteString(w.LineEnding)
-		if err != nil {
-			return err
-		}
-	}
-
-	return w.w.Flush()
-}
+// pad the final block
 
 // Flush writes any buffered data to the underlying io.Writer.
-func (w *Writer) Flush() error {
-	if w == nil || w.w == nil {
-		return errors.New("nil writer")
-	}
-	return w.w.Flush()
-}
+func (w *Writer) Flush() error { _ = "STUB: not implemented"; return nil }
 
-func (w *Writer) writeBatch(file *File, isADV bool) error {
-	for _, batch := range file.Batches {
-		if err := w.writeLine(batch.GetHeader()); err != nil {
-			return err
-		}
-		if !isADV {
-			for _, entry := range batch.GetEntries() {
-				if err := w.writeLine(entry); err != nil {
-					return err
-				}
-				if entry.Addenda02 != nil {
-					if err := w.writeLine(entry.Addenda02); err != nil {
-						return err
-					}
-				}
+func (w *Writer) writeBatch(file *File, isADV bool) error { _ = "STUB: not implemented"; return nil }
 
-				for _, addenda05 := range entry.Addenda05 {
-					if addenda05 != nil {
-						if err := w.writeLine(addenda05); err != nil {
-							return err
-						}
-					}
-				}
-				if entry.Addenda98 != nil {
-					if err := w.writeLine(entry.Addenda98); err != nil {
-						return err
-					}
-				}
+func (w *Writer) writeIATBatch(file *File) error { _ = "STUB: not implemented"; return nil }
 
-				if entry.Addenda98Refused != nil {
-					if err := w.writeLine(entry.Addenda98Refused); err != nil {
-						return err
-					}
-				}
+// IAT Addenda17
 
-				if entry.Addenda99 != nil {
-					if err := w.writeLine(entry.Addenda99); err != nil {
-						return err
-					}
-				}
-
-				if entry.Addenda99Dishonored != nil {
-					if err := w.writeLine(entry.Addenda99Dishonored); err != nil {
-						return err
-					}
-				}
-
-				if entry.Addenda99Contested != nil {
-					if err := w.writeLine(entry.Addenda99Contested); err != nil {
-						return err
-					}
-				}
-			}
-		} else {
-			for _, entry := range batch.GetADVEntries() {
-				if err := w.writeLine(entry); err != nil {
-					return err
-				}
-				if entry.Addenda99 != nil {
-					if err := w.writeLine(entry.Addenda99); err != nil {
-						return err
-					}
-				}
-			}
-		}
-
-		if batch.GetHeader().StandardEntryClassCode != ADV {
-			if err := w.writeLine(batch.GetControl()); err != nil {
-				return err
-			}
-		} else {
-			if err := w.writeLine(batch.GetADVControl()); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func (w *Writer) writeIATBatch(file *File) error {
-	for _, iatBatch := range file.IATBatches {
-		if err := w.writeLine(iatBatch.GetHeader()); err != nil {
-			return err
-		}
-		for _, entry := range iatBatch.GetEntries() {
-			if err := w.writeLine(entry); err != nil {
-				return err
-			}
-			if entry.Addenda10 != nil {
-				if err := w.writeLine(entry.Addenda10); err != nil {
-					return err
-				}
-			}
-
-			if entry.Addenda11 != nil {
-				if err := w.writeLine(entry.Addenda11); err != nil {
-					return err
-				}
-			}
-
-			if entry.Addenda12 != nil {
-				if err := w.writeLine(entry.Addenda12); err != nil {
-					return err
-				}
-
-			}
-			if entry.Addenda13 != nil {
-				if err := w.writeLine(entry.Addenda13); err != nil {
-					return err
-				}
-
-			}
-			if entry.Addenda14 != nil {
-				if err := w.writeLine(entry.Addenda14); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda15 != nil {
-				if err := w.writeLine(entry.Addenda15); err != nil {
-					return err
-				}
-			}
-			if entry.Addenda16 != nil {
-				if err := w.writeLine(entry.Addenda16); err != nil {
-					return err
-				}
-			}
-			// IAT Addenda17
-			for _, addenda17 := range entry.Addenda17 {
-				if addenda17 != nil {
-					if err := w.writeLine(addenda17); err != nil {
-						return err
-					}
-
-				}
-			}
-			// IAT Addenda18
-			for _, addenda18 := range entry.Addenda18 {
-				if addenda18 != nil {
-					if err := w.writeLine(addenda18); err != nil {
-						return err
-					}
-				}
-
-			}
-			if entry.Addenda98 != nil {
-				if err := w.writeLine(entry.Addenda98); err != nil {
-					return err
-				}
-
-			}
-			if entry.Addenda99 != nil {
-				if err := w.writeLine(entry.Addenda99); err != nil {
-					return err
-				}
-			}
-
-		}
-		if err := w.writeLine(iatBatch.GetControl()); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// IAT Addenda18
 
 type writeEntry interface {
 	String() string
 }
 
-func (w *Writer) writeLine(entry writeEntry) error {
+func (w *Writer) writeLine(entry writeEntry) error { _ = "STUB: not implemented"; return nil }
 
-	line := entry.String()
-
-	_, err := w.w.WriteString(line)
-	if err != nil {
-		return err
-	}
-	_, err = w.w.WriteString(w.LineEnding)
-	if err != nil {
-		return err
-	}
-
-	w.lineNum++
-
-	// Avoid allocations by flushing the buffer
-	if w.w.Available() < 94 {
-		return w.Flush()
-	}
-
-	return nil
-}
+// Avoid allocations by flushing the buffer

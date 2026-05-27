@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"github.com/moov-io/ach/internal/usabbrev"
-)
-
 // BatchSHR holds the BatchHeader and BatchControl and all EntryDetail for SHR Entries.
 //
 // Shared Network Entry (SHR) is a debit Entry initiated at an “electronic terminal,”
@@ -35,121 +31,38 @@ type BatchSHR struct {
 }
 
 // NewBatchSHR returns a *BatchSHR
-func NewBatchSHR(bh *BatchHeader) *BatchSHR {
-	batch := new(BatchSHR)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchSHR(bh *BatchHeader) *BatchSHR { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchSHR) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchSHR) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
+// basic verification of the batch before we validate specific rules.
 
-	// Add configuration and type specific validation for this type.
-	if batch.Header.StandardEntryClassCode != SHR {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, SHR)
-	}
+// Add configuration and type specific validation for this type.
 
-	// SHR entries can be debit, credit or mixed ServiceClassCode
-	switch batch.Header.ServiceClassCode {
-	case MixedDebitsAndCredits, CreditsOnly, DebitsOnly:
-		// do nothing
-	default:
-		return batch.Error("ServiceClassCode", ErrBatchServiceClassCode, batch.Header.ServiceClassCode)
-	}
+// SHR entries can be debit, credit or mixed ServiceClassCode
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
+// do nothing
 
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchSHR) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchSHR) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		// SHR detail entries can be debit or credit
-		switch entry.CreditOrDebit() {
-		case "C", "D":
-			// do nothing
-		default:
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-			})
-		}
-		if err := entry.isCardTransactionType(entry.DiscretionaryData); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("CardTransactionType", ErrBatchInvalidCardTransactionType, entry.DiscretionaryData),
-			})
-		}
+// SHR detail entries can be debit or credit
 
-		// CardExpirationDate BatchSHR ACH File format is MMYY.  Validate MM is 01-12.
-		month := entry.parseStringField(entry.SHRCardExpirationDateField()[0:2])
-		year := entry.parseStringField(entry.SHRCardExpirationDateField()[2:4])
-		if err := entry.isMonth(month); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: fieldError("CardExpirationDate", ErrValidMonth, month),
-			})
-		}
-		if err := entry.isCreditCardYear(year); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: fieldError("CardExpirationDate", ErrValidYear, year),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		if entry.Category == CategoryForward {
-			if entry.Addenda02 != nil {
-				if !usabbrev.Valid(entry.Addenda02.TerminalState) {
-					out = append(out, InvalidEntry{
-						Entry: entry,
-						Error: batch.Error("TerminalState", ErrValidState, entry.Addenda02.TerminalState),
-					})
-				}
-			}
-		}
-	}
+// do nothing
 
-	return out
-}
+// CardExpirationDate BatchSHR ACH File format is MMYY.  Validate MM is 01-12.
+
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -157,11 +70,10 @@ func (batch *BatchSHR) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchSHR) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	// Additional steps specific to batch type
-	// ...
-	return batch.Validate()
+	return nil
 }
+
+// Additional steps specific to batch type
+// ...

@@ -18,24 +18,16 @@
 package server
 
 import (
-	"bytes"
-	"cmp"
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/moov-io/ach"
-	"github.com/moov-io/base"
-	moovhttp "github.com/moov-io/base/http"
 	"github.com/moov-io/base/log"
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/metrics/prometheus"
-	"github.com/gorilla/mux"
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 )
 
@@ -65,117 +57,33 @@ type createFileResponse struct {
 	Err error `json:"error"`
 }
 
-func (r createFileResponse) error() error { return r.Err }
+func (r createFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func createFileEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(createFileRequest)
-		if !ok {
-			return createFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		// record a metric for files created
-		if req.File != nil && req.File.Header.ImmediateDestination != "" && req.File.Header.ImmediateOrigin != "" {
-			filesCreated.With("destination", req.File.Header.ImmediateDestination, "origin", req.File.Header.ImmediateOrigin).Add(1)
-		}
-
-		// Create a random file ID if none was provided
-		if req.File.ID == "" {
-			req.File.ID = base.ID()
-		}
-
-		if req.validateOpts != nil {
-			req.File.SetValidation(req.validateOpts)
-		}
-
-		err := r.StoreFile(req.File)
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("createFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("create file")
-			}
-		}
-
-		resp := createFileResponse{
-			ID:   req.File.ID,
-			File: req.File,
-			Err:  err,
-		}
-		if req.parseError != nil {
-			resp.Err = req.parseError
-		}
-
-		return resp, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
+
+// record a metric for files created
+
+// Create a random file ID if none was provided
 
 func decodeCreateFileRequest(_ context.Context, request *http.Request) (interface{}, error) {
-	var r io.Reader
-	req := createFileRequest{
-		File:      ach.NewFile(),
-		requestID: moovhttp.GetRequestID(request),
-	}
-
-	body, validateOpts, err := readValidateOpts(request)
-	if err != nil {
-		return nil, err
-	}
-	req.validateOpts = validateOpts
-
-	bs, err := readBody(body)
-	if err != nil {
-		return nil, err
-	}
-
-	if json.Valid(bs) {
-		// Read body as ACH file in JSON
-		f, err := ach.FileFromJSONWith(bs, req.validateOpts)
-		if f != nil {
-			req.File = f
-		}
-		req.parseError = err
-	} else {
-		// Attempt parsing body as an ACH File
-		r = bytes.NewReader(bs)
-		achReader := ach.NewReader(r)
-		achReader.SetValidation(req.validateOpts)
-
-		f, err := achReader.Read()
-		req.File = &f
-		req.parseError = err
-	}
-
-	// Set the fileID from the request
-	fileID, ok := mux.Vars(request)["fileID"]
-	if ok && fileID != "" && fileID != "create" {
-		if req.File != nil {
-			req.File.ID = fileID
-		}
-	}
-
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// Read body as ACH file in JSON
+
+// Attempt parsing body as an ACH File
+
+// Set the fileID from the request
 
 const (
 	maxBodySize = 10 * 1024 * 1024 // 10MB
 )
 
-func readBody(body io.ReadCloser) ([]byte, error) {
-	defer body.Close()
-
-	r := io.LimitReader(body, maxBodySize)
-
-	bs, err := io.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("reading request body: %w", err)
-	}
-	return bs, nil
-}
+func readBody(body io.ReadCloser) ([]byte, error) { _ = "STUB: not implemented"; return nil, nil }
 
 type getFilesRequest struct {
 	requestID string
@@ -186,23 +94,18 @@ type getFilesResponse struct {
 	Err   error       `json:"error"`
 }
 
-func (r getFilesResponse) count() int { return len(r.Files) }
+func (r getFilesResponse) count() int { _ = "STUB: not implemented"; return 0 }
 
-func (r getFilesResponse) error() error { return r.Err }
+func (r getFilesResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func getFilesEndpoint(s Service) endpoint.Endpoint {
-	return func(_ context.Context, _ interface{}) (interface{}, error) {
-		return getFilesResponse{
-			Files: s.GetFiles(),
-			Err:   nil,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeGetFilesRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	return getFilesRequest{
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type getFileRequest struct {
@@ -216,46 +119,16 @@ type getFileResponse struct {
 	Err  error     `json:"error"`
 }
 
-func (r getFileResponse) error() error { return r.Err }
+func (r getFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func getFileEndpoint(s Service, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(getFileRequest)
-		if !ok {
-			return getFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		f, err := s.GetFile(req.ID)
-
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("getFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("get file")
-			}
-		}
-
-		return getFileResponse{
-			File: f,
-			Err:  err,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeGetFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-	return getFileRequest{
-		ID:        id,
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type deleteFileRequest struct {
@@ -268,47 +141,16 @@ type deleteFileResponse struct {
 	Err error `json:"err"`
 }
 
-func (r deleteFileResponse) error() error { return r.Err }
+func (r deleteFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func deleteFileEndpoint(s Service, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(deleteFileRequest)
-		if !ok {
-			return deleteFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		filesDeleted.Add(1)
-
-		err := s.DeleteFile(req.ID)
-
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("deleteFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("delete file")
-			}
-		}
-
-		return deleteFileResponse{
-			Err: err,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeDeleteFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-	return deleteFileRequest{
-		ID:        id,
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type buildFileRequest struct {
@@ -322,45 +164,16 @@ type buildFileResponse struct {
 	Err  error     `json:"error"`
 }
 
-func (v buildFileResponse) error() error { return v.Err }
+func (v buildFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func buildFileEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(buildFileRequest)
-		if !ok {
-			return buildFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		file, err := s.BuildFile(req.ID)
-
-		logger := logger.With(log.Fields{
-			"files":     log.String("buildFile"),
-			"fileID":    log.String(req.ID),
-			"requestID": log.String(req.requestID),
-		})
-		if err != nil {
-			logger.Error().LogError(err)
-		} else {
-			logger.Info().Log("build file")
-		}
-
-		return buildFileResponse{
-			File: file,
-			Err:  err,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeBuildFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-	return buildFileRequest{
-		ID:        id,
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type getFileContentsRequest struct {
@@ -375,60 +188,21 @@ type getFileContentsResponse struct {
 	Err error `json:"error"`
 }
 
-func (v getFileContentsResponse) error() error { return v.Err }
+func (v getFileContentsResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func getFileContentsEndpoint(s Service, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(getFileContentsRequest)
-		if !ok {
-			return getFileContentsResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		opts := &ach.WriteOpts{LineEnding: req.lineEnding}
-		r, err := s.GetFileContents(req.ID, opts)
-
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":      log.String("getFileContents"),
-				"requestID":  log.String(req.requestID),
-				"lineEnding": log.String(req.lineEnding),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("get file contents")
-			}
-		}
-		if err != nil {
-			return getFileContentsResponse{Err: err}, nil
-		}
-
-		return r, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeGetFileContentsRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-	return getFileContentsRequest{
-		ID:         id,
-		requestID:  moovhttp.GetRequestID(r),
-		lineEnding: GetLineEnding(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // Inspects the `X-Line-Ending` header. If it is a valid value (CRLF | LF), returns the line ending associated
 // with the selected enum value. Otherwise, defaults to Unix-style newline characters.
-func GetLineEnding(r *http.Request) string {
-	header := r.Header.Get("X-Line-Ending")
-	if header == "CRLF" {
-		return "\r\n"
-	}
-	return "\n"
-}
+func GetLineEnding(r *http.Request) string { _ = "STUB: not implemented"; return "" }
 
 type validateFileRequest struct {
 	ID        string
@@ -441,53 +215,18 @@ type validateFileResponse struct {
 	Err error `json:"error"`
 }
 
-func (v validateFileResponse) error() error { return v.Err }
+func (v validateFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func validateFileEndpoint(s Service, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(validateFileRequest)
-		if !ok {
-			return validateFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		err := s.ValidateFile(req.ID, req.opts)
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("validateFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("validate file")
-			}
-		}
-		if err != nil { // wrap err with context
-			err = fmt.Errorf("%v: %v", errInvalidFile, err)
-		}
-		return validateFileResponse{err}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
+// wrap err with context
+
 func decodeValidateFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-
-	req := validateFileRequest{
-		ID:        id,
-		requestID: moovhttp.GetRequestID(r),
-	}
-
-	_, validateOpts, err := readValidateOpts(r)
-	if err != nil {
-		return nil, err
-	}
-	req.opts = validateOpts
-
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type balanceFileRequest struct {
@@ -502,63 +241,13 @@ type balanceFileResponse struct {
 }
 
 func balanceFileEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(balanceFileRequest)
-		if !ok {
-			return balanceFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-		balancedFile, err := s.BalanceFile(req.fileID, req.offset)
-		if balancedFile != nil && logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("balance file created " + balancedFile.ID),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("balance file")
-			}
-		}
-		if err != nil {
-			if logger != nil {
-				logger := logger.With(log.Fields{
-					"files":     log.String(fmt.Sprintf("problem balancing %s: %v", req.fileID, err)),
-					"requestID": log.String(req.requestID),
-				})
-				if err != nil {
-					logger.Error().LogError(err)
-				} else {
-					logger.Info().Log("balance file")
-				}
-
-			}
-			return balanceFileResponse{Err: err}, err
-		}
-		return balanceFileResponse{
-			FileID: balancedFile.ID,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeBalanceFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	fileID, ok := vars["fileID"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-
-	var off ach.Offset
-	if err := json.NewDecoder(r.Body).Decode(&off); err != nil {
-		return nil, err
-	}
-	if off.RoutingNumber == "" || off.AccountNumber == "" || string(off.AccountType) == "" {
-		return nil, errors.New("missing some offset json fields")
-	}
-	return balanceFileRequest{
-		fileID:    fileID,
-		offset:    &off,
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type segmentFileIDRequest struct {
@@ -579,79 +268,13 @@ type segmentedFilesResponse struct {
 }
 
 func segmentFileIDEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(segmentFileIDRequest)
-		if !ok {
-			return segmentedFilesResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		creditFile, debitFile, err := s.SegmentFileID(req.fileID, req.opts)
-
-		if logger != nil {
-			logger.With(log.Fields{
-				"files":     log.String("segmentFileID"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("segment fileID")
-			}
-		}
-		if err != nil {
-			return segmentedFilesResponse{Err: err}, err
-		}
-
-		var resp segmentedFilesResponse
-
-		if creditFile.ID != "" {
-			err = r.StoreFile(creditFile)
-			if logger != nil && err != nil {
-				logger.With(log.Fields{
-					"files":     log.String("storeCreditFile"),
-					"requestID": log.String(req.requestID),
-				}).LogError(err)
-			}
-			resp.CreditFile = creditFile
-			resp.CreditFileID = creditFile.ID
-		}
-
-		if debitFile.ID != "" {
-			err = r.StoreFile(debitFile)
-			if logger != nil && err != nil {
-				logger.With(log.Fields{
-					"files":     log.String("storeDebitFile"),
-					"requestID": log.String(req.requestID),
-				}).LogError(err)
-			}
-			resp.DebitFile = debitFile
-			resp.DebitFileID = debitFile.ID
-		}
-
-		resp.Err = err
-
-		return resp, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeSegmentFileIDRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	fileID, ok := vars["fileID"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-
-	req := segmentFileIDRequest{
-		fileID:    fileID,
-		requestID: moovhttp.GetRequestID(r),
-	}
-
-	var opts ach.SegmentFileConfiguration
-	if err := json.NewDecoder(r.Body).Decode(&opts); err == nil {
-		req.opts = &opts
-	}
-
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type segmentFileRequest struct {
@@ -663,117 +286,13 @@ type segmentFileRequest struct {
 }
 
 func segmentFileEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(segmentFileRequest)
-		if !ok {
-			return segmentedFilesResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		if req.File != nil && req.validateOpts != nil {
-			req.File.SetValidation(req.validateOpts)
-		}
-
-		creditFile, debitFile, err := s.SegmentFile(req.File, req.opts)
-		if logger != nil {
-			logger.With(log.Fields{
-				"files":     log.String("segmentFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("segment file")
-			}
-		}
-		if err != nil {
-			return segmentedFilesResponse{Err: err}, err
-		}
-
-		var resp segmentedFilesResponse
-
-		if creditFile.ID != "" {
-			err = r.StoreFile(creditFile)
-			if logger != nil && err != nil {
-				logger.With(log.Fields{
-					"files":     log.String("storeCreditFile"),
-					"requestID": log.String(req.requestID),
-				}).LogError(err)
-			}
-			resp.CreditFile = creditFile
-			resp.CreditFileID = creditFile.ID
-		}
-
-		if debitFile.ID != "" {
-			err = r.StoreFile(debitFile)
-			if logger != nil && err != nil {
-				logger.With(log.Fields{
-					"files":     log.String("storeDebitFile"),
-					"requestID": log.String(req.requestID),
-				}).LogError(err)
-			}
-			resp.DebitFile = debitFile
-			resp.DebitFileID = debitFile.ID
-		}
-
-		resp.Err = err
-
-		return resp, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeSegmentFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var file *ach.File
-
-	var wrapper struct {
-		Opts         *ach.SegmentFileConfiguration `json:"opts"`
-		ValidateOpts *ach.ValidateOpts             `json:"validateOpts"`
-	}
-
-	bs, err := readBody(r.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if json.Valid(bs) {
-		kv := make(map[string]json.RawMessage)
-
-		err := json.NewDecoder(bytes.NewReader(bs)).Decode(&kv)
-		if err != nil {
-			return segmentedFilesResponse{Err: err}, fmt.Errorf("A : %v", err)
-		}
-
-		if vv, exists := kv["opts"]; vv != nil && exists {
-			err = json.Unmarshal(vv, &wrapper.Opts)
-			if err != nil {
-				return segmentedFilesResponse{Err: err}, fmt.Errorf("B1 : %v", err)
-			}
-		}
-		if vv, exists := kv["validateOpts"]; vv != nil && exists {
-			err = json.Unmarshal(vv, &wrapper.ValidateOpts)
-			if err != nil {
-				return segmentedFilesResponse{Err: err}, fmt.Errorf("B2 : %v", err)
-			}
-		}
-		if vv, exists := kv["file"]; exists {
-			file, err = ach.FileFromJSONWith(vv, wrapper.ValidateOpts)
-			if err != nil {
-				return segmentedFilesResponse{Err: err}, fmt.Errorf("C : %v", err)
-			}
-		}
-	} else {
-		ff, err := ach.NewReader(bytes.NewReader(bs)).Read()
-		if err != nil {
-			return segmentedFilesResponse{Err: err}, fmt.Errorf("D : %v", err)
-		}
-		file = &ff
-	}
-
-	return segmentFileRequest{
-		File:         file,
-		requestID:    moovhttp.GetRequestID(r),
-		opts:         wrapper.Opts,
-		validateOpts: wrapper.ValidateOpts,
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type flattenBatchesRequest struct {
@@ -788,58 +307,13 @@ type flattenBatchesResponse struct {
 }
 
 func flattenBatchesEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(flattenBatchesRequest)
-		if !ok {
-			return flattenBatchesResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-		flattenFile, err := s.FlattenBatches(req.fileID)
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("FlattenBatches"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("flatten batches")
-			}
-		}
-		if err != nil {
-			return flattenBatchesResponse{Err: err}, err
-		}
-		if flattenFile.ID != "" {
-			err = r.StoreFile(flattenFile)
-			if logger != nil {
-				logger := logger.With(log.Fields{
-					"files":     log.String("storeFlattenFile"),
-					"requestID": log.String(req.requestID),
-				})
-				if err != nil {
-					logger.Error().LogError(err)
-				} else {
-					logger.Info().Log("flatten batches")
-				}
-			}
-		}
-		return flattenBatchesResponse{
-			ID:   flattenFile.ID,
-			File: flattenFile,
-			Err:  err,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeFlattenBatchesRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	fileID, ok := vars["fileID"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-	return flattenBatchesRequest{
-		fileID:    fileID,
-		requestID: moovhttp.GetRequestID(r),
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type mergeFilesRequest struct {
@@ -857,59 +331,13 @@ type mergeFilesResponse struct {
 }
 
 func mergeFilesEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(mergeFilesRequest)
-		if !ok {
-			return mergeFilesResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		merged, err := s.MergeFiles(req.FileIDs, req.Files, req.Conditions)
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"file_ids":  log.Strings(req.FileIDs),
-				"requestID": log.String(req.RequestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("merging files")
-			}
-		}
-		if err != nil {
-			return mergeFilesResponse{Err: err}, err
-		}
-
-		for idx := range merged {
-			err := r.StoreFile(merged[idx])
-			if logger != nil {
-				logger := logger.With(log.Fields{
-					"file_ids":  log.Strings(req.FileIDs),
-					"requestID": log.String(req.RequestID),
-				})
-				if err != nil {
-					logger.Error().LogError(err)
-				} else {
-					logger.Info().Logf("merge created file %s", merged[idx].ID)
-				}
-			}
-		}
-
-		return mergeFilesResponse{
-			Files: merged,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeMergeFilesRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req mergeFilesRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return nil, fmt.Errorf("decoding merge files json: %w", err)
-	}
-
-	req.RequestID = cmp.Or(req.RequestID, moovhttp.GetRequestID(r))
-
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type reverseFileRequest struct {
@@ -924,73 +352,14 @@ type reverseFileResponse struct {
 	Err  error     `json:"error"`
 }
 
-func (r reverseFileResponse) error() error { return r.Err }
+func (r reverseFileResponse) error() error { _ = "STUB: not implemented"; return nil }
 
 func reverseFileEndpoint(s Service, r Repository, logger log.Logger) endpoint.Endpoint {
-	return func(_ context.Context, request interface{}) (interface{}, error) {
-		req, ok := request.(reverseFileRequest)
-		if !ok {
-			return reverseFileResponse{Err: ErrFoundABug}, ErrFoundABug
-		}
-
-		reversedFile, err := s.ReverseFile(req.fileID, req.effectiveEntryDate)
-		if logger != nil {
-			logger := logger.With(log.Fields{
-				"files":     log.String("ReverseFile"),
-				"requestID": log.String(req.requestID),
-			})
-			if err != nil {
-				logger.Error().LogError(err)
-			} else {
-				logger.Info().Log("reverse file")
-			}
-		}
-		if err != nil {
-			return reverseFileResponse{Err: err}, err
-		}
-
-		if reversedFile.ID != "" {
-			err = r.StoreFile(reversedFile)
-			if logger != nil && err != nil {
-				logger.With(log.Fields{
-					"files":     log.String("storeReversedFile"),
-					"requestID": log.String(req.requestID),
-				}).LogError(err)
-			}
-		}
-
-		return reverseFileResponse{
-			ID:   reversedFile.ID,
-			File: reversedFile,
-			Err:  err,
-		}, nil
-	}
+	_ = "STUB: not implemented"
+	return *new(endpoint.Endpoint)
 }
 
 func decodeReverseFileRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	vars := mux.Vars(r)
-	fileID, ok := vars["fileID"]
-	if !ok {
-		return nil, ErrBadRouting
-	}
-
-	req := reverseFileRequest{
-		fileID:    fileID,
-		requestID: moovhttp.GetRequestID(r),
-	}
-
-	var body struct {
-		EffectiveEntryDate base.Time `json:"effectiveEntryDate"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil && err != io.EOF {
-		return nil, fmt.Errorf("parsing reverse request: %w", err)
-	}
-
-	if body.EffectiveEntryDate.IsZero() {
-		req.effectiveEntryDate = time.Now().In(time.UTC)
-	} else {
-		req.effectiveEntryDate = body.EffectiveEntryDate.Time
-	}
-
-	return req, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }

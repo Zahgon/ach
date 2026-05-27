@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 type Addenda98Refused struct {
 	// ID is an identifier only used by the moov-io/ach HTTP server as a way to identify a batch.
 	ID string `json:"id"`
@@ -65,166 +60,78 @@ type Addenda98Refused struct {
 }
 
 // NewAddenda98Refused returns an reference to an instantiated Addenda98Refused with default values
-func NewAddenda98Refused() *Addenda98Refused {
-	addenda98Refused := &Addenda98Refused{
-		TypeCode: "98",
-	}
-	return addenda98Refused
-}
+func NewAddenda98Refused() *Addenda98Refused { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda98Refused values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda98Refused *Addenda98Refused) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda98Refused *Addenda98Refused) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always "98"
-			addenda98Refused.TypeCode = strings.TrimSpace(reset())
-		case 6:
-			addenda98Refused.RefusedChangeCode = strings.TrimSpace(reset())
-		case 21:
-			addenda98Refused.OriginalTrace = strings.TrimSpace(reset())
-		case 27:
-			// Positions 22-27 are Reserved
-			reset()
-		case 35:
-			addenda98Refused.OriginalDFI = addenda98Refused.parseStringField(reset())
-		case 64:
-			addenda98Refused.CorrectedData = strings.TrimSpace(reset())
-		case 67:
-			addenda98Refused.ChangeCode = strings.TrimSpace(reset())
-		case 74:
-			addenda98Refused.TraceSequenceNumber = strings.TrimSpace(reset())
-		case 79:
-			// Positions 75-79 are Reserved
-			reset()
-		case 94:
-			addenda98Refused.TraceNumber = strings.TrimSpace(reset())
-		}
-	}
-}
+// 2-3 Always "98"
+
+// Positions 22-27 are Reserved
+
+// Positions 75-79 are Reserved
 
 // String writes the Addenda98 struct to a 94 character string
-func (addenda98Refused *Addenda98Refused) String() string {
-	if addenda98Refused == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda98Refused.TypeCode)
-	buf.WriteString(addenda98Refused.RefusedChangeCode)
-	buf.WriteString(addenda98Refused.OriginalTraceField())
-	buf.WriteString(strings.Repeat(" ", 6))
-	buf.WriteString(addenda98Refused.OriginalDFIField())
-	buf.WriteString(addenda98Refused.CorrectedDataField())
-	buf.WriteString(addenda98Refused.ChangeCode)
-	buf.WriteString(addenda98Refused.TraceSequenceNumberField())
-	buf.WriteString(strings.Repeat(" ", 5))
-	buf.WriteString(addenda98Refused.TraceNumberField())
-
-	return buf.String()
-}
+func (addenda98Refused *Addenda98Refused) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate verifies NACHA rules for Addenda98
-func (addenda98Refused *Addenda98Refused) Validate() error {
-	if addenda98Refused.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda98Refused.TypeCode)
-	}
-	// Type Code must be 98
-	if addenda98Refused.TypeCode != "98" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda98Refused.TypeCode)
-	}
+func (addenda98Refused *Addenda98Refused) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// RefusedChangeCode must be valid
-	_, ok := changeCodeDict[addenda98Refused.RefusedChangeCode]
-	if !ok {
-		return fieldError("RefusedChangeCode", ErrAddenda98RefusedChangeCode, addenda98Refused.RefusedChangeCode)
-	}
+// Type Code must be 98
 
-	// Addenda98 Record must contain the corrected information corresponding to the Change Code used
-	if addenda98Refused.CorrectedData == "" {
-		return fieldError("CorrectedData", ErrAddenda98CorrectedData, addenda98Refused.CorrectedData)
-	}
+// RefusedChangeCode must be valid
 
-	// ChangeCode must be valid
-	_, ok = changeCodeDict[addenda98Refused.ChangeCode]
-	if !ok {
-		return fieldError("ChangeCode", ErrAddenda98ChangeCode, addenda98Refused.ChangeCode)
-	}
+// Addenda98 Record must contain the corrected information corresponding to the Change Code used
 
-	// TraceSequenceNumber must be valid
-	if addenda98Refused.TraceSequenceNumber == "" {
-		return fieldError("TraceSequenceNumber", ErrAddenda98RefusedTraceSequenceNumber, addenda98Refused.TraceSequenceNumber)
-	}
+// ChangeCode must be valid
 
-	return nil
-}
+// TraceSequenceNumber must be valid
 
 func (addenda98Refused *Addenda98Refused) RefusedChangeCodeField() *ChangeCode {
-	code, ok := changeCodeDict[addenda98Refused.RefusedChangeCode]
-	if ok {
-		return code
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 // OriginalTraceField returns a zero padded OriginalTrace string
 func (addenda98Refused *Addenda98Refused) OriginalTraceField() string {
-	return addenda98Refused.stringField(addenda98Refused.OriginalTrace, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // OriginalDFIField returns a zero padded OriginalDFI string
 func (addenda98Refused *Addenda98Refused) OriginalDFIField() string {
-	return addenda98Refused.stringField(addenda98Refused.OriginalDFI, 8)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // CorrectedDataField returns a space padded CorrectedData string
 func (addenda98Refused *Addenda98Refused) CorrectedDataField() string {
-	return addenda98Refused.alphaField(addenda98Refused.CorrectedData, 29)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (addenda98Refused *Addenda98Refused) ChangeCodeField() *ChangeCode {
-	code, ok := changeCodeDict[addenda98Refused.ChangeCode]
-	if ok {
-		return code
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 func (addenda98Refused *Addenda98Refused) TraceSequenceNumberField() string {
-	return addenda98Refused.stringField(addenda98Refused.TraceSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TraceNumberField returns a zero padded traceNumber string
 func (addenda98Refused *Addenda98Refused) TraceNumberField() string {
-	return addenda98Refused.stringField(addenda98Refused.TraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }

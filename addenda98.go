@@ -17,13 +17,6 @@
 
 package ach
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda98 is a Addendumer addenda record format for Notification OF Change(98)
 // The field contents for Notification of Change Entries must match the field contents of the original Entries
 type Addenda98 struct {
@@ -77,208 +70,82 @@ type ChangeCode struct {
 }
 
 // NewAddenda98 returns an reference to an instantiated Addenda98 with default values
-func NewAddenda98() *Addenda98 {
-	addenda98 := &Addenda98{
-		TypeCode: "98",
-	}
-	return addenda98
-}
+func NewAddenda98() *Addenda98 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda98 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda98 *Addenda98) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda98 *Addenda98) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always "98"
-			addenda98.TypeCode = reset()
-		case 6:
-			// 4-6
-			addenda98.ChangeCode = reset()
-		case 21:
-			// 7-21
-			addenda98.OriginalTrace = strings.TrimSpace(reset())
-		case 27:
-			reset()
-		case 35:
-			// 28-35
-			addenda98.OriginalDFI = addenda98.parseStringField(reset())
-		case 64:
-			// 36-64
-			addenda98.CorrectedData = strings.TrimSpace(reset())
-		case 70:
-			// 65-70 (Reserved for all except IAT Corrections)
-			addenda98.iatCorrectedData = strings.TrimSpace(reset())
-		case 79:
-			// Reserved
-			reset()
-		case 94:
-			// 80-94
-			addenda98.TraceNumber = strings.TrimSpace(reset())
-		}
-	}
-}
+// 2-3 Always "98"
+
+// 4-6
+
+// 7-21
+
+// 28-35
+
+// 36-64
+
+// 65-70 (Reserved for all except IAT Corrections)
+
+// Reserved
+
+// 80-94
 
 // String writes the Addenda98 struct to a 94 character string
-func (addenda98 *Addenda98) String() string {
-	if addenda98 == nil {
-		return ""
-	}
+func (addenda98 *Addenda98) String() string { _ = "STUB: not implemented"; return "" }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// 6 char reserved field
 
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda98.TypeCode)
-	buf.WriteString(addenda98.ChangeCode)
-	buf.WriteString(addenda98.OriginalTraceField())
-	buf.WriteString("      ") // 6 char reserved field
-	buf.WriteString(addenda98.OriginalDFIField())
-	buf.WriteString(addenda98.CorrectedDataField())
-	buf.WriteString("               ") // 15 char reserved field
-	buf.WriteString(addenda98.TraceNumberField())
-
-	return buf.String()
-}
+// 15 char reserved field
 
 // Validate verifies NACHA rules for Addenda98
-func (addenda98 *Addenda98) Validate() error {
-	if addenda98.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda98.TypeCode)
-	}
-	// Type Code must be 98
-	if addenda98.TypeCode != "98" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda98.TypeCode)
-	}
+func (addenda98 *Addenda98) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// Addenda98 requires a valid ChangeCode
-	_, ok := changeCodeDict[addenda98.ChangeCode]
-	if !ok {
-		return fieldError("ChangeCode", ErrAddenda98ChangeCode, addenda98.ChangeCode)
-	}
+// Type Code must be 98
 
-	// Addenda98 Record must contain the corrected information corresponding to the Change Code used
-	if addenda98.CorrectedData == "" {
-		return fieldError("CorrectedData", ErrAddenda98CorrectedData, addenda98.CorrectedData)
-	}
+// Addenda98 requires a valid ChangeCode
 
-	return nil
-}
+// Addenda98 Record must contain the corrected information corresponding to the Change Code used
 
 // OriginalTraceField returns a zero padded OriginalTrace string
-func (addenda98 *Addenda98) OriginalTraceField() string {
-	return addenda98.stringField(addenda98.OriginalTrace, 15)
-}
+func (addenda98 *Addenda98) OriginalTraceField() string { _ = "STUB: not implemented"; return "" }
 
 // OriginalDFIField returns a zero padded OriginalDFI string
-func (addenda98 *Addenda98) OriginalDFIField() string {
-	return addenda98.stringField(addenda98.OriginalDFI, 8)
-}
+func (addenda98 *Addenda98) OriginalDFIField() string { _ = "STUB: not implemented"; return "" }
 
 // CorrectedDataField returns a space padded CorrectedData string
-func (addenda98 *Addenda98) CorrectedDataField() string {
-	if addenda98.iatCorrectedData == "" {
-		return addenda98.alphaField(addenda98.CorrectedData, 29)
-	}
-	return addenda98.IATCorrectedDataField()
-}
+func (addenda98 *Addenda98) CorrectedDataField() string { _ = "STUB: not implemented"; return "" }
 
 // IATCorrectedDataField returns a space padded CorrectedData string for IAT entries,
 // which is a slightly larger field than typical CorrectedData values.
-func (addenda98 *Addenda98) IATCorrectedDataField() string {
-	out := addenda98.alphaField(addenda98.CorrectedData, 29)
-	out += addenda98.alphaField(addenda98.iatCorrectedData, 6)
-	return out
-}
+func (addenda98 *Addenda98) IATCorrectedDataField() string { _ = "STUB: not implemented"; return "" }
 
 // TraceNumberField returns a zero padded traceNumber string
-func (addenda98 *Addenda98) TraceNumberField() string {
-	return addenda98.stringField(addenda98.TraceNumber, 15)
-}
+func (addenda98 *Addenda98) TraceNumberField() string { _ = "STUB: not implemented"; return "" }
 
-func (addenda98 *Addenda98) ChangeCodeField() *ChangeCode {
-	code, ok := changeCodeDict[addenda98.ChangeCode]
-	if ok {
-		return code
-	}
-	return nil
-}
+func (addenda98 *Addenda98) ChangeCodeField() *ChangeCode { _ = "STUB: not implemented"; return nil }
 
 // LookupChangeCode will return a struct representing the reason and description for
 // the provided NACHA change code.
-func LookupChangeCode(code string) *ChangeCode {
-	if code, exists := changeCodeDict[strings.ToUpper(code)]; exists {
-		return code
-	}
-	return nil
-}
+func LookupChangeCode(code string) *ChangeCode { _ = "STUB: not implemented"; return nil }
 
-func makeChangeCodeDict() map[string]*ChangeCode {
-	dict := make(map[string]*ChangeCode)
+func makeChangeCodeDict() map[string]*ChangeCode { _ = "STUB: not implemented"; return nil }
 
-	codes := []ChangeCode{
-		{"C01", "Incorrect bank account number", "Bank account number incorrect or formatted incorrectly"},
-		{"C02", "Incorrect transit/routing number", "Once valid transit/routing number must be changed"},
-		{"C03", "Incorrect transit/routing number and bank account number", "Once valid transit/routing number must be changed and causes a change to bank account number structure"},
-		{"C04", "Bank account name change", "Customer has changed name or ODFI submitted name incorrectly"},
-		{"C05", "Incorrect transaction code", "Entry posted to demand account should contain savings transaction codes or vice versa"},
-		{"C06", "Incorrect bank account number and transit code", "Bank account number must be changed and transaction code should indicate posting to another account type (demand/savings)"},
-		{"C07", "Incorrect transit/routing number, bank account number and transaction code", "Changes required in three fields indicated"},
-		{"C08", "Incorrect Receiving transit/routing number (IAT only)", "Once valid transit/routing number must be changed"},
-		{"C09", "Incorrect individual ID number", "Individual's ID number is incorrect"},
-		{"C13", "Addenda Format Error", "Entry Detail Record was correct and processed, however unclear or incorrect data was found in the addenda record"},
-		{"C14", "Incorrect SEC Code for outbound IAT payment", "Outbound international payments must use the IAT SEC code and convey required information for OFAC compliance."},
-		// Change codes used when refusing a Notification of Change
-		{"C61", "Misrouted Notification of Change", ""},
-		{"C62", "Incorrect Trace Number", ""},
-		{"C63", "Incorrect Company Identification Number", ""},
-		{"C64", "Incorrect Individual Identification Number or Identification Number", ""},
-		{"C65", "Incorrectly Formatted Corrected Data", ""},
-		{"C66", "Incorrect Discretionary Data", ""},
-		{"C67", "Routing Number not from Original Entry Detail Record", ""},
-		{"C68", "DFI Account Number not from Original Entry Detail Record", ""},
-		{"C69", "Incorrect Transaction Code", ""},
-	}
-	// populate the map
-	for i := range codes {
-		dict[codes[i].Code] = &codes[i]
-	}
-	return dict
-}
+// Change codes used when refusing a Notification of Change
 
-func IsRefusedChangeCode(code string) bool {
-	switch strings.ToUpper(code) {
-	case "C61", "C62", "C63", "C64", "C65", "C66", "C67", "C68", "C69":
-		return true
-	}
-	return false
-}
+// populate the map
+
+func IsRefusedChangeCode(code string) bool { _ = "STUB: not implemented"; return false }
 
 // CorrectedData is a struct returned from our helper method for parsing the NOC/COR
 // corrected data from Addenda98 records.
@@ -299,181 +166,52 @@ type correctedDataOptions struct {
 type correctedDataOption func(conf *correctedDataOptions)
 
 func PartialCorrectedData() correctedDataOption {
-	return func(conf *correctedDataOptions) {
-		conf.ReturnPartialData = true
-	}
+	_ = "STUB: not implemented"
+	return *new(correctedDataOption)
 }
 
 // ParseCorrectedData returns a struct with some fields filled in depending on the Addenda98's
 // Code and CorrectedData. Fields are trimmed when populated in this struct.
 func (addenda98 *Addenda98) ParseCorrectedData(options ...correctedDataOption) *CorrectedData {
-	if addenda98 == nil {
-		return nil
-	}
-
-	cc := addenda98.ChangeCodeField()
-	if cc == nil {
-		return nil
-	}
-
-	var conf correctedDataOptions
-	for _, opt := range options {
-		opt(&conf)
-	}
-
-	data := addenda98.IATCorrectedDataField()
-	switch cc.Code {
-	case "C01": // Incorrect DFI Account Number
-		if v := first(17, data); v != "" {
-			return &CorrectedData{AccountNumber: v}
-		}
-
-	case "C02": // Incorrect Routing Number
-		if v := first(9, data); v != "" {
-			return &CorrectedData{RoutingNumber: v}
-		}
-
-	case "C03": // Incorrect Routing Number and Incorrect DFI Account Number
-		var out CorrectedData
-
-		parts := strings.Fields(data)
-		if len(parts) > 0 {
-			out.RoutingNumber = parts[0]
-		}
-		if len(parts) > 1 {
-			out.AccountNumber = parts[1]
-			return &out
-		}
-
-		// Return partial data only if we're asked to
-		if conf.ReturnPartialData {
-			return &out
-		}
-		return nil
-
-	case "C04": // Incorrect Individual Name
-		if v := first(22, data); v != "" {
-			return &CorrectedData{Name: v}
-		}
-
-	case "C05": // Incorrect Transaction Code
-		if n, err := strconv.Atoi(first(2, data)); err == nil {
-			return &CorrectedData{TransactionCode: n}
-		}
-
-	case "C06": // Incorrect DFI Account Number and Incorrect Transaction Code
-		var out CorrectedData
-		if utf8.RuneCountInString(data) > 17 {
-			out.AccountNumber = first(17, data)
-
-			n, err := strconv.Atoi(strings.TrimSpace(data[17:]))
-			if err == nil {
-				out.TransactionCode = n
-				return &out
-			}
-		} else {
-			parts := strings.Fields(data)
-			if len(parts) == 2 {
-				out.AccountNumber = parts[0]
-
-				if n, err := strconv.Atoi(parts[1]); err == nil {
-					out.TransactionCode = n
-					return &out
-				}
-			}
-		}
-
-		// Return partial data only if we're asked to
-		if conf.ReturnPartialData {
-			return &out
-		}
-
-		return nil
-
-	case "C07": // Incorrect Routing Number, Incorrect DFI Account Number, and Incorrect Tranaction Code
-		var out CorrectedData
-		if len(data) == 0 {
-			return nil
-		}
-
-		var parts []string
-		if n := len(data); n > 9 {
-			out.RoutingNumber = data[:9]
-
-			parts = strings.Fields(data[9:])
-		}
-		// Return nothing if we have extra data
-		if len(parts) > 2 && !conf.ReturnPartialData {
-			return nil
-		}
-
-		// Accumulate part by part
-		if len(parts) > 0 {
-			out.AccountNumber = parts[0]
-		}
-		if len(parts) > 1 {
-			if n, err := strconv.Atoi(parts[1]); err == nil {
-				out.TransactionCode = n
-				return &out
-			}
-		}
-
-		// Return partial data only if we're asked to
-		if conf.ReturnPartialData {
-			return &out
-		}
-
-		return nil
-
-	case "C09": // Incorrect Individual Identification Number
-		if v := first(22, data); v != "" {
-			return &CorrectedData{Identification: v}
-		}
-	}
-
-	// The Code/Correction is either unsupported or wasn't parsed correctly
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func first(size int, data string) string {
-	if utf8.RuneCountInString(data) < size {
-		if data != "" {
-			return strings.TrimSpace(data)
-		} else {
-			return ""
-		}
-	}
-	return strings.TrimSpace(data[:size])
-}
+// Incorrect DFI Account Number
+
+// Incorrect Routing Number
+
+// Incorrect Routing Number and Incorrect DFI Account Number
+
+// Return partial data only if we're asked to
+
+// Incorrect Individual Name
+
+// Incorrect Transaction Code
+
+// Incorrect DFI Account Number and Incorrect Transaction Code
+
+// Return partial data only if we're asked to
+
+// Incorrect Routing Number, Incorrect DFI Account Number, and Incorrect Tranaction Code
+
+// Return nothing if we have extra data
+
+// Accumulate part by part
+
+// Return partial data only if we're asked to
+
+// Incorrect Individual Identification Number
+
+// The Code/Correction is either unsupported or wasn't parsed correctly
+
+func first(size int, data string) string { _ = "STUB: not implemented"; return "" }
 
 const correctedDataCharLength = 29
 
 // ParseCorrectedData returns the string properlty formatted and justified for an
 // Addenda98.CorrectedData field. The code must be an official NACHA change code.
 func WriteCorrectionData(code string, data *CorrectedData) string {
-	pad := &converters{}
-	switch strings.ToUpper(code) {
-	case "C01":
-		return pad.alphaField(data.AccountNumber, correctedDataCharLength)
-	case "C02":
-		return pad.alphaField(data.RoutingNumber, correctedDataCharLength)
-	case "C03":
-		spaces := strings.Repeat(" ", correctedDataCharLength-len(data.RoutingNumber)-len(data.AccountNumber))
-		return fmt.Sprintf("%s%s%s", data.RoutingNumber, spaces, data.AccountNumber)
-	case "C04":
-		return pad.alphaField(data.Name, correctedDataCharLength)
-	case "C05":
-		return pad.alphaField(strconv.Itoa(data.TransactionCode), correctedDataCharLength)
-	case "C06":
-		txcode := strconv.Itoa(data.TransactionCode)
-		spaces := strings.Repeat(" ", correctedDataCharLength-len(data.AccountNumber)-len(txcode))
-		return fmt.Sprintf("%s%s%s", data.AccountNumber, spaces, txcode)
-	case "C07":
-		txcode := strconv.Itoa(data.TransactionCode)
-		spaces := strings.Repeat(" ", correctedDataCharLength-9-len(data.AccountNumber)-len(txcode))
-		return fmt.Sprintf("%s%s%s%s", data.RoutingNumber, data.AccountNumber, spaces, txcode)
-	case "C09":
-		return pad.alphaField(data.Identification, correctedDataCharLength)
-	}
-	return pad.alphaField("", correctedDataCharLength)
+	_ = "STUB: not implemented"
+	return ""
 }

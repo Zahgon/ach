@@ -24,7 +24,4 @@ package ach
 type SegmentFileConfiguration struct{}
 
 // SegmentFileConfiguration returns a new SegmentFileConfiguration with default values for non exported fields
-func NewSegmentFileConfiguration() *SegmentFileConfiguration {
-	sfc := &SegmentFileConfiguration{}
-	return sfc
-}
+func NewSegmentFileConfiguration() *SegmentFileConfiguration { _ = "STUB: not implemented"; return nil }

@@ -17,48 +17,23 @@
 
 package ach
 
-import (
-	"math"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // converters handles golang to ACH type Converters
 type converters struct{}
 
-func (c *converters) parseNumField(r string) (s int) {
-	s, _ = strconv.Atoi(strings.TrimSpace(r))
-	return s
-}
+func (c *converters) parseNumField(r string) (s int) { _ = "STUB: not implemented"; return 0 }
 
-func (c *converters) parseStringField(r string) (s string) {
-	return strings.TrimSpace(r)
-}
+func (c *converters) parseStringField(r string) (s string) { _ = "STUB: not implemented"; return "" }
 
 func (c *converters) parseStringFieldWithOpts(r string, opts *ValidateOpts) string {
-	if opts != nil && opts.PreserveSpaces {
-		return r
-	} else {
-		return c.parseStringField(r)
-	}
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // formatSimpleDate takes a YYMMDD date and formats it for the fixed-width ACH file format
-func (c *converters) formatSimpleDate(s string) string {
-	if s == "" {
-		return c.stringField(s, 6)
-	}
-	return s
-}
+func (c *converters) formatSimpleDate(s string) string { _ = "STUB: not implemented"; return "" }
 
 // formatSimpleTime takes a HHmm (H=hour, m=minute) time and formats it for the fixed-width ACH file format
-func (c *converters) formatSimpleTime(s string) string {
-	if s == "" {
-		return c.stringField(s, 4)
-	}
-	return s
-}
+func (c *converters) formatSimpleTime(s string) string { _ = "STUB: not implemented"; return "" }
 
 var (
 	spaceZeros  map[int]string = populateMap(94, " ")
@@ -68,112 +43,43 @@ var (
 // populateMap will allocate strings for padding ACH fields.
 //
 // In Go strings are immutable so they can be reused across objects without needing to allocate new objects.
-func populateMap(max int, zero string) map[int]string {
-	out := make(map[int]string, max)
-	for i := 0; i < max; i++ {
-		out[i] = strings.Repeat(zero, i)
-	}
-	return out
-}
+func populateMap(max int, zero string) map[int]string { _ = "STUB: not implemented"; return nil }
 
 // alphaField Alphanumeric and Alphabetic fields are left-justified and space filled.
-func (c *converters) alphaField(s string, max uint) string {
-	count := utf8.RuneCountInString(s)
-	if count < 0 {
-		return ""
-	}
+func (c *converters) alphaField(s string, max uint) string { _ = "STUB: not implemented"; return "" }
 
-	// ACH never has lines longer than 94 characters
-	if max > lineLength {
-		return ""
-	}
+// ACH never has lines longer than 94 characters
 
-	ln := uint(count)
-	if ln > max && len(s) >= count {
-		// Find which index corresponds to the max characters allowed
-		return string([]rune(s)[:max])
-	}
+// Find which index corresponds to the max characters allowed
 
-	m := int(max) - int(ln)
-	if m < 0 {
-		return ""
-	}
-
-	pad, exists := spaceZeros[m]
-	if exists {
-		return s + pad
-	}
-	// slow path
-	return s + strings.Repeat(" ", m)
-}
+// slow path
 
 // numericField right-justified, unsigned, and zero filled
 func (c *converters) numericField(n int, max uint) string {
+	_ = "STUB: not implemented"
 	// ACH never has lines longer than 94 characters
-	if max > lineLength {
-		return ""
-	}
-
-	s := strconv.FormatInt(int64(n), 10)
-	l := uint(len(s))
-
-	// Truncate if the length exceeds max
-	if l > max {
-		return s[l-max:]
-	}
-
-	m := int(max) - int(l)
-	if m < 0 {
-		return ""
-	}
-
-	// Pad with preallocated string if available
-	pad, exists := stringZeros[m]
-	if exists {
-		return pad + s
-	}
-
-	// Slow path: Pad with "0" if no preallocated string found
-	return strings.Repeat("0", m) + s
+	return ""
 }
+
+// Truncate if the length exceeds max
+
+// Pad with preallocated string if available
+
+// Slow path: Pad with "0" if no preallocated string found
 
 // stringField slices to max length and zero filled
-func (c *converters) stringField(s string, max uint) string {
-	count := utf8.RuneCountInString(s)
-	if count < 0 {
-		return ""
-	}
+func (c *converters) stringField(s string, max uint) string { _ = "STUB: not implemented"; return "" }
 
-	// ACH never has lines longer than 94 characters
-	if max > lineLength {
-		return ""
-	}
+// ACH never has lines longer than 94 characters
 
-	ln := uint(count)
-	if ln > max && len(s) >= count {
-		// Find which index corresponds to the max characters allowed
-		return string([]rune(s)[:max])
-	}
+// Find which index corresponds to the max characters allowed
 
-	m := int(max) - int(ln)
-	if m < 0 {
-		return ""
-	}
+// Pad with preallocated string if available
 
-	// Pad with preallocated string if available
-	pad, exists := stringZeros[m]
-	if exists {
-		return pad + s
-	}
-
-	// slow path
-	return strings.Repeat("0", m) + s
-}
+// slow path
 
 // leastSignificantDigits returns the least significant digits of v limited by maxDigits.
 func (c *converters) leastSignificantDigits(v int, maxDigits uint) int {
-	if maxDigits > lineLength {
-		return 0
-	}
-	return v % int(math.Pow10(int(maxDigits)))
+	_ = "STUB: not implemented"
+	return 0
 }

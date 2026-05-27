@@ -19,19 +19,10 @@ package ach
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
 	"io/fs"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 	"sync"
 
 	"github.com/igrmk/treemap/v2"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -53,16 +44,10 @@ const (
 // is the default for this function. Use MergeFilesWith for a higher limit.
 //
 // File Batches can only be merged if they are unique and routed to and from the same ABA routing numbers.
-func MergeFiles(files []*File) ([]*File, error) {
-	return MergeFilesWith(files, Conditions{
-		MaxLines: NACHAFileLineLimit,
-	})
-}
+func MergeFiles(files []*File) ([]*File, error) { _ = "STUB: not implemented"; return nil, nil }
 
 // NewMerger returns a Merge which can have custom ValidateOpts
-func NewMerger(opts *ValidateOpts) Merger {
-	return &merger{opts: opts}
-}
+func NewMerger(opts *ValidateOpts) Merger { _ = "STUB: not implemented"; return *new(Merger) }
 
 // Merge can merge ACH files with custom ValidateOpts
 type Merger interface {
@@ -74,12 +59,8 @@ type merger struct {
 }
 
 func (m *merger) MergeWith(files []*File, conditions Conditions) ([]*File, error) {
-	if m.opts != nil {
-		for i := range files {
-			files[i].SetValidation(m.opts)
-		}
-	}
-	return MergeFilesWith(files, conditions)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type Conditions struct {
@@ -105,23 +86,8 @@ type Conditions struct {
 //
 // File Batches can only be merged if they are unique and routed to and from the same ABA routing numbers.
 func MergeFilesWith(incoming []*File, conditions Conditions) ([]*File, error) {
-	if len(incoming) == 0 {
-		return nil, nil
-	}
-
-	sorted := &outFile{
-		header:       incoming[0].Header,
-		validateOpts: incoming[0].GetValidation(),
-	}
-
-	for i := range incoming {
-		err := sorted.add(incoming[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return convertToFiles(sorted, conditions)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 type FileAcceptance string
@@ -162,14 +128,8 @@ type MergeDirOptions struct {
 //
 // Files with extensions that do not match are skipped.
 func DefaultFileAcceptor(path string) FileAcceptance {
-	_, filename := filepath.Split(path)
-	switch strings.ToLower(filepath.Ext(filename)) {
-	case "", ".ach", ".txt":
-		return AcceptFile
-	case ".json":
-		return AcceptAsJSON
-	}
-	return SkipFile
+	_ = "STUB: not implemented"
+	return *new(FileAcceptance)
 }
 
 // MergeDir will consolidate a directory of ACH files into as few files as possible.
@@ -188,289 +148,64 @@ func DefaultFileAcceptor(path string) FileAcceptance {
 //
 // File Batches can only be merged if they are unique and routed to and from the same ABA routing numbers.
 func MergeDir(dir string, conditions Conditions, opts *MergeDirOptions) ([]*File, error) {
-	if opts == nil {
-		opts = &MergeDirOptions{}
-	}
-	if opts.AcceptFile == nil {
-		opts.AcceptFile = DefaultFileAcceptor
-	}
-	if opts.FS != nil {
-		// Go running on windows does not support os.DirFS properly
-		// See: https://github.com/golang/go/issues/44279
-		subdir := filepath.Clean(dir)
-		if runtime.GOOS == "windows" {
-			subdir = filepath.ToSlash(subdir)
-		}
-		fsys, err := fs.Sub(opts.FS, subdir)
-		if err != nil {
-			return nil, fmt.Errorf("fs.Sub of %v and %s failed: %w", opts.FS, dir, err)
-		}
-		opts.FS = fsys
-		dir = "."
-	}
-
-	sorted := &outFile{}
-	var setup sync.Once
-
-	// We've observed the slowest part of MergeDir is reading files from disk and
-	// parsing them into File structs. We want to have a decent buffer of *File
-	// structs that are ready to merge.
-	//
-	// For example we have observed (on an Intel Mac w/ SSD)
-	//    filepath.Walk        50-250µs
-	//    queueFileForMerging  20-250ms
-	//    sorted.add             1-25ms
-	var g errgroup.Group
-
-	parseWorkers := 50 // active ACH Reader's
-	if opts.ParseWorkers > 0 {
-		parseWorkers = opts.ParseWorkers
-	}
-
-	discoveredPaths := make(chan string)
-	mergableFiles := make(chan *File)
-
-	// We are going to scan the directory for files to parse and merge.
-	pathsCtx, pathsCancelFunc := context.WithCancel(context.Background())
-
-	var pathsGroup sync.WaitGroup
-	pathsGroup.Add(1)
-	g.Go(func() error {
-		defer func() {
-			pathsGroup.Done()
-		}()
-
-		return walkDir(pathsCtx, opts.FS, dir, opts, discoveredPaths)
-	})
-	g.Go(func() error {
-		pathsGroup.Wait()
-		pathsCancelFunc()
-		return nil
-	})
-
-	// Setup concurrent ACH file parsers which is typically the longest part of merging.
-	parsingCtx, parsingCancelFunc := context.WithCancel(context.Background())
-
-	var parsingGroup sync.WaitGroup
-	parsingGroup.Add(parseWorkers)
-	for i := 0; i < parseWorkers; i++ {
-		g.Go(func() error {
-			defer parsingGroup.Done()
-
-			err := queueFileForMerging(pathsCtx, parsingCtx, discoveredPaths, &setup, sorted, mergableFiles, opts)
-			if err != nil {
-				pathsCancelFunc()
-				parsingCancelFunc()
-			}
-			return err
-		})
-	}
-	g.Go(func() error {
-		parsingGroup.Wait()
-		parsingCancelFunc()
-		return nil
-	})
-
-	// Merge ACH files into the final output
-	g.Go(func() error {
-		for {
-			select {
-			case file := <-mergableFiles:
-				if file == nil {
-					continue
-				}
-
-				// accumulate the file into our merged set
-				err := sorted.add(file)
-				if err != nil {
-					// Cancel all goroutines to avoid deadlock on unbuffered channels
-					pathsCancelFunc()
-					parsingCancelFunc()
-
-					return fmt.Errorf("adding file into merged set failed: %w", err)
-				}
-
-			case <-parsingCtx.Done():
-				return nil
-			}
-		}
-	})
-
-	err := g.Wait()
-	if err != nil {
-		return nil, fmt.Errorf("merging %s failed: %w", dir, err)
-	}
-
-	return convertToFiles(sorted, conditions)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
+// Go running on windows does not support os.DirFS properly
+// See: https://github.com/golang/go/issues/44279
+
+// We've observed the slowest part of MergeDir is reading files from disk and
+// parsing them into File structs. We want to have a decent buffer of *File
+// structs that are ready to merge.
+//
+// For example we have observed (on an Intel Mac w/ SSD)
+//    filepath.Walk        50-250µs
+//    queueFileForMerging  20-250ms
+//    sorted.add             1-25ms
+
+// active ACH Reader's
+
+// We are going to scan the directory for files to parse and merge.
+
+// Setup concurrent ACH file parsers which is typically the longest part of merging.
+
+// Merge ACH files into the final output
+
+// accumulate the file into our merged set
+
+// Cancel all goroutines to avoid deadlock on unbuffered channels
+
 func walkDir(ctx context.Context, fsys fs.FS, dir string, opts *MergeDirOptions, discoveredPaths chan string) error {
-	var items []fs.DirEntry
-	var err error
-
-	if fsys != nil {
-		// Defer to the provided fs.FS when we can
-		if rr, ok := fsys.(fs.ReadDirFS); ok {
-			items, err = rr.ReadDir(dir)
-		}
-	}
-	if err != nil {
-		return fmt.Errorf("fs.readdir %s failed: %w", dir, err)
-	}
-	if len(items) == 0 {
-		items, err = os.ReadDir(dir)
-	}
-	if err != nil {
-		return fmt.Errorf("os.readdir %s failed: %w", dir, err)
-	}
-
-	for i := range items {
-		if items[i].IsDir() {
-			if opts.SubDirectories {
-				err := walkDir(ctx, fsys, filepath.Join(dir, items[i].Name()), opts, discoveredPaths)
-				if err != nil {
-					return err
-				}
-			} else {
-				continue
-			}
-		}
-
-		fullPath := filepath.Join(dir, items[i].Name())
-		if fullPath != "" {
-			select {
-			case discoveredPaths <- fullPath:
-			case <-ctx.Done():
-				return nil
-			}
-		}
-	}
-
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// Defer to the provided fs.FS when we can
+
 func queueFileForMerging(pathsCtx, parsingCtx context.Context, discoveredPaths chan string, setup *sync.Once, sorted *outFile, mergableFiles chan *File, opts *MergeDirOptions) error {
-	for {
-		select {
-		case path := <-discoveredPaths:
-			if path == "" {
-				continue
-			}
-
-			var file *File
-			var err error
-
-			// Without an accept function assume the file is Nacha formatted
-			var as FileAcceptance
-			if opts.AcceptFile != nil {
-				as = opts.AcceptFile(path)
-			} else {
-				as = AcceptFile
-			}
-
-			if as == SkipFile {
-				continue
-			}
-
-			// Load any ValidateOpts that exist
-			validateOpts := readValidateOptsFromFile(path, opts)
-
-			// Read the file
-			file, err = readFile(opts.FS, path, as, validateOpts)
-			if err != nil {
-				return fmt.Errorf("reading %s failed: %w", path, err)
-			}
-			if file == nil {
-				continue
-			}
-
-			// Save the first file's header information if it's not already
-			setup.Do(func() {
-				sorted.header = file.Header
-				sorted.validateOpts = file.GetValidation()
-			})
-
-			// Only send non-nil files, once this channel receives a nil file we stop merging
-			if file != nil {
-				select {
-				case mergableFiles <- file:
-				case <-parsingCtx.Done():
-					return nil
-				}
-			}
-
-		case <-pathsCtx.Done():
-			return nil
-		}
-	}
+	_ = "STUB: not implemented"
+	return nil
 }
 
+// Without an accept function assume the file is Nacha formatted
+
+// Load any ValidateOpts that exist
+
+// Read the file
+
+// Save the first file's header information if it's not already
+
+// Only send non-nil files, once this channel receives a nil file we stop merging
+
 func readValidateOptsFromFile(path string, opts *MergeDirOptions) *ValidateOpts {
-	if opts.ValidateOptsExtension != "" {
-		where := strings.TrimSuffix(path, filepath.Ext(path)) + opts.ValidateOptsExtension
-
-		var fd fs.File
-		var err error
-
-		if opts.FS != nil {
-			fd, err = opts.FS.Open(where)
-		} else {
-			fd, err = os.Open(where)
-		}
-		if err != nil {
-			return nil
-		}
-		defer fd.Close()
-
-		var v ValidateOpts
-		json.NewDecoder(fd).Decode(&v)
-		return &v
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
 
 func readFile(fsys fs.FS, path string, as FileAcceptance, validateOpts *ValidateOpts) (*File, error) {
-	if as == SkipFile {
-		return nil, nil
-	}
-
-	var fd fs.File
-	var err error
-	if fsys != nil {
-		fd, err = fsys.Open(path)
-	} else {
-		fd, err = os.Open(path)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("opening %s failed: %w", path, err)
-	}
-	defer fd.Close()
-
-	stat, err := fd.Stat()
-	if stat != nil && stat.IsDir() {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("stat %s failed: %w", path, err)
-	}
-
-	if as == AcceptFile {
-		r := NewReader(fd)
-		r.SetValidation(validateOpts)
-		file, err := r.Read()
-		if err != nil {
-			return nil, fmt.Errorf("reading %s as nacha failed: %w", path, err)
-		}
-		return &file, nil
-	}
-	if as == AcceptAsJSON {
-		bs, err := io.ReadAll(fd)
-		if err != nil {
-			return nil, fmt.Errorf("reading %s as bytes failed: %w", path, err)
-		}
-		return FileFromJSONWith(bs, validateOpts)
-	}
-	return nil, fmt.Errorf("unknown %v for %s", as, path)
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
 // outFile is a partial ACH file with batches and forms a linked list to additional files
@@ -485,329 +220,67 @@ type outFile struct {
 	next *outFile
 }
 
-func (outf *outFile) add(incoming *File) error {
-	outFile := pickOutFile(incoming.Header, outf)
-	if outFile == nil {
-		return fmt.Errorf("found no outfile: %w", ErrPleaseReportBug)
-	}
-	outFile.validateOpts = outFile.validateOpts.merge(incoming.GetValidation())
+func (outf *outFile) add(incoming *File) error { _ = "STUB: not implemented"; return nil }
 
-	for j := range incoming.Batches {
-		if len(incoming.Batches[j].GetADVEntries()) > 0 {
-			return errors.New("merging ADV batches is not supported")
-		}
+// Find a batch where this entry can fit
 
-		bh := incoming.Batches[j].GetHeader()
-		if bh == nil {
-			return fmt.Errorf("batch[%d] has nil BatchHeader", j)
-		}
-
-		entries := incoming.Batches[j].GetEntries()
-		for m := range entries {
-			// Find a batch where this entry can fit
-			b := findOutBatch(bh, outFile.batches, entries[m])
-
-			// No batch can hold this EntryDetail so create one
-			if b == nil {
-				b = &batch{
-					header:       *bh,
-					entries:      treemap.New[string, *EntryDetail](),
-					validateOpts: incoming.GetValidation(),
-				}
-				outFile.batches = append(outFile.batches, b)
-			}
-
-			b.entries.Set(entries[m].TraceNumber, entries[m])
-		}
-	}
-
-	for j := range incoming.IATBatches {
-		ibh := incoming.IATBatches[j].GetHeader()
-		if ibh == nil {
-			return fmt.Errorf("IATBatch[%d] has nil IATBatchHeader", j)
-		}
-
-		entries := incoming.IATBatches[j].GetEntries()
-		for m := range entries {
-			b := findOutIATBatch(ibh, outFile.iatBatches, entries[m])
-
-			if b == nil {
-				b = &iatBatch{
-					header:       *ibh,
-					entries:      treemap.New[string, *IATEntryDetail](),
-					validateOpts: incoming.GetValidation(),
-				}
-				outFile.iatBatches = append(outFile.iatBatches, b)
-			}
-
-			b.entries.Set(entries[m].TraceNumber, entries[m])
-		}
-	}
-
-	return nil
-}
+// No batch can hold this EntryDetail so create one
 
 func convertToFiles(sorted *outFile, conditions Conditions) ([]*File, error) {
+	_ = "STUB: not implemented"
 	// Force the MaxDollarAmount to within what the Nacha format allows
-	if conditions.MaxDollarAmount == 0 || conditions.MaxDollarAmount > NachaFileDebitCreditLimit {
-		conditions.MaxDollarAmount = NachaFileDebitCreditLimit
-	}
-
-	var batchNumber int
-
-	var out []*File
-	for {
-		// Run through the linked list (sorted.next) until we terminate
-		if sorted == nil {
-			break
-		}
-
-		file := NewFile()
-		file.Header = sorted.header
-
-		if sorted.validateOpts != nil {
-			file.SetValidation(sorted.validateOpts)
-		}
-
-		currentFileLineCount := 2 // FileHeader, FileControl
-		var currentFileDollarAmount int
-
-		for i := range sorted.batches {
-			nextBatch := sorted.batches[i]
-
-			batchNumber += 1
-			batch, err := NewBatch(&BatchHeader{ // don't let BatchHeader escape and mutate
-				ServiceClassCode:         nextBatch.header.ServiceClassCode,
-				CompanyName:              nextBatch.header.CompanyName,
-				CompanyDiscretionaryData: nextBatch.header.CompanyDiscretionaryData,
-				CompanyIdentification:    nextBatch.header.CompanyIdentification,
-				StandardEntryClassCode:   nextBatch.header.StandardEntryClassCode,
-				CompanyEntryDescription:  nextBatch.header.CompanyEntryDescription,
-				CompanyDescriptiveDate:   nextBatch.header.CompanyDescriptiveDate,
-				EffectiveEntryDate:       nextBatch.header.EffectiveEntryDate,
-				SettlementDate:           nextBatch.header.SettlementDate,
-				OriginatorStatusCode:     nextBatch.header.OriginatorStatusCode,
-				ODFIIdentification:       nextBatch.header.ODFIIdentification,
-				BatchNumber:              batchNumber,
-			})
-			if err != nil {
-				return nil, fmt.Errorf("creating batch from sorted.batches[%d] failed: %w", i, err)
-			}
-			batch.SetValidation(nextBatch.validateOpts)
-
-			currentFileLineCount += 2 // BatchHeader, BatchControl
-
-			// add each entry detail
-			for it := nextBatch.entries.Iterator(); it.Valid(); it.Next() {
-				nextEntry := it.Value()
-
-				// Check if we're going to exceed the merge conditions before adding the entry
-				entryLineCount := 1 + nextEntry.addendaCount()
-				if conditions.MaxLines > 0 {
-					// File will be too large, so make a new file and batch
-					if currentFileLineCount+entryLineCount > conditions.MaxLines {
-						goto overflow
-					}
-				}
-
-				// File would exceed the dollar amount we're limited to
-				if conditions.MaxDollarAmount > 0 {
-					if int64(currentFileDollarAmount)+int64(nextEntry.Amount) > conditions.MaxDollarAmount {
-						goto overflow
-					}
-				}
-
-				// Without a condition being exceeded jump into adding the entry in the current batch
-				goto merge
-
-			overflow:
-				// Close out the current batch and file since we exceeded some limit
-				if len(batch.GetEntries()) > 0 {
-					err = batch.Create()
-					if err != nil {
-						return nil, fmt.Errorf("problem creating batch for new file/batch: %w", err)
-					}
-					file.AddBatch(batch)
-				}
-				if len(file.Batches) > 0 || len(file.IATBatches) > 0 {
-					err = file.Create()
-					if err != nil {
-						return nil, fmt.Errorf("problem creating file for new file/batch: %w", err)
-					}
-					out = append(out, file)
-				}
-
-				// Reset counters
-				currentFileLineCount = 4 // FileHeader, FileControl, BatchHeader, BatchControl
-				currentFileDollarAmount = 0
-
-				// Create the new file and batch
-				file = NewFile()
-				file.Header = sorted.header
-
-				batchNumber += 1
-				batch, err = NewBatch(&BatchHeader{ // don't let BatchHeader escape and mutate
-					ServiceClassCode:         nextBatch.header.ServiceClassCode,
-					CompanyName:              nextBatch.header.CompanyName,
-					CompanyDiscretionaryData: nextBatch.header.CompanyDiscretionaryData,
-					CompanyIdentification:    nextBatch.header.CompanyIdentification,
-					StandardEntryClassCode:   nextBatch.header.StandardEntryClassCode,
-					CompanyEntryDescription:  nextBatch.header.CompanyEntryDescription,
-					CompanyDescriptiveDate:   nextBatch.header.CompanyDescriptiveDate,
-					EffectiveEntryDate:       nextBatch.header.EffectiveEntryDate,
-					SettlementDate:           nextBatch.header.SettlementDate,
-					OriginatorStatusCode:     nextBatch.header.OriginatorStatusCode,
-					ODFIIdentification:       nextBatch.header.ODFIIdentification,
-					BatchNumber:              batchNumber,
-				})
-				if err != nil {
-					return nil, fmt.Errorf("problem creating overflow batch: %w", err)
-				}
-				batch.SetValidation(nextBatch.validateOpts)
-
-			merge:
-				// Add the entry to the current batch
-				batch.AddEntry(nextEntry)
-
-				currentFileLineCount += 1 + nextEntry.addendaCount()
-				currentFileDollarAmount += nextEntry.Amount
-			}
-
-			if len(batch.GetEntries()) > 0 {
-				err = batch.Create()
-				if err != nil {
-					return nil, fmt.Errorf("problem creating batch for outfile: %w", err)
-				}
-				file.AddBatch(batch)
-			}
-		}
-
-		for i := range sorted.iatBatches {
-			nextBatch := sorted.iatBatches[i]
-
-			batchNumber += 1
-			iatBh := &IATBatchHeader{
-				ServiceClassCode:                  nextBatch.header.ServiceClassCode,
-				IATIndicator:                      nextBatch.header.IATIndicator,
-				ForeignExchangeIndicator:          nextBatch.header.ForeignExchangeIndicator,
-				ForeignExchangeReferenceIndicator: nextBatch.header.ForeignExchangeReferenceIndicator,
-				ForeignExchangeReference:          nextBatch.header.ForeignExchangeReference,
-				ISODestinationCountryCode:         nextBatch.header.ISODestinationCountryCode,
-				OriginatorIdentification:          nextBatch.header.OriginatorIdentification,
-				StandardEntryClassCode:            nextBatch.header.StandardEntryClassCode,
-				CompanyEntryDescription:           nextBatch.header.CompanyEntryDescription,
-				ISOOriginatingCurrencyCode:        nextBatch.header.ISOOriginatingCurrencyCode,
-				ISODestinationCurrencyCode:        nextBatch.header.ISODestinationCurrencyCode,
-				EffectiveEntryDate:                nextBatch.header.EffectiveEntryDate,
-				SettlementDate:                    nextBatch.header.SettlementDate,
-				OriginatorStatusCode:              nextBatch.header.OriginatorStatusCode,
-				ODFIIdentification:                nextBatch.header.ODFIIdentification,
-				BatchNumber:                       batchNumber,
-			}
-			iatBatch := NewIATBatch(iatBh)
-			iatBatch.SetValidation(nextBatch.validateOpts)
-
-			currentFileLineCount += 2 // IATBatchHeader, BatchControl
-
-			// add each IAT entry detail
-			for it := nextBatch.entries.Iterator(); it.Valid(); it.Next() {
-				nextEntry := it.Value()
-
-				// Check if we're going to exceed the merge conditions before adding the entry
-				entryLineCount := 1 + nextEntry.addendaCount()
-				if conditions.MaxLines > 0 {
-					// File will be too large, so make a new file and batch
-					if currentFileLineCount+entryLineCount > conditions.MaxLines {
-						goto iatOverflow
-					}
-				}
-
-				// File would exceed the dollar amount we're limited to
-				if conditions.MaxDollarAmount > 0 {
-					if int64(currentFileDollarAmount)+int64(nextEntry.Amount) > conditions.MaxDollarAmount {
-						goto iatOverflow
-					}
-				}
-
-				// Without a condition being exceeded jump into adding the entry in the current batch
-				goto iatMerge
-
-			iatOverflow:
-				// Close out the current batch and file since we exceeded some limit
-				if len(iatBatch.Entries) > 0 {
-					err := iatBatch.Create()
-					if err != nil {
-						return nil, fmt.Errorf("problem creating IAT batch for new file/batch: %w", err)
-					}
-					file.AddIATBatch(iatBatch)
-				}
-				if len(file.Batches) > 0 || len(file.IATBatches) > 0 {
-					err := file.Create()
-					if err != nil {
-						return nil, fmt.Errorf("problem creating file for new file/batch: %w", err)
-					}
-					out = append(out, file)
-				}
-
-				// Reset counters
-				currentFileLineCount = 4 // FileHeader, FileControl, IATBatchHeader, BatchControl
-				currentFileDollarAmount = 0
-
-				// Create the new file and batch
-				file = NewFile()
-				file.Header = sorted.header
-
-				batchNumber += 1
-				iatBh = &IATBatchHeader{
-					ServiceClassCode:                  nextBatch.header.ServiceClassCode,
-					IATIndicator:                      nextBatch.header.IATIndicator,
-					ForeignExchangeIndicator:          nextBatch.header.ForeignExchangeIndicator,
-					ForeignExchangeReferenceIndicator: nextBatch.header.ForeignExchangeReferenceIndicator,
-					ForeignExchangeReference:          nextBatch.header.ForeignExchangeReference,
-					ISODestinationCountryCode:         nextBatch.header.ISODestinationCountryCode,
-					OriginatorIdentification:          nextBatch.header.OriginatorIdentification,
-					StandardEntryClassCode:            nextBatch.header.StandardEntryClassCode,
-					CompanyEntryDescription:           nextBatch.header.CompanyEntryDescription,
-					ISOOriginatingCurrencyCode:        nextBatch.header.ISOOriginatingCurrencyCode,
-					ISODestinationCurrencyCode:        nextBatch.header.ISODestinationCurrencyCode,
-					EffectiveEntryDate:                nextBatch.header.EffectiveEntryDate,
-					SettlementDate:                    nextBatch.header.SettlementDate,
-					OriginatorStatusCode:              nextBatch.header.OriginatorStatusCode,
-					ODFIIdentification:                nextBatch.header.ODFIIdentification,
-					BatchNumber:                       batchNumber,
-				}
-				iatBatch = NewIATBatch(iatBh)
-				iatBatch.SetValidation(nextBatch.validateOpts)
-
-			iatMerge:
-				// Add the entry to the current batch
-				iatBatch.AddEntry(nextEntry)
-
-				currentFileLineCount += 1 + nextEntry.addendaCount()
-				currentFileDollarAmount += nextEntry.Amount
-			}
-
-			if len(iatBatch.Entries) > 0 {
-				err := iatBatch.Create()
-				if err != nil {
-					return nil, fmt.Errorf("problem creating IAT batch for outfile: %w", err)
-				}
-				file.AddIATBatch(iatBatch)
-			}
-		}
-
-		if len(file.Batches) > 0 || len(file.IATBatches) > 0 {
-			err := file.Create()
-			if err != nil {
-				return nil, fmt.Errorf("problem creating outfile: %w", err)
-			}
-			out = append(out, file)
-		}
-
-		sorted = sorted.next
-	}
-	return out, nil
+	return nil, nil
 }
+
+// Run through the linked list (sorted.next) until we terminate
+
+// FileHeader, FileControl
+
+// don't let BatchHeader escape and mutate
+
+// BatchHeader, BatchControl
+
+// add each entry detail
+
+// Check if we're going to exceed the merge conditions before adding the entry
+
+// File will be too large, so make a new file and batch
+
+// File would exceed the dollar amount we're limited to
+
+// Without a condition being exceeded jump into adding the entry in the current batch
+
+// Close out the current batch and file since we exceeded some limit
+
+// Reset counters
+// FileHeader, FileControl, BatchHeader, BatchControl
+
+// Create the new file and batch
+
+// don't let BatchHeader escape and mutate
+
+// Add the entry to the current batch
+
+// IATBatchHeader, BatchControl
+
+// add each IAT entry detail
+
+// Check if we're going to exceed the merge conditions before adding the entry
+
+// File will be too large, so make a new file and batch
+
+// File would exceed the dollar amount we're limited to
+
+// Without a condition being exceeded jump into adding the entry in the current batch
+
+// Close out the current batch and file since we exceeded some limit
+
+// Reset counters
+// FileHeader, FileControl, IATBatchHeader, BatchControl
+
+// Create the new file and batch
+
+// Add the entry to the current batch
 
 // batch contains a BatcHeader and tree of entries sorted by TraceNumber, which allows for
 // faster lookup and insertion into an ACH file
@@ -827,57 +300,22 @@ type iatBatch struct {
 
 // pickOutFile will search for an existing outFile matching the FileHeader Origin and Destination.
 // If no such file can be found it will create one. A nil file will never be returned.
-func pickOutFile(fh FileHeader, file *outFile) *outFile {
-	if file == nil {
-		return &outFile{
-			header: fh,
-		}
-	}
-	if fh.ImmediateOrigin == file.header.ImmediateOrigin &&
-		fh.ImmediateDestination == file.header.ImmediateDestination {
-		return file
-	}
-	if file.next == nil {
-		file.next = &outFile{
-			header: fh,
-		}
-		return file.next
-	}
-	return pickOutFile(fh, file.next)
-}
+func pickOutFile(fh FileHeader, file *outFile) *outFile { _ = "STUB: not implemented"; return nil }
 
 // findOutBatch searches an array of batches for one whose BatcHeader matches bh
 // and doesn't contain the TraceNumber from entry.
 func findOutBatch(bh *BatchHeader, batches []*batch, entry *EntryDetail) *batch {
-	for i := range batches {
-		if batches[i].header.Equal(bh) {
-			// Make sure this batch doesn't contain the TraceNumber already
-			var found bool
-			if entry != nil {
-				found = batches[i].entries.Contains(entry.TraceNumber)
-			}
-			if !found {
-				return batches[i]
-			}
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
+
+// Make sure this batch doesn't contain the TraceNumber already
 
 // findOutIATBatch searches an array of IAT batches for one whose IATBatchHeader matches bh
 // and doesn't contain the TraceNumber from entry.
 func findOutIATBatch(bh *IATBatchHeader, batches []*iatBatch, entry *IATEntryDetail) *iatBatch {
-	for i := range batches {
-		if batches[i].header.Equal(bh) {
-			// Make sure this batch doesn't contain the TraceNumber already
-			var found bool
-			if entry != nil {
-				found = batches[i].entries.Contains(entry.TraceNumber)
-			}
-			if !found {
-				return batches[i]
-			}
-		}
-	}
+	_ = "STUB: not implemented"
 	return nil
 }
+
+// Make sure this batch doesn't contain the TraceNumber already

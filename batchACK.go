@@ -25,91 +25,30 @@ type BatchACK struct {
 }
 
 // NewBatchACK returns a *BatchACK
-func NewBatchACK(bh *BatchHeader) *BatchACK {
-	batch := new(BatchACK)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchACK(bh *BatchHeader) *BatchACK { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchACK) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchACK) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration and type specific validation.
-	if batch.Header.StandardEntryClassCode != ACK {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, ACK)
-	}
+// basic verification of the batch before we validate specific rules.
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
+// Add configuration and type specific validation.
 
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchACK) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchACK) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		// Amount must be zero for Acknowledgement Entries
-		if entry.Amount > 0 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("Amount", ErrBatchAmountNonZero, entry.Amount),
-			})
-		}
-		if len(entry.Addenda05) > 1 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("AddendaCount", NewErrBatchAddendaCount(len(entry.Addenda05), 1)),
-			})
-		}
-		switch entry.TransactionCode {
-		case CheckingZeroDollarRemittanceCredit, SavingsZeroDollarRemittanceCredit:
-		default:
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-			})
-		}
-		// // Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// Amount must be zero for Acknowledgement Entries
 
-	return out
-}
+// // Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -117,9 +56,7 @@ func (batch *BatchACK) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchACK) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	return batch.Validate()
+	return nil
 }

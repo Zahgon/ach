@@ -17,10 +17,6 @@
 
 package usabbrev
 
-import (
-	"strings"
-)
-
 var (
 	// usStateAndTerritoryAbbreviations is a mapping of all commonly accepted
 	// two-letter abbreviations.
@@ -88,7 +84,4 @@ var (
 
 // Valid returns true if code is a valid abbreviation for a United States territory or state.
 // Example: UT (Utah) or GU (Guam)
-func Valid(code string) bool {
-	_, ok := usStateAndTerritoryAbbreviations[strings.ToUpper(code)]
-	return ok
-}
+func Valid(code string) bool { _ = "STUB: not implemented"; return false }

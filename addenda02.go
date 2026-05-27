@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda02 is a Addendumer addenda which provides business transaction information for Addenda Type
 // Code 02 in a machine readable format. It is usually formatted according to ANSI, ASC, X12 Standard.
 // It is used for following StandardEntryClassCode: MTE, POS, and SHR.
@@ -70,237 +65,105 @@ type Addenda02 struct {
 }
 
 // NewAddenda02 returns a new Addenda02 with default values for none exported fields
-func NewAddenda02() *Addenda02 {
-	addenda02 := new(Addenda02)
-	addenda02.TypeCode = "02"
-	return addenda02
-}
+func NewAddenda02() *Addenda02 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda02 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda02 *Addenda02) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda02 *Addenda02) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 02
-			addenda02.TypeCode = reset()
-		case 10:
-			// 4-10 Based on the information entered (04-10) 7 alphanumeric
-			addenda02.ReferenceInformationOne = strings.TrimSpace(reset())
-		case 13:
-			// 11-13 Based on the information entered (11-13) 3 alphanumeric
-			addenda02.ReferenceInformationTwo = strings.TrimSpace(reset())
-		case 19:
-			// 14-19
-			addenda02.TerminalIdentificationCode = strings.TrimSpace(reset())
-		case 25:
-			// 20-25
-			addenda02.TransactionSerialNumber = strings.TrimSpace(reset())
-		case 29:
-			// 26-29
-			addenda02.TransactionDate = strings.TrimSpace(reset())
-		case 35:
-			// 30-35
-			addenda02.AuthorizationCodeOrExpireDate = strings.TrimSpace(reset())
-		case 62:
-			// 36-62
-			addenda02.TerminalLocation = strings.TrimSpace(reset())
-		case 77:
-			// 63-77
-			addenda02.TerminalCity = strings.TrimSpace(reset())
-		case 79:
-			// 78-79
-			addenda02.TerminalState = strings.TrimSpace(reset())
-		case 94:
-			// 80-94
-			addenda02.TraceNumber = strings.TrimSpace(reset())
-		}
-	}
-}
+// 2-3 Always 02
 
-func (a *Addenda02) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-10 Based on the information entered (04-10) 7 alphanumeric
+
+// 11-13 Based on the information entered (11-13) 3 alphanumeric
+
+// 14-19
+
+// 20-25
+
+// 26-29
+
+// 30-35
+
+// 36-62
+
+// 63-77
+
+// 78-79
+
+// 80-94
+
+func (a *Addenda02) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda02 struct to a 94 character string.
-func (addenda02 *Addenda02) String() string {
-	if addenda02 == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda02.TypeCode)
-	buf.WriteString(addenda02.ReferenceInformationOneField())
-	buf.WriteString(addenda02.ReferenceInformationTwoField())
-	buf.WriteString(addenda02.TerminalIdentificationCodeField())
-	buf.WriteString(addenda02.TransactionSerialNumberField())
-	buf.WriteString(addenda02.TransactionDateField())
-	buf.WriteString(addenda02.AuthorizationCodeOrExpireDateField())
-	buf.WriteString(addenda02.TerminalLocationField())
-	buf.WriteString(addenda02.TerminalCityField())
-	buf.WriteString(addenda02.TerminalStateField())
-	buf.WriteString(addenda02.TraceNumberField())
-
-	return buf.String()
-}
+func (addenda02 *Addenda02) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda02 *Addenda02) Validate() error {
-	if err := addenda02.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda02.isTypeCode(addenda02.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda02.TypeCode)
-	}
-	// Type Code must be 02
-	if addenda02.TypeCode != "02" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda02.TypeCode)
-	}
-	if addenda02.validateOpts == nil || !addenda02.validateOpts.AllowSpecialCharacters {
-		if err := addenda02.isAlphanumeric(addenda02.ReferenceInformationOne); err != nil {
-			return fieldError("ReferenceInformationOne", err, addenda02.ReferenceInformationOne)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.ReferenceInformationTwo); err != nil {
-			return fieldError("ReferenceInformationTwo", err, addenda02.ReferenceInformationTwo)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.TerminalIdentificationCode); err != nil {
-			return fieldError("TerminalIdentificationCode", err, addenda02.TerminalIdentificationCode)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.TransactionSerialNumber); err != nil {
-			return fieldError("TransactionSerialNumber", err, addenda02.TransactionSerialNumber)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.AuthorizationCodeOrExpireDate); err != nil {
-			return fieldError("AuthorizationCodeOrExpireDate", err, addenda02.AuthorizationCodeOrExpireDate)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.TerminalLocation); err != nil {
-			return fieldError("TerminalLocation", err, addenda02.TerminalLocation)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.TerminalCity); err != nil {
-			return fieldError("TerminalCity", err, addenda02.TerminalCity)
-		}
-		if err := addenda02.isAlphanumeric(addenda02.TerminalState); err != nil {
-			return fieldError("TerminalState", err, addenda02.TerminalState)
-		}
-	}
+func (addenda02 *Addenda02) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// TransactionDate Addenda02 ACH File format is MMDD. Validate MM is 01-12 and day for the
-	// month 01-31 depending on month.
-	mm := addenda02.parseStringField(addenda02.TransactionDateField()[0:2])
-	dd := addenda02.parseStringField(addenda02.TransactionDateField()[2:4])
-	if err := addenda02.isMonth(mm); err != nil {
-		return fieldError("TransactionDate", ErrValidMonth, mm)
-	}
-	if err := addenda02.isDay(mm, dd); err != nil {
-		return fieldError("TransactionDate", ErrValidDay, mm)
-	}
+// Type Code must be 02
 
-	return nil
-}
+// TransactionDate Addenda02 ACH File format is MMDD. Validate MM is 01-12 and day for the
+// month 01-31 depending on month.
 
 // fieldInclusion validate mandatory fields are not default values  and required fields are defined. If fields are
 // invalid the ACH transfer will be returned.
 
-func (addenda02 *Addenda02) fieldInclusion() error {
-	if addenda02.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda02.TypeCode)
-	}
-	// Required Fields
-	if addenda02.TransactionSerialNumber == "" {
-		return fieldError("TransactionSerialNumber", ErrFieldRequired, addenda02.TransactionSerialNumber)
-	}
-	if addenda02.TransactionDate == "" {
-		return fieldError("TransactionDate", ErrFieldRequired, addenda02.TransactionDate)
-	}
-	if addenda02.TerminalLocation == "" {
-		return fieldError("TerminalLocation", ErrFieldRequired, addenda02.TerminalLocation)
-	}
-	if addenda02.TerminalCity == "" {
-		return fieldError("TerminalCity", ErrFieldRequired, addenda02.TerminalCity)
-	}
-	if addenda02.TerminalState == "" {
-		return fieldError("TerminalState", ErrFieldRequired, addenda02.TerminalState)
-	}
-	return nil
-}
+func (addenda02 *Addenda02) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
+
+// Required Fields
 
 // ReferenceInformationOneField returns a space padded ReferenceInformationOne string
 func (addenda02 *Addenda02) ReferenceInformationOneField() string {
-	return addenda02.alphaField(addenda02.ReferenceInformationOne, 7)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ReferenceInformationTwoField returns a space padded ReferenceInformationTwo string
 func (addenda02 *Addenda02) ReferenceInformationTwoField() string {
-	return addenda02.alphaField(addenda02.ReferenceInformationTwo, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TerminalIdentificationCodeField returns a space padded TerminalIdentificationCode string
 func (addenda02 *Addenda02) TerminalIdentificationCodeField() string {
-	return addenda02.alphaField(addenda02.TerminalIdentificationCode, 6)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TransactionSerialNumberField returns a zero padded TransactionSerialNumber string
 func (addenda02 *Addenda02) TransactionSerialNumberField() string {
-	return addenda02.alphaField(addenda02.TransactionSerialNumber, 6)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TransactionDateField returns TransactionDate MMDD string
-func (addenda02 *Addenda02) TransactionDateField() string {
-	return addenda02.alphaField(addenda02.TransactionDate, 4)
-}
+func (addenda02 *Addenda02) TransactionDateField() string { _ = "STUB: not implemented"; return "" }
 
 // AuthorizationCodeOrExpireDateField returns a space padded AuthorizationCodeOrExpireDate string
 func (addenda02 *Addenda02) AuthorizationCodeOrExpireDateField() string {
-	return addenda02.alphaField(addenda02.AuthorizationCodeOrExpireDate, 6)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TerminalLocationField returns a space padded TerminalLocation string
-func (addenda02 *Addenda02) TerminalLocationField() string {
-	return addenda02.alphaField(addenda02.TerminalLocation, 27)
-}
+func (addenda02 *Addenda02) TerminalLocationField() string { _ = "STUB: not implemented"; return "" }
 
 // TerminalCityField returns a space padded TerminalCity string
-func (addenda02 *Addenda02) TerminalCityField() string {
-	return addenda02.alphaField(addenda02.TerminalCity, 15)
-}
+func (addenda02 *Addenda02) TerminalCityField() string { _ = "STUB: not implemented"; return "" }
 
 // TerminalStateField returns a space padded TerminalState string
-func (addenda02 *Addenda02) TerminalStateField() string {
-	return addenda02.alphaField(addenda02.TerminalState, 2)
-}
+func (addenda02 *Addenda02) TerminalStateField() string { _ = "STUB: not implemented"; return "" }
 
 // TraceNumberField returns a space padded TraceNumber string
-func (addenda02 *Addenda02) TraceNumberField() string {
-	return addenda02.stringField(addenda02.TraceNumber, 15)
-}
+func (addenda02 *Addenda02) TraceNumberField() string { _ = "STUB: not implemented"; return "" }

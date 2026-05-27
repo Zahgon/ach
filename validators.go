@@ -19,14 +19,7 @@ package ach
 
 import (
 	"errors"
-	"fmt"
-	"math"
 	"regexp"
-	"strconv"
-	"strings"
-	"time"
-	"unicode"
-	"unicode/utf8"
 )
 
 // validator is common validation and formatting of golang types to ach type strings
@@ -34,99 +27,51 @@ type validator struct{}
 
 // isCardTransactionType ensures card transaction type of a batchPOS is valid
 func (v *validator) isCardTransactionType(code string) error {
-	switch code {
-	case
-		// Purchase of goods or services
-		"01",
-		// Cash
-		"02",
-		// Return Reversal
-		"03",
-		// Purchase Reversal
-		"11",
-		// Cash Reversal
-		"12",
-		// Return
-		"13",
-		// Adjustment
-		"21",
-		// Miscellaneous Transaction
-		"99":
-		return nil
-	}
-	return ErrCardTransactionType
-}
+	_ = "STUB: not implemented"
 
-// isCreditCardYear validates a 2 digit year for credit cards, but
-// only accepts a range of years. 2018 to 2050
-func (v *validator) isCreditCardYear(s string) error {
-	if s < "18" || s > "50" {
-		return ErrValidYear
-	}
+	// Purchase of goods or services
 	return nil
 }
 
+// Cash
+
+// Return Reversal
+
+// Purchase Reversal
+
+// Cash Reversal
+
+// Return
+
+// Adjustment
+
+// Miscellaneous Transaction
+
+// isCreditCardYear validates a 2 digit year for credit cards, but
+// only accepts a range of years. 2018 to 2050
+func (v *validator) isCreditCardYear(s string) error { _ = "STUB: not implemented"; return nil }
+
 // isMonth validates a 2 digit month 01-12
-func (v *validator) isMonth(s string) error {
-	switch s {
-	case
-		"01", "02", "03", "04", "05", "06",
-		"07", "08", "09", "10", "11", "12":
-		return nil
-	}
-	return ErrValidMonth
-}
+func (v *validator) isMonth(s string) error { _ = "STUB: not implemented"; return nil }
 
 // isDay validates a 2 digit day based on a 2 digit month
 // months are 01-12, days are 01-29, 01-30, or 01-31
 func (v *validator) isDay(m string, d string) error {
-	switch m {
+	_ = "STUB: not implemented"
+
 	// February
-	case "02":
-		switch d {
-		case
-			"01", "02", "03", "04", "05", "06",
-			"07", "08", "09", "10", "11", "12",
-			"13", "14", "15", "16", "17", "18",
-			"19", "20", "21", "22", "23", "24",
-			"25", "26", "27", "28", "29":
-			return nil
-		}
-	// April, June, September, November
-	case "04", "06", "09", "11":
-		switch d {
-		case
-			"01", "02", "03", "04", "05", "06",
-			"07", "08", "09", "10", "11", "12",
-			"13", "14", "15", "16", "17", "18",
-			"19", "20", "21", "22", "23", "24",
-			"25", "26", "27", "28", "29", "30":
-			return nil
-		}
-	// January, March, May, July, August, October, December
-	case "01", "03", "05", "07", "08", "10", "12":
-		switch d {
-		case
-			"01", "02", "03", "04", "05", "06",
-			"07", "08", "09", "10", "11", "12",
-			"13", "14", "15", "16", "17", "18",
-			"19", "20", "21", "22", "23", "24",
-			"25", "26", "27", "28", "29", "30", "31":
-			return nil
-		}
-	}
-	return ErrValidDay
+	return nil
 }
+
+// April, June, September, November
+
+// January, March, May, July, August, October, December
 
 // validateSimpleDate will return the incoming string only if it matches a valid YYMMDD
 // date format. (Y=Year, M=Month, D=Day)
-func (v *validator) validateSimpleDate(s string) string {
-	_, err := time.Parse("060102", s) // YYMMDD
-	if err != nil {
-		return ""
-	}
-	return s
-}
+func (v *validator) validateSimpleDate(s string) string { _ = "STUB: not implemented"; return "" }
+
+// YYMMDD
 
 var (
 	// hhmmRegex defines a regex for all valid 24-hour clock timestamps.
@@ -135,12 +80,9 @@ var (
 )
 
 // validateSimpleTime will return the incoming string only if it is a valid 24-hour clock time.
-func (v *validator) validateSimpleTime(s string) string {
-	if hhmmRegex.MatchString(s) {
-		return s // successfully matched and validated
-	}
-	return ""
-}
+func (v *validator) validateSimpleTime(s string) string { _ = "STUB: not implemented"; return "" }
+
+// successfully matched and validated
 
 // isIDNumberQualifier ensures ODFI Identification Number Qualifier is valid
 // For Inbound IATs: The 2-digit code that identifies the numbering scheme used in the
@@ -149,80 +91,56 @@ func (v *validator) validateSimpleTime(s string) string {
 // 02 = BIC Code
 // 03 = IBAN Code
 // used for both ODFIIDNumberQualifier and RDFIIDNumberQualifier
-func (v *validator) isIDNumberQualifier(s string) error {
-	switch s {
-	case
-		"01", "02", "03":
-		return nil
-	}
-	return ErrIDNumberQualifier
-}
+func (v *validator) isIDNumberQualifier(s string) error { _ = "STUB: not implemented"; return nil }
 
 // isOriginatorStatusCode ensures status code of a batch is valid
 func (v *validator) isOriginatorStatusCode(code int) error {
-	switch code {
-	case
-		// ADV file - prepared by an ACH Operator
-		0,
-		// Originator is a financial institution
-		1,
-		// Originator is a Government Agency or other agency not subject to ACH Rules
-		2:
-		return nil
-	}
-	return ErrOrigStatusCode
+	_ = "STUB: not implemented"
+
+	// ADV file - prepared by an ACH Operator
+	return nil
 }
 
+// Originator is a financial institution
+
+// Originator is a Government Agency or other agency not subject to ACH Rules
+
 // isSECCode returns true if a SEC Code of a Batch is found
-func (v *validator) isSECCode(code string) error {
-	switch code {
-	case
-		ACK, ADV, ARC, ATX, BOC, CCD, CIE, COR, CTX, DNE, ENR,
-		IAT, MTE, POS, PPD, POP, RCK, SHR, TEL, TRC, TRX, WEB, XCK:
-		return nil
-	}
-	return ErrSECCode
-}
+func (v *validator) isSECCode(code string) error { _ = "STUB: not implemented"; return nil }
 
 // iServiceClass returns true if a valid service class code of a batch is found
 func (v *validator) isServiceClass(code int) error {
-	switch code {
-	case
-		// Mixed Debits and Credits
-		MixedDebitsAndCredits,
-		// Credits Only
-		CreditsOnly,
-		// Debits Only
-		DebitsOnly,
-		// Automated Accounting Advices
-		AutomatedAccountingAdvices:
-		return nil
-	}
-	return ErrServiceClass
+	_ = "STUB: not implemented"
+
+	// Mixed Debits and Credits
+	return nil
 }
+
+// Credits Only
+
+// Debits Only
+
+// Automated Accounting Advices
 
 // isTypeCode returns true if a valid type code of an Addendum is found
 //
 // The Addenda Type Code defines the specific interpretation and format for the addenda information contained in the Entry.
 func (v *validator) isTypeCode(code string) error {
-	switch code {
-	case
-		// For POS, SHR or MTE Entries
-		"02",
-		// Addenda Record
-		"08",
-		// Notification of Change and Refused Notification of Change Entry
-		"98",
-		// Return, Dishonored Return and Contested Dishonored Return Entries
-		"99",
-		//  IAT forward Entries and IAT Returns
-		"10", "11", "12", "13", "14", "15", "16", "17", "18",
-		// ACK, ATX, CCD, CIE, CTX, DNE, ENR, PPD, TRX and WEB Entries
-		"05":
-		return nil
-	}
-	return ErrAddendaTypeCode
+	_ = "STUB: not implemented"
+
+	// For POS, SHR or MTE Entries
+	return nil
 }
+
+// Addenda Record
+
+// Notification of Change and Refused Notification of Change Entry
+
+// Return, Dishonored Return and Contested Dishonored Return Entries
+
+//  IAT forward Entries and IAT Returns
+
+// ACK, ATX, CCD, CIE, CTX, DNE, ENR, PPD, TRX and WEB Entries
 
 // isTransactionCode ensures TransactionCode of an Entry is valid
 //
@@ -245,131 +163,111 @@ func (v *validator) isTypeCode(code string) error {
 //	a pre-note or non-monetary informational transaction, where the number:
 //		"3" designates a credit, or
 //		"8" designates a debit.
-func (v *validator) isTransactionCode(code int) error {
-	return StandardTransactionCode(code)
-}
+func (v *validator) isTransactionCode(code int) error { _ = "STUB: not implemented"; return nil }
 
 // StandardTransactionCode checks the provided TransactionCode to verify it is a valid NACHA value.
 func StandardTransactionCode(code int) error {
-	switch code {
+	_ = "STUB: not implemented"
+
 	// TransactionCode if the receivers account is:
-	case
-		// Demand Credit Records (for checking, NOW, and share draft accounts)
-
-		// Automated Return or Notification of Change for original transaction code '22', '23, '24'
-		CheckingReturnNOCCredit,
-		// Credit (deposit) to checking account '22'
-		CheckingCredit,
-		// Prenote for credit to checking account '23'
-		CheckingPrenoteCredit,
-		// Zero dollar with remittance data
-		CheckingZeroDollarRemittanceCredit,
-
-		// Demand Debit Records (for checking, NOW, and share draft accounts)
-
-		// Automated Return or Notification of Change for original transaction code 27, 28, or 29
-		CheckingReturnNOCDebit,
-		// Debit (withdrawal) to checking account '27'
-		CheckingDebit,
-		// Prenote for debit to checking account '28'
-		CheckingPrenoteDebit,
-		// Zero dollar with remittance data (for CCD, CTX, and IAT Entries only)
-		CheckingZeroDollarRemittanceDebit,
-
-		// Savings Account Credit Records
-
-		// Return or Notification of Change for original transaction code 32, 33, or 34
-		SavingsReturnNOCCredit,
-		// Credit to savings account '32'
-		SavingsCredit,
-		// Prenote for credit to savings account '33'
-		SavingsPrenoteCredit,
-		// Zero dollar with remittance data (for CCD, CTX, and IAT Entries only); Acknowledgment Entries (ACK and ATX Entries only)
-		SavingsZeroDollarRemittanceCredit,
-
-		// Savings Account Debit Records
-
-		// Automated Return or Notification of Change for original transaction code '37', '38', '39
-		SavingsReturnNOCDebit,
-		// Debit to savings account '37'
-		SavingsDebit,
-		// Prenote for debit to savings account '38'
-		SavingsPrenoteDebit,
-		// Zero dollar with remittance data
-		SavingsZeroDollarRemittanceDebit,
-
-		// Financial Institution General Ledger Credit Records
-
-		//Return or Notification of Change for original transaction code 42, 43, or 44
-		GLReturnNOCCredit,
-		// General Ledger Credit
-		GLCredit,
-		// Prenotification of General Ledger Credit (non-dollar)
-		GLPrenoteCredit,
-		// Zero dollar with remittance data
-		GLZeroDollarRemittanceCredit,
-
-		// Financial Institution General Ledger Debit Records
-
-		// Return or Notification of Change for original transaction code 47, 48, or 49
-		GLReturnNOCDebit,
-		//General Ledger Debit
-		GLDebit,
-		// Prenotification of General Ledger Debit (non-dollar)
-		GLPrenoteDebit,
-		// Zero dollar with remittance data
-		GLZeroDollarRemittanceDebit,
-
-		// Loan Account Credit Records
-		// Return or Notification of Change for original transaction code 52, 53, or 54
-		LoanReturnNOCCredit,
-		// Loan Account Credit
-		LoanCredit,
-		// Prenotification of Loan Account Credit (non-dollar)
-		LoanPrenoteCredit,
-		// Zero dollar with remittance data
-		LoanZeroDollarRemittanceCredit,
-
-		// Loan Account Debit Records (for Reversals Only)
-
-		// Loan Account Debit (Reversals Only)
-		LoanDebit,
-		// Return or Notification of Change for original transaction code 55
-		LoanReturnNOCDebit,
-
-		// Accounting Records (for use in ADV Files only)
-		// These transaction codes represent accounting Entries.
-
-		// Credit for ACH debits originated
-		CreditForDebitsOriginated,
-		//Debit for ACH credits originated
-		DebitForCreditsOriginated,
-		// Credit for ACH credits received
-		CreditForCreditsReceived,
-		// Debit for ACH debits received
-		DebitForDebitsReceived,
-		// Credit for ACH credits in Rejected batches
-		CreditForCreditsRejected,
-		// Debit for ACH debits in Rejected batches
-		DebitForDebitsRejectedBatches,
-		// Summary credit for respondent ACH activity
-		CreditSummary,
-		// Summary debit for respondent ACH activity
-		DebitSummary:
-		return nil
-	}
-	return ErrTransactionCode
+	return nil
 }
 
-func (v *validator) isPrenote(code int) bool {
-	switch code {
-	case CheckingPrenoteCredit, CheckingPrenoteDebit,
-		SavingsPrenoteCredit, SavingsPrenoteDebit,
-		GLPrenoteCredit, GLPrenoteDebit, LoanPrenoteCredit:
-		return true
-	}
-	return false
-}
+// Demand Credit Records (for checking, NOW, and share draft accounts)
+
+// Automated Return or Notification of Change for original transaction code '22', '23, '24'
+
+// Credit (deposit) to checking account '22'
+
+// Prenote for credit to checking account '23'
+
+// Zero dollar with remittance data
+
+// Demand Debit Records (for checking, NOW, and share draft accounts)
+
+// Automated Return or Notification of Change for original transaction code 27, 28, or 29
+
+// Debit (withdrawal) to checking account '27'
+
+// Prenote for debit to checking account '28'
+
+// Zero dollar with remittance data (for CCD, CTX, and IAT Entries only)
+
+// Savings Account Credit Records
+
+// Return or Notification of Change for original transaction code 32, 33, or 34
+
+// Credit to savings account '32'
+
+// Prenote for credit to savings account '33'
+
+// Zero dollar with remittance data (for CCD, CTX, and IAT Entries only); Acknowledgment Entries (ACK and ATX Entries only)
+
+// Savings Account Debit Records
+
+// Automated Return or Notification of Change for original transaction code '37', '38', '39
+
+// Debit to savings account '37'
+
+// Prenote for debit to savings account '38'
+
+// Zero dollar with remittance data
+
+// Financial Institution General Ledger Credit Records
+
+//Return or Notification of Change for original transaction code 42, 43, or 44
+
+// General Ledger Credit
+
+// Prenotification of General Ledger Credit (non-dollar)
+
+// Zero dollar with remittance data
+
+// Financial Institution General Ledger Debit Records
+
+// Return or Notification of Change for original transaction code 47, 48, or 49
+
+//General Ledger Debit
+
+// Prenotification of General Ledger Debit (non-dollar)
+
+// Zero dollar with remittance data
+
+// Loan Account Credit Records
+// Return or Notification of Change for original transaction code 52, 53, or 54
+
+// Loan Account Credit
+
+// Prenotification of Loan Account Credit (non-dollar)
+
+// Zero dollar with remittance data
+
+// Loan Account Debit Records (for Reversals Only)
+
+// Loan Account Debit (Reversals Only)
+
+// Return or Notification of Change for original transaction code 55
+
+// Accounting Records (for use in ADV Files only)
+// These transaction codes represent accounting Entries.
+
+// Credit for ACH debits originated
+
+//Debit for ACH credits originated
+
+// Credit for ACH credits received
+
+// Debit for ACH debits received
+
+// Credit for ACH credits in Rejected batches
+
+// Debit for ACH debits in Rejected batches
+
+// Summary credit for respondent ACH activity
+
+// Summary debit for respondent ACH activity
+
+func (v *validator) isPrenote(code int) bool { _ = "STUB: not implemented"; return false }
 
 // isTransactionTypeCode verifies Addenda10 TransactionTypeCode is a valid value
 // This code is used as a Secondary SEC code to help identify the source and purpose of the transaction.
@@ -383,72 +281,40 @@ func (v *validator) isPrenote(code int) bool {
 //
 // Also, according to the Nacha rules, "There is no requirement to add Secondary SEC Codes for PPD, CCD, CTX, and
 // other SEC codes not included in the list above."
-func (v *validator) isTransactionTypeCode(s string) error {
-	switch strings.ToUpper(s) {
-	case
-		"ANN", "BUS", "DEP", "LOA", "MIS", "MOR",
-		"PEN", "REM", "RLS", "SAL", "TAX",
-		ARC, BOC, IAT, MTE, POP, POS, RCK, SHR, TEL, WEB:
-		return nil
-	}
-	return ErrTransactionTypeCode
-}
+func (v *validator) isTransactionTypeCode(s string) error { _ = "STUB: not implemented"; return nil }
 
 // isUpperASCII checks if string only contains ASCII alphanumeric upper case characters
-func (v *validator) isUpperASCII(s string) error {
-	for _, r := range s {
-		if (r == 0x20) || (0x30 <= r && r <= 0x39) || 0x41 <= r && r <= 0x5A { // Space, 0 to 9, A to Z
-			continue
-		}
-		return fmt.Errorf("%w: %c", ErrUpperAlpha, r)
-	}
-	return nil
-}
+func (v *validator) isUpperASCII(s string) error { _ = "STUB: not implemented"; return nil }
+
+// Space, 0 to 9, A to Z
 
 var (
 	slashZero = []rune(`Ø`)[0]
 )
 
 // isAlphanumeric checks if a string only contains ASCII alphanumeric characters
-func (v *validator) isAlphanumeric(s string) error {
-	for _, r := range s {
-		if 0x20 <= r && r <= 0x7E { // Space to ~ (Typical ASCII)
-			continue
-		}
-		if 0xC0 <= r && r <= 0xFF { // À to ÿ (Extended Latin Alphabet)
-			continue
-		}
-		// Specific characters that are accepted
-		switch r {
-		case
-			0xA0, //   - Non-breaking Space
-			0xA2, // ¢ - Cent Sign
-			0xAC, // ¬ - Negation
-			0xA6, // ¦ - Pipe
-			0xB1, // ± - Plus or Minus Sign
-			slashZero:
-			continue
+func (v *validator) isAlphanumeric(s string) error { _ = "STUB: not implemented"; return nil }
 
-			// case `¢`, `¬`, `¦`, `±`, `Ø`:
-		}
-		return fmt.Errorf("%w: %c", ErrNonAlphanumeric, r)
-	}
-	return nil
-}
+// Space to ~ (Typical ASCII)
+
+// À to ÿ (Extended Latin Alphabet)
+
+// Specific characters that are accepted
+
+//   - Non-breaking Space
+// ¢ - Cent Sign
+// ¬ - Negation
+// ¦ - Pipe
+// ± - Plus or Minus Sign
+
+// case `¢`, `¬`, `¦`, `±`, `Ø`:
 
 var (
 	ErrOnlyZeros = errors.New("contains only spaces and zeros")
 )
 
 // isNonZero checks if a string is not blank and non-zero
-func (v *validator) isNonZero(s string) error {
-	for _, r := range s {
-		if !unicode.IsSpace(r) && r != '0' {
-			return nil
-		}
-	}
-	return ErrOnlyZeros
-}
+func (v *validator) isNonZero(s string) error { _ = "STUB: not implemented"; return nil }
 
 // CalculateCheckDigit returns a check digit for a routing number
 // Multiply each digit in the Routing number by a weighting factor. The weighting factors for each digit are:
@@ -457,83 +323,28 @@ func (v *validator) isNonZero(s string) error {
 // Add the results of the eight multiplications
 // Subtract the sum from the next highest multiple of 10.
 // The result is the Check Digit
-func CalculateCheckDigit(routingNumber string) int {
-	if n := utf8.RuneCountInString(routingNumber); n != 8 && n != 9 {
-		return -1
-	}
+func CalculateCheckDigit(routingNumber string) int { _ = "STUB: not implemented"; return 0 }
 
-	var sum int
-	for i, r := range routingNumber {
-		// Don't process check digit of routing number
-		if i >= 8 {
-			break
-		}
+// Don't process check digit of routing number
 
-		// Reject anything that's not a digit
-		if r < '0' || r > '9' {
-			return -1 // only digits are allowed
-		}
+// Reject anything that's not a digit
 
-		// Calculate the check digit
-		var n int32 = (r - '0')
+// only digits are allowed
 
-		switch i {
-		case 0, 3, 6:
-			sum += int(n * 3)
-		case 1, 4, 7:
-			sum += int(n * 7)
-		case 2, 5:
-			sum += int(n)
-		}
-	}
-
-	return roundUp10(sum) - sum
-}
+// Calculate the check digit
 
 func (v *validator) CalculateCheckDigit(routingNumber string) int {
-	return CalculateCheckDigit(routingNumber)
+	_ = "STUB: not implemented"
+	return 0
 }
 
 // CheckRoutingNumber returns a nil error if the provided routingNumber is valid according to
 // NACHA rules. See CalculateCheckDigit for details on computing the check digit.
-func CheckRoutingNumber(routingNumber string) error {
-	if routingNumber == "" {
-		return errors.New("no routing number provided")
-	}
-	if n := utf8.RuneCountInString(routingNumber); n != 9 {
-		return fmt.Errorf("invalid routing number length of %d", n)
-	}
+func CheckRoutingNumber(routingNumber string) error { _ = "STUB: not implemented"; return nil }
 
-	check := CalculateCheckDigit(routingNumber)
-	last := int(routingNumber[len(routingNumber)-1]) - 48 // ASCII 0 is 48 decimal
-
-	if check != last {
-		return fmt.Errorf("routing number checksum mismatch: expected %d but got %d", check, last)
-	}
-	return nil
-}
+// ASCII 0 is 48 decimal
 
 // roundUp10 round number up to the next ten spot.
-func roundUp10(n int) int {
-	return int(math.Ceil(float64(n)/10.0)) * 10
-}
+func roundUp10(n int) int { _ = "STUB: not implemented"; return 0 }
 
-func (v *validator) validateSettlementDate(s string) string {
-	emptyField := "   "
-
-	if s == emptyField || utf8.RuneCountInString(s) != len(emptyField) {
-		return emptyField
-	}
-
-	day, err := strconv.Atoi(s)
-	if err != nil {
-		return emptyField
-	}
-
-	if day < 1 || day > 366 {
-		return emptyField
-	}
-
-	return s
-
-}
+func (v *validator) validateSettlementDate(s string) string { _ = "STUB: not implemented"; return "" }

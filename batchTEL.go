@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-)
-
 // BatchTEL is a batch that handles SEC payment type Telephone-Initiated Entries (TEL)
 // Telephone-Initiated Entries (TEL) are consumer debit transactions. The NACHA Operating Rules permit TEL entries when
 // the Originator obtains the Receiver's authorization for the debit entry orally via the telephone.
@@ -31,87 +27,29 @@ type BatchTEL struct {
 }
 
 // NewBatchTEL returns a *BatchTEL
-func NewBatchTEL(bh *BatchHeader) *BatchTEL {
-	batch := new(BatchTEL)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchTEL(bh *BatchHeader) *BatchTEL { _ = "STUB: not implemented"; return nil }
 
 // Validate ensures the batch meets NACHA rules specific to the SEC type TEL
-func (batch *BatchTEL) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchTEL) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration and type specific based validation for this type.
-	if batch.Header.StandardEntryClassCode != TEL {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, TEL)
-	}
+// basic verification of the batch before we validate specific rules.
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
+// Add configuration and type specific based validation for this type.
 
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchTEL) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchTEL) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	isReversal := strings.EqualFold(strings.TrimSpace(batch.Header.CompanyEntryDescription), "REVERSAL")
+// Forward TEL batches can only have debit entries, but REVERSAL batches can only have credits
 
-	for _, entry := range batch.Entries {
-		creditOrDebit := entry.CreditOrDebit()
+// Forward batch: can only have debits
 
-		// Forward TEL batches can only have debit entries, but REVERSAL batches can only have credits
-		if isReversal {
-			if creditOrDebit != "C" {
-				out = append(out, InvalidEntry{
-					Entry: entry,
-					Error: batch.Error("TransactionCode", ErrBatchCreditOnly, entry.TransactionCode),
-				})
-			}
-		} else {
-			if creditOrDebit != "D" { // Forward batch: can only have debits
-				out = append(out, InvalidEntry{
-					Entry: entry,
-					Error: batch.Error("TransactionCode", ErrBatchDebitOnly, entry.TransactionCode),
-				})
-			}
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// Verify the Amount is valid for SEC code and TransactionCode
 
-	return out
-}
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -119,10 +57,7 @@ func (batch *BatchTEL) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchTEL) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-
-	return batch.Validate()
+	return nil
 }

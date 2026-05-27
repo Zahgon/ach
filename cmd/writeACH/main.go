@@ -18,17 +18,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
-	"fmt"
-	"log"
-	"os"
 	"path/filepath"
-	"runtime/pprof"
 	"time"
-
-	"github.com/Pallinder/go-randomdata"
-	"github.com/moov-io/ach"
 )
 
 var (
@@ -55,118 +47,28 @@ func main() {
 	write(path)
 }
 
-func write(path string) {
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	}
+func write(path string) { _ = "STUB: not implemented"; return }
 
-	f, err := os.Create(path)
-	if err != nil {
-		fmt.Printf("%T: %v\n", err, err)
-		return
-	}
+// To create a file
 
-	// To create a file
-	fh := ach.NewFileHeader()
-	fh.ImmediateDestination = "231380104"
-	fh.ImmediateOrigin = "121042882"
-	fh.FileCreationDate = time.Now().Format("060102")
-	fh.ImmediateDestinationName = "Citadel"
-	fh.ImmediateOriginName = "Wells Fargo"
-	file := ach.NewFile()
-	file.SetHeader(fh)
+// Create 4 Batches of SEC Code PPD
 
-	// Create 4 Batches of SEC Code PPD
-	for i := 0; i < 4; i++ {
-		bh := ach.NewBatchHeader()
-		bh.ServiceClassCode = ach.MixedDebitsAndCredits
-		bh.CompanyName = "Wells Fargo"
-		bh.CompanyIdentification = "121042882"
-		bh.StandardEntryClassCode = ach.PPD
-		bh.CompanyEntryDescription = "Trans. Description"
-		bh.EffectiveEntryDate = time.Now().AddDate(0, 0, 1).Format("060102")
-		bh.ODFIIdentification = "121042882"
+// Create Entry
 
-		batch, err := ach.NewBatch(bh)
-		if err != nil {
-			fmt.Printf("%T: %v\n", err, err)
-			return
-		}
+// Add addenda record for an entry
 
-		// Create Entry
-		entrySeq := 0
-		for i := 0; i < 1250; i++ {
-			entrySeq = entrySeq + 1
+// Add entries
 
-			entryDetail := ach.NewEntryDetail()
-			entryDetail.TransactionCode = ach.CheckingCredit
-			entryDetail.SetRDFI("231380104")
-			entryDetail.DFIAccountNumber = randomdata.StringNumber(10, "")
-			entryDetail.IndividualName = randomdata.FullName(randomdata.RandomGender)
-			entryDetail.SetTraceNumber(bh.ODFIIdentification, entrySeq)
-			entryDetail.IdentificationNumber = "#" + randomdata.StringNumber(6, "") + "#"
-			entryDetail.Category = ach.CategoryForward
-			entryDetail.AddendaRecordIndicator = 1
-			entryDetail.Amount = 10023
+// Create the batch.
 
-			// Add addenda record for an entry
-			addendaEntrySeq := ach.NewAddenda05()
-			addendaEntrySeq.PaymentRelatedInformation = randomdata.SillyName() + " bonus pay for amazing work on #OSS"
-			entryDetail.AddAddenda05(addendaEntrySeq)
+// Add batch to the file
 
-			// Add entries
-			batch.AddEntry(entryDetail)
+// ensure we have a validated file structure
 
-		}
+// Create the file
 
-		// Create the batch.
-		if err := batch.Create(); err != nil {
-			fmt.Printf("%T: %v\n", err, err)
-			return
-		}
+// Write to a file
 
-		// Add batch to the file
-		file.AddBatch(batch)
-	}
+// Write in JSON format
 
-	// ensure we have a validated file structure
-	if file.Validate(); err != nil {
-		fmt.Printf("Could not validate entire file: %v", err)
-		return
-	}
-
-	// Create the file
-	if err := file.Create(); err != nil {
-		fmt.Printf("%T: %v\n", err, err)
-		return
-	}
-
-	// Write to a file
-	if *flagJson {
-		// Write in JSON format
-		if err := json.NewEncoder(f).Encode(file); err != nil {
-			fmt.Printf("%T: %v\n", err, err)
-			return
-		}
-	} else {
-		// Write in ACH plain text format
-		w := ach.NewWriter(f)
-		if err := w.Write(file); err != nil {
-			fmt.Printf("%T: %v\n", err, err)
-			return
-		}
-		w.Flush()
-	}
-
-	if err := f.Close(); err != nil {
-		fmt.Printf("%T: %v\n", err, err)
-		return
-	}
-
-	fmt.Printf("Wrote %s\n", path)
-}
+// Write in ACH plain text format

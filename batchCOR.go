@@ -25,100 +25,37 @@ type BatchCOR struct {
 }
 
 // NewBatchCOR returns a *BatchCOR
-func NewBatchCOR(bh *BatchHeader) *BatchCOR {
-	batch := new(BatchCOR)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchCOR(bh *BatchHeader) *BatchCOR { _ = "STUB: not implemented"; return nil }
 
 // Validate ensures the batch meets NACHA rules specific to this batch type.
-func (batch *BatchCOR) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchCOR) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration based validation for this type.
-	// COR Addenda must be Addenda98
-	if err := batch.isAddenda98(); err != nil {
-		return err
-	}
+// basic verification of the batch before we validate specific rules.
 
-	// Add type specific validation.
-	if batch.Header.StandardEntryClassCode != COR {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, COR)
-	}
-	// The Amount field must be zero
-	// batch.verify calls batch.isBatchAmount which ensures the batch.Control values are accurate.
-	if batch.Control.TotalCreditEntryDollarAmount != 0 {
-		return batch.Error("TotalCreditEntryDollarAmount", ErrBatchAmountNonZero, batch.Control.TotalCreditEntryDollarAmount)
-	}
-	if batch.Control.TotalDebitEntryDollarAmount != 0 {
-		return batch.Error("TotalDebitEntryDollarAmount", ErrBatchAmountNonZero, batch.Control.TotalDebitEntryDollarAmount)
-	}
+// Add configuration based validation for this type.
+// COR Addenda must be Addenda98
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
+// Add type specific validation.
 
-	return nil
-}
+// The Amount field must be zero
+// batch.verify calls batch.isBatchAmount which ensures the batch.Control values are accurate.
+
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchCOR) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchCOR) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		/* COR TransactionCode must be a Return or NOC transaction Code
-		   Return/NOC
-		   Credit:  21, 31, 41, 51
-		   Debit: 26, 36, 46, 56
-		*/
-		switch entry.TransactionCode {
-		case
-			CheckingCredit, CheckingDebit, CheckingPrenoteCredit, CheckingPrenoteDebit,
-			CheckingZeroDollarRemittanceCredit, CheckingZeroDollarRemittanceDebit,
-			SavingsCredit, SavingsDebit, SavingsPrenoteCredit, SavingsPrenoteDebit,
-			SavingsZeroDollarRemittanceCredit, SavingsZeroDollarRemittanceDebit,
-			GLCredit, GLDebit, GLPrenoteCredit, GLPrenoteDebit, GLZeroDollarRemittanceCredit,
-			GLZeroDollarRemittanceDebit, LoanCredit, LoanDebit, LoanPrenoteCredit,
-			LoanZeroDollarRemittanceCredit:
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+/* COR TransactionCode must be a Return or NOC transaction Code
+   Return/NOC
+   Credit:  21, 31, 41, 51
+   Debit: 26, 36, 46, 56
+*/
 
-	return out
-}
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -126,20 +63,10 @@ func (batch *BatchCOR) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchCOR) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-
-	return batch.Validate()
+	return nil
 }
 
 // isAddenda98 verifies that a Addenda98 exists for each EntryDetail and is Validated
-func (batch *BatchCOR) isAddenda98() error {
-	for _, entry := range batch.Entries {
-		if entry.Addenda98 == nil && entry.Addenda98Refused == nil {
-			return batch.Error("Addenda98", ErrBatchCORAddenda)
-		}
-	}
-	return nil
-}
+func (batch *BatchCOR) isAddenda98() error { _ = "STUB: not implemented"; return nil }

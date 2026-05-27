@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"strconv"
-)
-
 // BatchTRX holds the BatchHeader and BatchControl and all EntryDetail for TRX Entries.
 //
 // Check Truncation Entries Exchange is used to identify a debit entry of a truncated checks (multiple).
@@ -29,100 +25,37 @@ type BatchTRX struct {
 }
 
 // NewBatchTRX returns a *BatchTRX
-func NewBatchTRX(bh *BatchHeader) *BatchTRX {
-	batch := new(BatchTRX)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchTRX(bh *BatchHeader) *BatchTRX { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchTRX) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchTRX) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration and type specific validation for this type.
+// basic verification of the batch before we validate specific rules.
 
-	if batch.Header.StandardEntryClassCode != TRX {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, TRX)
-	}
+// Add configuration and type specific validation for this type.
 
-	// TRX detail entries can only be a debit, ServiceClassCode must allow debits
-	switch batch.Header.ServiceClassCode {
-	case CreditsOnly:
-		return batch.Error("ServiceClassCode", ErrBatchServiceClassCode, batch.Header.ServiceClassCode)
-	}
+// TRX detail entries can only be a debit, ServiceClassCode must allow debits
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchTRX) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchTRX) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		// TRX detail entries must be a debit
-		if entry.CreditOrDebit() != "D" {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchDebitOnly, entry.TransactionCode),
-			})
-		}
-		// Trapping this error, as entry.CTXAddendaRecordsField() can not be greater than 9999
-		if len(entry.Addenda05) > 9999 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("AddendaCount", NewErrBatchAddendaCount(len(entry.Addenda05), 9999)),
-			})
-		}
-		// validate CTXAddendaRecord Field is equal to the actual number of Addenda records
-		// use 0 value if there is no Addenda records
-		addendaRecords, _ := strconv.Atoi(entry.CATXAddendaRecordsField())
-		if len(entry.Addenda05) != addendaRecords {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("AddendaCount", NewErrBatchExpectedAddendaCount(len(entry.Addenda05), addendaRecords)),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// TRX detail entries must be a debit
 
-	return out
-}
+// Trapping this error, as entry.CTXAddendaRecordsField() can not be greater than 9999
+
+// validate CTXAddendaRecord Field is equal to the actual number of Addenda records
+// use 0 value if there is no Addenda records
+
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -130,12 +63,10 @@ func (batch *BatchTRX) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchTRX) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	// Additional steps specific to batch type
-	// ...
-
-	return batch.Validate()
+	return nil
 }
+
+// Additional steps specific to batch type
+// ...

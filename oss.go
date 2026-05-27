@@ -19,7 +19,6 @@ package ach
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
@@ -30,14 +29,8 @@ type reportableError struct {
 	err error
 }
 
-func (e *reportableError) Unwrap() error {
-	return e.err
-}
+func (e *reportableError) Unwrap() error { _ = "STUB: not implemented"; return nil }
 
-func (e *reportableError) Error() string {
-	return fmt.Sprintf("%v: %v", ErrPleaseReportBug, e.err)
-}
+func (e *reportableError) Error() string { _ = "STUB: not implemented"; return "" }
 
-func askForBugReports(err error) error {
-	return &reportableError{err: err}
-}
+func askForBugReports(err error) error { _ = "STUB: not implemented"; return nil }

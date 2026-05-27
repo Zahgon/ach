@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda14 is an addenda which provides business transaction information for Addenda Type
 // Code 14 in a machine readable format. It is usually formatted according to ANSI, ASC, X14 Standard.
 //
@@ -70,179 +65,72 @@ type Addenda14 struct {
 }
 
 // NewAddenda14 returns a new Addenda14 with default values for none exported fields
-func NewAddenda14() *Addenda14 {
-	addenda14 := new(Addenda14)
-	addenda14.TypeCode = "14"
-	return addenda14
-}
+func NewAddenda14() *Addenda14 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda14 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda14 *Addenda14) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda14 *Addenda14) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 14
-			addenda14.TypeCode = reset()
-		case 38:
-			// 4-38 RDFIName
-			addenda14.RDFIName = strings.TrimSpace(reset())
-		case 40:
-			// 39-40 RDFIIDNumberQualifier
-			addenda14.RDFIIDNumberQualifier = reset()
-		case 74:
-			// 41-74 RDFIIdentification
-			addenda14.RDFIIdentification = addenda14.parseStringField(reset())
-		case 77:
-			// 75-77
-			addenda14.RDFIBranchCountryCode = strings.TrimSpace(reset())
-		case 87:
-			// 78-87 reserved - Leave blank
-			reset()
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda14.EntryDetailSequenceNumber = addenda14.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 14
 
-func (a *Addenda14) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-38 RDFIName
+
+// 39-40 RDFIIDNumberQualifier
+
+// 41-74 RDFIIdentification
+
+// 75-77
+
+// 78-87 reserved - Leave blank
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda14) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda14 struct to a 94 character string.
-func (addenda14 *Addenda14) String() string {
-	if addenda14 == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda14.TypeCode)
-	buf.WriteString(addenda14.RDFINameField())
-	buf.WriteString(addenda14.RDFIIDNumberQualifierField())
-	buf.WriteString(addenda14.RDFIIdentificationField())
-	buf.WriteString(addenda14.RDFIBranchCountryCodeField())
-	buf.WriteString("          ")
-	buf.WriteString(addenda14.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+func (addenda14 *Addenda14) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda14 *Addenda14) Validate() error {
-	if addenda14 == nil {
-		return nil
-	}
+func (addenda14 *Addenda14) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := addenda14.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda14.isTypeCode(addenda14.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda14.TypeCode)
-	}
-	// Type Code must be 14
-	if addenda14.TypeCode != "14" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda14.TypeCode)
-	}
-	// Valid RDFI Identification Number Qualifier
-	if err := addenda14.isIDNumberQualifier(addenda14.RDFIIDNumberQualifier); err != nil {
-		return fieldError("RDFIIDNumberQualifier", ErrIDNumberQualifier, addenda14.RDFIIDNumberQualifier)
-	}
-	if addenda14.validateOpts == nil || !addenda14.validateOpts.AllowSpecialCharacters {
-		if err := addenda14.isAlphanumeric(addenda14.RDFIName); err != nil {
-			return fieldError("RDFIName", err, addenda14.RDFIName)
-		}
-		if err := addenda14.isAlphanumeric(addenda14.RDFIIdentification); err != nil {
-			return fieldError("RDFIIdentification", err, addenda14.RDFIIdentification)
-		}
-		if err := addenda14.isAlphanumeric(addenda14.RDFIBranchCountryCode); err != nil {
-			return fieldError("RDFIBranchCountryCode", err, addenda14.RDFIBranchCountryCode)
-		}
-	}
-	return nil
-}
+// Type Code must be 14
+
+// Valid RDFI Identification Number Qualifier
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda14 *Addenda14) fieldInclusion() error {
-	if addenda14 == nil {
-		return nil
-	}
-
-	if addenda14.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda14.TypeCode)
-	}
-	if addenda14.RDFIName == "" {
-		return fieldError("RDFIName", ErrConstructor, addenda14.RDFIName)
-	}
-	if addenda14.RDFIIDNumberQualifier == "" {
-		return fieldError("RDFIIDNumberQualifier", ErrConstructor, addenda14.RDFIIDNumberQualifier)
-	}
-	if addenda14.RDFIIdentification == "" {
-		return fieldError("RDFIIdentification", ErrConstructor, addenda14.RDFIIdentification)
-	}
-	if addenda14.RDFIBranchCountryCode == "" {
-		return fieldError("RDFIBranchCountryCode", ErrConstructor, addenda14.RDFIBranchCountryCode)
-	}
-	if addenda14.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda14.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+func (addenda14 *Addenda14) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // RDFINameField gets the RDFIName field left padded
-func (addenda14 *Addenda14) RDFINameField() string {
-	return addenda14.alphaField(addenda14.RDFIName, 35)
-}
+func (addenda14 *Addenda14) RDFINameField() string { _ = "STUB: not implemented"; return "" }
 
 // RDFIIDNumberQualifierField gets the RDFIIDNumberQualifier field left padded
 func (addenda14 *Addenda14) RDFIIDNumberQualifierField() string {
-	return addenda14.alphaField(addenda14.RDFIIDNumberQualifier, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // RDFIIdentificationField gets the RDFIIdentificationCode field left padded
-func (addenda14 *Addenda14) RDFIIdentificationField() string {
-	return addenda14.alphaField(addenda14.RDFIIdentification, 34)
-}
+func (addenda14 *Addenda14) RDFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // RDFIBranchCountryCodeField gets the RDFIBranchCountryCode field left padded
 func (addenda14 *Addenda14) RDFIBranchCountryCodeField() string {
-	return addenda14.alphaField(addenda14.RDFIBranchCountryCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda14 *Addenda14) EntryDetailSequenceNumberField() string {
-	return addenda14.numericField(addenda14.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

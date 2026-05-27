@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda16 is an addenda which provides business transaction information for Addenda Type
 // Code 16 in a machine readable format. It is usually formatted according to ANSI, ASC, X16 Standard.
 //
@@ -61,157 +56,65 @@ type Addenda16 struct {
 }
 
 // NewAddenda16 returns a new Addenda16 with default values for none exported fields
-func NewAddenda16() *Addenda16 {
-	addenda16 := new(Addenda16)
-	addenda16.TypeCode = "16"
-	return addenda16
-}
+func NewAddenda16() *Addenda16 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda16 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda16 *Addenda16) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda16 *Addenda16) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 16
-			addenda16.TypeCode = reset()
-		case 38:
-			// 4-38 ReceiverCityStateProvince
-			addenda16.ReceiverCityStateProvince = strings.TrimSpace(reset())
-		case 73:
-			// 39-73 ReceiverCountryPostalCode
-			addenda16.ReceiverCountryPostalCode = strings.TrimSpace(reset())
-		case 83:
-			// 74-83 ReceiverDateOfBirth
-			addenda16.ReceiverDateOfBirth = strings.TrimSpace(reset())
-		case 87:
-			// 84-87 reserved - Leave blank
-			reset()
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda16.EntryDetailSequenceNumber = addenda16.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 16
 
-func (a *Addenda16) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-38 ReceiverCityStateProvince
+
+// 39-73 ReceiverCountryPostalCode
+
+// 74-83 ReceiverDateOfBirth
+
+// 84-87 reserved - Leave blank
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda16) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda16 struct to a 94 character string.
-func (addenda16 *Addenda16) String() string {
-	if addenda16 == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda16.TypeCode)
-	buf.WriteString(addenda16.ReceiverCityStateProvinceField())
-	buf.WriteString(addenda16.ReceiverCountryPostalCodeField())
-	buf.WriteString(addenda16.ReceiverDateOfBirthField())
-	buf.WriteString("    ")
-	buf.WriteString(addenda16.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+func (addenda16 *Addenda16) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda16 *Addenda16) Validate() error {
-	if addenda16 == nil {
-		return nil
-	}
+func (addenda16 *Addenda16) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := addenda16.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda16.isTypeCode(addenda16.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda16.TypeCode)
-	}
-	// Type Code must be 16
-	if addenda16.TypeCode != "16" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda16.TypeCode)
-	}
-	if addenda16.validateOpts == nil || !addenda16.validateOpts.AllowSpecialCharacters {
-		if err := addenda16.isAlphanumeric(addenda16.ReceiverCityStateProvince); err != nil {
-			return fieldError("ReceiverCityStateProvince", err, addenda16.ReceiverCityStateProvince)
-		}
-		if err := addenda16.isAlphanumeric(addenda16.ReceiverCountryPostalCode); err != nil {
-			return fieldError("ReceiverCountryPostalCode", err, addenda16.ReceiverCountryPostalCode)
-		}
-	}
-	return nil
-}
+// Type Code must be 16
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda16 *Addenda16) fieldInclusion() error {
-	if addenda16 == nil {
-		return nil
-	}
-
-	if addenda16.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda16.TypeCode)
-	}
-	if addenda16.ReceiverCityStateProvince == "" {
-		return fieldError("ReceiverCityStateProvince", ErrConstructor, addenda16.ReceiverCityStateProvince)
-	}
-	if addenda16.ReceiverCountryPostalCode == "" {
-		return fieldError("ReceiverCountryPostalCode", ErrConstructor, addenda16.ReceiverCountryPostalCode)
-	}
-	if addenda16.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda16.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+func (addenda16 *Addenda16) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // ReceiverCityStateProvinceField gets the ReceiverCityStateProvinceField left padded
 func (addenda16 *Addenda16) ReceiverCityStateProvinceField() string {
-	return addenda16.alphaField(addenda16.ReceiverCityStateProvince, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ReceiverCountryPostalCodeField gets the ReceiverCountryPostalCode field left padded
 func (addenda16 *Addenda16) ReceiverCountryPostalCodeField() string {
-	return addenda16.alphaField(addenda16.ReceiverCountryPostalCode, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ReceiverDateOfBirthField formats the ReceiverDateOfBirth field
-func (addenda16 *Addenda16) ReceiverDateOfBirthField() string {
-	return addenda16.alphaField(addenda16.ReceiverDateOfBirth, 10)
-}
+func (addenda16 *Addenda16) ReceiverDateOfBirthField() string { _ = "STUB: not implemented"; return "" }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda16 *Addenda16) EntryDetailSequenceNumberField() string {
-	return addenda16.numericField(addenda16.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

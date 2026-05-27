@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"unicode/utf8"
-)
-
 type Addenda99Dishonored struct {
 	// ID is an identifier only used by the moov-io/ach HTTP server as a way to identify a batch.
 	ID string `json:"id"`
@@ -64,159 +60,87 @@ type Addenda99Dishonored struct {
 }
 
 // NewAddenda99Dishonored returns a new Addenda99Dishonored with default values for none exported fields
-func NewAddenda99Dishonored() *Addenda99Dishonored {
-	Addenda99Dishonored := &Addenda99Dishonored{
-		TypeCode: "99",
-	}
-	return Addenda99Dishonored
-}
+func NewAddenda99Dishonored() *Addenda99Dishonored { _ = "STUB: not implemented"; return nil }
 
 func (Addenda99Dishonored *Addenda99Dishonored) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
-
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
-
-		// Append rune to buffer
-		buf.WriteRune(r)
-
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			Addenda99Dishonored.TypeCode = reset()
-		case 6:
-			Addenda99Dishonored.DishonoredReturnReasonCode = reset()
-		case 21:
-			Addenda99Dishonored.OriginalEntryTraceNumber = reset()
-		case 27:
-			reset() // reserved
-		case 35:
-			Addenda99Dishonored.OriginalReceivingDFIIdentification = reset()
-		case 38:
-			// 36-38 reserved - Leave blank
-			reset()
-		case 53:
-			Addenda99Dishonored.ReturnTraceNumber = reset()
-		case 56:
-			Addenda99Dishonored.ReturnSettlementDate = reset()
-		case 58:
-			Addenda99Dishonored.ReturnReasonCode = reset()
-		case 79:
-			Addenda99Dishonored.AddendaInformation = reset()
-		case 94:
-			Addenda99Dishonored.TraceNumber = reset()
-		}
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
+
+// Append rune to buffer
+
+// At each cutoff save the buffer and reset
+
+// 1-1 Always 7
+
+// reserved
+
+// 36-38 reserved - Leave blank
+
 func (Addenda99Dishonored *Addenda99Dishonored) String() string {
-	if Addenda99Dishonored == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(Addenda99Dishonored.TypeCode)
-	buf.WriteString(Addenda99Dishonored.DishonoredReturnReasonCodeField())
-	buf.WriteString(Addenda99Dishonored.OriginalEntryTraceNumberField())
-	buf.WriteString("      ")
-	buf.WriteString(Addenda99Dishonored.OriginalReceivingDFIIdentificationField())
-	buf.WriteString("   ")
-	buf.WriteString(Addenda99Dishonored.ReturnTraceNumberField())
-	buf.WriteString(Addenda99Dishonored.ReturnSettlementDateField())
-	buf.WriteString(Addenda99Dishonored.ReturnReasonCodeField())
-	buf.WriteString(Addenda99Dishonored.AddendaInformationField())
-	buf.WriteString(Addenda99Dishonored.TraceNumberField())
-
-	return buf.String()
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // SetValidation stores ValidateOpts on the Batch which are to be used to override
 // the default NACHA validation rules.
 func (Addenda99Dishonored *Addenda99Dishonored) SetValidation(opts *ValidateOpts) {
-	if Addenda99Dishonored == nil {
-		return
-	}
-	Addenda99Dishonored.validateOpts = opts
+	_ = "STUB: not implemented"
+	return
 }
 
-func IsDishonoredReturnCode(code string) bool {
-	switch code {
-	case "R61", "R62", "R67", "R68", "R69", "R70":
-		return true
-	}
-	return false
-}
+func IsDishonoredReturnCode(code string) bool { _ = "STUB: not implemented"; return false }
 
 // Validate verifies NACHA rules for Addenda99Dishonored
 func (Addenda99Dishonored *Addenda99Dishonored) Validate() error {
-	if Addenda99Dishonored.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, Addenda99Dishonored.TypeCode)
-	}
-	if Addenda99Dishonored.TypeCode != "99" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, Addenda99Dishonored.TypeCode)
-	}
-
-	// Verify the DishonoredReturnReasonCode matches expected values
-	if Addenda99Dishonored.validateOpts == nil || !Addenda99Dishonored.validateOpts.CustomReturnCodes {
-		// We can validate the Dishonored ReturnCode
-		if !IsDishonoredReturnCode(Addenda99Dishonored.DishonoredReturnReasonCode) {
-			return fieldError("DishonoredReturnReasonCode", ErrAddenda99DishonoredReturnCode, Addenda99Dishonored.DishonoredReturnReasonCode)
-		}
-	}
-
+	_ = "STUB: not implemented"
 	return nil
 }
 
+// Verify the DishonoredReturnReasonCode matches expected values
+
+// We can validate the Dishonored ReturnCode
+
 func (Addenda99Dishonored *Addenda99Dishonored) DishonoredReturnReasonCodeField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.DishonoredReturnReasonCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // OriginalEntryTraceNumberField returns a zero padded TraceNumber string
 func (Addenda99Dishonored *Addenda99Dishonored) OriginalEntryTraceNumberField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.OriginalEntryTraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Dishonored *Addenda99Dishonored) OriginalReceivingDFIIdentificationField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.OriginalReceivingDFIIdentification, 8)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Dishonored *Addenda99Dishonored) ReturnTraceNumberField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.ReturnTraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Dishonored *Addenda99Dishonored) ReturnSettlementDateField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.ReturnSettlementDate, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Dishonored *Addenda99Dishonored) ReturnReasonCodeField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.ReturnReasonCode, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Dishonored *Addenda99Dishonored) AddendaInformationField() string {
-	return Addenda99Dishonored.alphaField(Addenda99Dishonored.AddendaInformation, 21)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // TraceNumberField returns a zero padded TraceNumber string
 func (Addenda99Dishonored *Addenda99Dishonored) TraceNumberField() string {
-	return Addenda99Dishonored.stringField(Addenda99Dishonored.TraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }

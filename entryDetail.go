@@ -17,13 +17,6 @@
 
 package ach
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // EntryDetail contains the actual transaction data for an individual entry.
 // Fields include those designating the entry as a deposit (credit) or
 // withdrawal (debit), the transit routing number for the entry recipient's financial
@@ -200,501 +193,202 @@ const (
 )
 
 // NewEntryDetail returns a new EntryDetail with default values for non exported fields
-func NewEntryDetail() *EntryDetail {
-	var entry EntryDetail
-	entry.Category = CategoryForward
-	return &entry
-}
+func NewEntryDetail() *EntryDetail { _ = "STUB: not implemented"; return nil }
 
-func (ed *EntryDetail) SetSECCode(code string) {
-	if ed != nil {
-		ed.secCode = code
-	}
-}
+func (ed *EntryDetail) SetSECCode(code string) { _ = "STUB: not implemented"; return }
 
 // Parse takes the input record string and parses the EntryDetail values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (ed *EntryDetail) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (ed *EntryDetail) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	// Precompute byte positions for all rune boundaries (0 to 94)
-	bytePositions := make([]int, 95)
-	byteIndex := 0
-	for i := 0; i < 94; i++ {
-		bytePositions[i] = byteIndex
-		_, size := utf8.DecodeRuneInString(record[byteIndex:])
-		byteIndex += size
-	}
-	bytePositions[94] = byteIndex
+// Precompute byte positions for all rune boundaries (0 to 94)
 
-	// Extract fields using precomputed byte positions
-	ed.TransactionCode = ed.parseNumField(record[bytePositions[1]:bytePositions[3]])
-	ed.RDFIIdentification = record[bytePositions[3]:bytePositions[11]]
-	ed.CheckDigit = record[bytePositions[11]:bytePositions[12]]
-	ed.DFIAccountNumber = ed.parseStringFieldWithOpts(record[bytePositions[12]:bytePositions[29]], ed.validateOpts)
-	ed.Amount = ed.parseNumField(record[bytePositions[29]:bytePositions[39]])
-
-	if strings.EqualFold(ed.secCode, CIE) || strings.EqualFold(ed.secCode, MTE) {
-		ed.IndividualName = record[bytePositions[39]:bytePositions[54]]
-		ed.IdentificationNumber = record[bytePositions[54]:bytePositions[76]]
-	} else {
-		ed.IdentificationNumber = record[bytePositions[39]:bytePositions[54]]
-		ed.IndividualName = record[bytePositions[54]:bytePositions[76]]
-	}
-
-	ed.DiscretionaryData = record[bytePositions[76]:bytePositions[78]]
-	ed.AddendaRecordIndicator = ed.parseNumField(record[bytePositions[78]:bytePositions[79]])
-	ed.TraceNumber = record[bytePositions[79]:bytePositions[94]]
-}
+// Extract fields using precomputed byte positions
 
 // String writes the EntryDetail struct to a 94 character string.
-func (ed *EntryDetail) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryDetailPos)
-	buf.WriteString(strconv.Itoa(ed.TransactionCode))
-	buf.WriteString(ed.RDFIIdentificationField())
-	buf.WriteString(ed.CheckDigit)
-	buf.WriteString(ed.DFIAccountNumberField())
-	buf.WriteString(ed.AmountField())
-	if strings.EqualFold(ed.secCode, CIE) || strings.EqualFold(ed.secCode, MTE) {
-		buf.WriteString(ed.IndividualNameField())
-		buf.WriteString(ed.IdentificationNumberField())
-	} else {
-		buf.WriteString(ed.IdentificationNumberField())
-		buf.WriteString(ed.IndividualNameField())
-	}
-	buf.WriteString(ed.DiscretionaryDataField())
-	buf.WriteString(strconv.Itoa(ed.AddendaRecordIndicator))
-	buf.WriteString(ed.TraceNumberField())
-
-	return buf.String()
-}
+func (ed *EntryDetail) String() string { _ = "STUB: not implemented"; return "" }
 
 // SetValidation stores ValidateOpts on the EntryDetail which are to be used to override
 // the default NACHA validation rules.
-func (ed *EntryDetail) SetValidation(opts *ValidateOpts) {
-	if ed == nil {
-		return
-	}
-	ed.validateOpts = opts
-}
+func (ed *EntryDetail) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (ed *EntryDetail) Validate() error {
-	if err := ed.fieldInclusion(); err != nil {
-		return err
-	}
-	if ed.validateOpts != nil && ed.validateOpts.CheckTransactionCode != nil {
-		if err := ed.validateOpts.CheckTransactionCode(ed.TransactionCode); err != nil {
-			return fieldError("TransactionCode", err, strconv.Itoa(ed.TransactionCode))
-		}
-	} else {
-		if err := ed.isTransactionCode(ed.TransactionCode); err != nil {
-			return fieldError("TransactionCode", err, strconv.Itoa(ed.TransactionCode))
-		}
-	}
-	if ed.Amount < 0 {
-		return fieldError("Amount", ErrNegativeAmount, ed.Amount)
-	}
-	if err := ed.amountOverflowsField(); err != nil {
-		return fieldError("Amount", err, ed.Amount)
-	}
-	if ed.validateOpts == nil || !ed.validateOpts.AllowSpecialCharacters {
-		if err := ed.isAlphanumeric(ed.DFIAccountNumber); err != nil {
-			return fieldError("DFIAccountNumber", err, ed.DFIAccountNumber)
-		}
-		if err := ed.isAlphanumeric(ed.IdentificationNumber); err != nil {
-			return fieldError("IdentificationNumber", err, ed.IdentificationNumber)
-		}
-		if err := ed.isAlphanumeric(ed.IndividualName); err != nil {
-			return fieldError("IndividualName", err, ed.IndividualName)
-		}
-		if err := ed.isAlphanumeric(ed.DiscretionaryData); err != nil {
-			return fieldError("DiscretionaryData", err, ed.DiscretionaryData)
-		}
-	}
-
-	if ed.validateOpts == nil || !ed.validateOpts.AllowInvalidCheckDigit {
-		calculated := CalculateCheckDigit(ed.RDFIIdentificationField())
-
-		edCheckDigit, err := strconv.Atoi(ed.CheckDigit)
-		if err != nil {
-			return fieldError("CheckDigit", err, ed.CheckDigit)
-		}
-
-		if calculated != edCheckDigit {
-			return fieldError("RDFIIdentification", NewErrValidCheckDigit(calculated), ed.CheckDigit)
-		}
-	}
-
-	return nil
-}
+func (ed *EntryDetail) Validate() error { _ = "STUB: not implemented"; return nil }
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (ed *EntryDetail) fieldInclusion() error {
-	if ed.TransactionCode == 0 {
-		return fieldError("TransactionCode", ErrConstructor, strconv.Itoa(ed.TransactionCode))
-	}
-	if ed.RDFIIdentification == "" {
-		return fieldError("RDFIIdentification", ErrConstructor, ed.RDFIIdentificationField())
-	}
-	if ed.DFIAccountNumber == "" {
-		return fieldError("DFIAccountNumber", ErrConstructor, ed.DFIAccountNumber)
-	}
-	if ed.IndividualName == "" {
-		return fieldError("IndividualName", ErrConstructor, ed.IndividualName)
-	}
-	if ed.TraceNumber == "" {
-		return fieldError("TraceNumber", ErrConstructor, ed.TraceNumberField())
-	}
-	return nil
-}
+func (ed *EntryDetail) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 const (
 	// NachaEntryAmountLimit is the maximum amount allowed by the Nacha format for an entry (10 digits)
 	NachaEntryAmountLimit = 99_999_999_99
 )
 
-func (ed *EntryDetail) amountOverflowsField() error {
-	if ed.Amount > NachaEntryAmountLimit {
-		return fmt.Errorf("does not match formatted value %s", ed.AmountField())
-	}
-	return nil
-}
+func (ed *EntryDetail) amountOverflowsField() error { _ = "STUB: not implemented"; return nil }
 
 // SetRDFI takes the 9 digit RDFI account number and separates it for RDFIIdentification and CheckDigit
-func (ed *EntryDetail) SetRDFI(rdfi string) *EntryDetail {
-	s := ed.stringField(rdfi, 9)
-	ed.RDFIIdentification = ed.parseStringField(s[:8])
-	ed.CheckDigit = ed.parseStringField(s[8:9])
-	return ed
-}
+func (ed *EntryDetail) SetRDFI(rdfi string) *EntryDetail { _ = "STUB: not implemented"; return nil }
 
 // SetTraceNumber takes first 8 digits of ODFI and concatenates a sequence number onto the TraceNumber
 func (ed *EntryDetail) SetTraceNumber(ODFIIdentification string, seq int) {
-	traceNumber := ed.stringField(ODFIIdentification, 8) + ed.numericField(seq, 7)
-	ed.TraceNumber = traceNumber
-
-	// Populate TraceNumber of addenda records that should match the Entry's trace number
-	if ed.Addenda02 != nil {
-		ed.Addenda02.TraceNumber = traceNumber
-	}
-	if ed.Addenda98 != nil {
-		ed.Addenda98.TraceNumber = traceNumber
-	}
-	if ed.Addenda98Refused != nil {
-		ed.Addenda98Refused.TraceNumber = traceNumber
-	}
-	if ed.Addenda99 != nil {
-		ed.Addenda99.TraceNumber = traceNumber
-	}
-	if ed.Addenda99Contested != nil {
-		ed.Addenda99Contested.TraceNumber = traceNumber
-	}
-	if ed.Addenda99Dishonored != nil {
-		ed.Addenda99Dishonored.TraceNumber = traceNumber
-	}
+	_ = "STUB: not implemented"
+	return
 }
+
+// Populate TraceNumber of addenda records that should match the Entry's trace number
 
 // RDFIIdentificationField get the rdfiIdentification with zero padding
-func (ed *EntryDetail) RDFIIdentificationField() string {
-	return ed.stringField(ed.RDFIIdentification, 8)
-}
+func (ed *EntryDetail) RDFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // DFIAccountNumberField gets the DFIAccountNumber with space padding
-func (ed *EntryDetail) DFIAccountNumberField() string {
-	return ed.alphaField(ed.DFIAccountNumber, 17)
-}
+func (ed *EntryDetail) DFIAccountNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // AmountField returns a zero padded string of amount
-func (ed *EntryDetail) AmountField() string {
-	return ed.numericField(ed.Amount, 10)
-}
+func (ed *EntryDetail) AmountField() string { _ = "STUB: not implemented"; return "" }
 
 // IdentificationNumberField returns a space padded string of IdentificationNumber
-func (ed *EntryDetail) IdentificationNumberField() string {
-	var length uint = 15
-	if strings.EqualFold(ed.secCode, CIE) || strings.EqualFold(ed.secCode, MTE) {
-		length = 22
-	}
-	return ed.alphaField(ed.IdentificationNumber, length)
-}
+func (ed *EntryDetail) IdentificationNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // CheckSerialNumberField is used in RCK, ARC, BOC files but returns
 // a space padded string of the underlying IdentificationNumber field
-func (ed *EntryDetail) CheckSerialNumberField() string {
-	return ed.alphaField(ed.IdentificationNumber, 15)
-}
+func (ed *EntryDetail) CheckSerialNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // SetCheckSerialNumber setter for RCK, ARC, BOC CheckSerialNumber
 // which is underlying IdentificationNumber
-func (ed *EntryDetail) SetCheckSerialNumber(s string) {
-	ed.IdentificationNumber = s
-}
+func (ed *EntryDetail) SetCheckSerialNumber(s string) { _ = "STUB: not implemented"; return }
 
 // SetPOPCheckSerialNumber setter for POP CheckSerialNumber
 // which is characters 1-9 of underlying CheckSerialNumber \ IdentificationNumber
-func (ed *EntryDetail) SetPOPCheckSerialNumber(s string) {
-	ed.IdentificationNumber = ed.alphaField(s, 9)
-}
+func (ed *EntryDetail) SetPOPCheckSerialNumber(s string) { _ = "STUB: not implemented"; return }
 
 // SetPOPTerminalCity setter for POP Terminal City
 // which is characters 10-13 of underlying CheckSerialNumber \ IdentificationNumber
-func (ed *EntryDetail) SetPOPTerminalCity(s string) {
-	ed.IdentificationNumber = ed.IdentificationNumber + ed.alphaField(s, 4)
-}
+func (ed *EntryDetail) SetPOPTerminalCity(s string) { _ = "STUB: not implemented"; return }
 
 // SetPOPTerminalState setter for POP Terminal State
 // which is characters 14-15 of underlying CheckSerialNumber \ IdentificationNumber
-func (ed *EntryDetail) SetPOPTerminalState(s string) {
-	ed.IdentificationNumber = ed.IdentificationNumber + ed.alphaField(s, 2)
-}
+func (ed *EntryDetail) SetPOPTerminalState(s string) { _ = "STUB: not implemented"; return }
 
 // POPCheckSerialNumberField is used in POP, characters 1-9 of underlying BatchPOP
 // CheckSerialNumber / IdentificationNumber
-func (ed *EntryDetail) POPCheckSerialNumberField() string {
-	return ed.parseStringField(readRunes(0, 9, ed.IdentificationNumber))
-}
+func (ed *EntryDetail) POPCheckSerialNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // POPTerminalCityField is used in POP, characters 10-13 of underlying BatchPOP
 // CheckSerialNumber / IdentificationNumber
-func (ed *EntryDetail) POPTerminalCityField() string {
-	return ed.parseStringField(readRunes(9, 4, ed.IdentificationNumber))
-}
+func (ed *EntryDetail) POPTerminalCityField() string { _ = "STUB: not implemented"; return "" }
 
 // POPTerminalStateField is used in POP, characters 14-15 of underlying BatchPOP
 // CheckSerialNumber / IdentificationNumber
-func (ed *EntryDetail) POPTerminalStateField() string {
-	return ed.parseStringField(readRunes(13, 2, ed.IdentificationNumber))
-}
+func (ed *EntryDetail) POPTerminalStateField() string { _ = "STUB: not implemented"; return "" }
 
 // SetSHRCardExpirationDate format MMYY is used in SHR, characters 1-4 of underlying
 // IdentificationNumber
-func (ed *EntryDetail) SetSHRCardExpirationDate(s string) {
-	ed.IdentificationNumber = ed.alphaField(s, 4)
-}
+func (ed *EntryDetail) SetSHRCardExpirationDate(s string) { _ = "STUB: not implemented"; return }
 
 // SetSHRDocumentReferenceNumber format int is used in SHR, characters 5-15 of underlying
 // IdentificationNumber
-func (ed *EntryDetail) SetSHRDocumentReferenceNumber(s string) {
-	ed.IdentificationNumber = ed.IdentificationNumber + ed.stringField(s, 11)
-}
+func (ed *EntryDetail) SetSHRDocumentReferenceNumber(s string) { _ = "STUB: not implemented"; return }
 
 // SetSHRIndividualCardAccountNumber format int is used in SHR, underlying
 // IndividualName
 func (ed *EntryDetail) SetSHRIndividualCardAccountNumber(s string) {
-	ed.IndividualName = ed.stringField(s, 22)
+	_ = "STUB: not implemented"
+	return
 }
 
 // SHRCardExpirationDateField format MMYY is used in SHR, characters 1-4 of underlying
 // IdentificationNumber
-func (ed *EntryDetail) SHRCardExpirationDateField() string {
-	return ed.alphaField(ed.parseStringField(readRunes(0, 4, ed.IdentificationNumber)), 4)
-}
+func (ed *EntryDetail) SHRCardExpirationDateField() string { _ = "STUB: not implemented"; return "" }
 
 // SHRDocumentReferenceNumberField format int is used in SHR, characters 5-15 of underlying
 // IdentificationNumber
 func (ed *EntryDetail) SHRDocumentReferenceNumberField() string {
-	return ed.stringField(readRunes(4, 11, ed.IdentificationNumber), 11)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // SHRIndividualCardAccountNumberField format int is used in SHR, underlying
 // IndividualName
 func (ed *EntryDetail) SHRIndividualCardAccountNumberField() string {
-	return ed.stringField(ed.IndividualName, 22)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // IndividualNameField returns a space padded string of IndividualName
-func (ed *EntryDetail) IndividualNameField() string {
-	var length uint = 22
-	if strings.EqualFold(ed.secCode, CIE) || strings.EqualFold(ed.secCode, MTE) {
-		length = 15
-	}
-	return ed.alphaField(ed.IndividualName, length)
-}
+func (ed *EntryDetail) IndividualNameField() string { _ = "STUB: not implemented"; return "" }
 
 // ReceivingCompanyField is used in CCD files but returns the underlying IndividualName field
-func (ed *EntryDetail) ReceivingCompanyField() string {
-	return ed.IndividualNameField()
-}
+func (ed *EntryDetail) ReceivingCompanyField() string { _ = "STUB: not implemented"; return "" }
 
 // SetReceivingCompany setter for CCD ReceivingCompany which is underlying IndividualName
-func (ed *EntryDetail) SetReceivingCompany(s string) {
-	ed.IndividualName = s
-}
+func (ed *EntryDetail) SetReceivingCompany(s string) { _ = "STUB: not implemented"; return }
 
 // OriginalTraceNumberField is used in ACK and ATX files but returns the underlying IdentificationNumber field
-func (ed *EntryDetail) OriginalTraceNumberField() string {
-	return ed.IdentificationNumberField()
-}
+func (ed *EntryDetail) OriginalTraceNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // SetOriginalTraceNumber setter for ACK and ATX OriginalTraceNumber which is underlying IdentificationNumber
-func (ed *EntryDetail) SetOriginalTraceNumber(s string) {
-	ed.IdentificationNumber = s
-}
+func (ed *EntryDetail) SetOriginalTraceNumber(s string) { _ = "STUB: not implemented"; return }
 
 // SetCATXAddendaRecords setter for CTX and ATX AddendaRecords characters 1-4 of underlying IndividualName
-func (ed *EntryDetail) SetCATXAddendaRecords(i int) {
-	ed.AddendaRecordIndicator = i
-
-	count := ed.numericField(i, 4)
-	current := ed.IndividualName
-	if utf8.RuneCountInString(current) > 4 {
-		ed.IndividualName = count + current[4:]
-	} else {
-		ed.IndividualName = count + ed.alphaField(" ", 16) + "  "
-	}
-}
+func (ed *EntryDetail) SetCATXAddendaRecords(i int) { _ = "STUB: not implemented"; return }
 
 // SetCATXReceivingCompany setter for CTX and ATX ReceivingCompany characters 5-20 underlying IndividualName
 // Position 21-22 of underlying Individual Name are reserved blank space for CTX "  "
-func (ed *EntryDetail) SetCATXReceivingCompany(s string) {
-	current := ed.IndividualName
-	if utf8.RuneCountInString(current) > 4 {
-		count := current[:4]
-		ed.IndividualName = count + ed.alphaField(s, 16) + "  "
-	} else {
-		ed.IndividualName = "0000" + ed.alphaField(s, 16) + "  "
-	}
-}
+func (ed *EntryDetail) SetCATXReceivingCompany(s string) { _ = "STUB: not implemented"; return }
 
 // CATXAddendaRecordsField is used in CTX and ATX files, characters 1-4 of underlying IndividualName field
-func (ed *EntryDetail) CATXAddendaRecordsField() string {
-	if utf8.RuneCountInString(ed.IndividualName) < 5 {
-		return ed.IndividualName
-	}
-	return ed.parseStringField(readRunes(0, 4, ed.IndividualName))
-}
+func (ed *EntryDetail) CATXAddendaRecordsField() string { _ = "STUB: not implemented"; return "" }
 
 // CATXReceivingCompanyField is used in CTX and ATX files, characters 5-20 of underlying IndividualName field
-func (ed *EntryDetail) CATXReceivingCompanyField() string {
-	if utf8.RuneCountInString(ed.IndividualName) < 4 {
-		return ""
-	}
-	return readRunes(4, 18, ed.IndividualName)
-}
+func (ed *EntryDetail) CATXReceivingCompanyField() string { _ = "STUB: not implemented"; return "" }
 
 // CATXReservedField is used in CTX and ATX files, characters 21-22 of underlying IndividualName field
-func (ed *EntryDetail) CATXReservedField() string {
-	return readRunes(20, 22, ed.IndividualName)
-}
+func (ed *EntryDetail) CATXReservedField() string { _ = "STUB: not implemented"; return "" }
 
 // DiscretionaryDataField returns a space padded string of DiscretionaryData
-func (ed *EntryDetail) DiscretionaryDataField() string {
-	return ed.alphaField(ed.DiscretionaryData, 2)
-}
+func (ed *EntryDetail) DiscretionaryDataField() string { _ = "STUB: not implemented"; return "" }
 
 // PaymentTypeField returns the DiscretionaryData field used in WEB and TEL batch files
 func (ed *EntryDetail) PaymentTypeField() string {
+	_ = "STUB: not implemented"
 	// because DiscretionaryData can be changed outside of PaymentType we reset the value for safety
-	ed.SetPaymentType(ed.DiscretionaryData)
-	return ed.DiscretionaryData
+	return ""
 }
 
 // SetPaymentType as R (Recurring) all other values will result in S (single).
 // This is used for WEB and TEL batch files in-place of DiscretionaryData.
-func (ed *EntryDetail) SetPaymentType(t string) {
-	t = strings.ToUpper(strings.TrimSpace(t))
-	if t == "R" {
-		ed.DiscretionaryData = "R"
-	} else {
-		ed.DiscretionaryData = "S"
-	}
-}
+func (ed *EntryDetail) SetPaymentType(t string) { _ = "STUB: not implemented"; return }
 
 // SetProcessControlField setter for TRC Process Control Field characters 1-6 of underlying IndividualName
-func (ed *EntryDetail) SetProcessControlField(s string) {
-	ed.IndividualName = ed.alphaField(s, 6)
-}
+func (ed *EntryDetail) SetProcessControlField(s string) { _ = "STUB: not implemented"; return }
 
 // SetItemResearchNumber setter for TRC Item Research Number characters 7-22 of underlying IndividualName
-func (ed *EntryDetail) SetItemResearchNumber(s string) {
-	ed.IndividualName = ed.IndividualName + ed.alphaField(s, 16)
-}
+func (ed *EntryDetail) SetItemResearchNumber(s string) { _ = "STUB: not implemented"; return }
 
 // SetItemTypeIndicator setter for TRC Item Type Indicator which is underlying Discretionary Data
-func (ed *EntryDetail) SetItemTypeIndicator(s string) {
-	ed.DiscretionaryData = ed.alphaField(s, 2)
-}
+func (ed *EntryDetail) SetItemTypeIndicator(s string) { _ = "STUB: not implemented"; return }
 
 // ProcessControlField getter for TRC Process Control Field characters 1-6 of underlying IndividualName
-func (ed *EntryDetail) ProcessControlField() string {
-	return ed.parseStringField(readRunes(0, 6, ed.IndividualName))
-}
+func (ed *EntryDetail) ProcessControlField() string { _ = "STUB: not implemented"; return "" }
 
 // ItemResearchNumber getter for TRC Item Research Number characters 7-22 of underlying IndividualName
-func (ed *EntryDetail) ItemResearchNumber() string {
-	return ed.parseStringField(readRunes(7, 16, ed.IndividualName))
-}
+func (ed *EntryDetail) ItemResearchNumber() string { _ = "STUB: not implemented"; return "" }
 
 // ItemTypeIndicator getter for TRC Item Type Indicator which is underlying Discretionary Data
-func (ed *EntryDetail) ItemTypeIndicator() string {
-	return ed.DiscretionaryData
-}
+func (ed *EntryDetail) ItemTypeIndicator() string { _ = "STUB: not implemented"; return "" }
 
 // TraceNumberField returns a zero padded TraceNumber string
-func (ed *EntryDetail) TraceNumberField() string {
-	return ed.stringField(ed.TraceNumber, 15)
-}
+func (ed *EntryDetail) TraceNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // CreditOrDebit returns a "C" for credit or "D" for debit based on the entry TransactionCode
-func (ed *EntryDetail) CreditOrDebit() string {
-	if ed.TransactionCode < 10 || ed.TransactionCode > 99 {
-		return ""
-	}
-	tc := strconv.Itoa(ed.TransactionCode)
+func (ed *EntryDetail) CreditOrDebit() string { _ = "STUB: not implemented"; return "" }
 
-	// take the second number in the TransactionCode
-	switch tc[1:2] {
-	case "1", "2", "3", "4":
-		return "C"
-	case "5", "6", "7", "8", "9":
-		return "D"
-	default:
-	}
-	return ""
-}
+// take the second number in the TransactionCode
 
 // AddAddenda05 appends an Addenda05 to the EntryDetail
-func (ed *EntryDetail) AddAddenda05(addenda05 *Addenda05) {
-	ed.Addenda05 = append(ed.Addenda05, addenda05)
-}
+func (ed *EntryDetail) AddAddenda05(addenda05 *Addenda05) { _ = "STUB: not implemented"; return }
 
 // addendaCount returns the count of Addenda records added onto this EntryDetail
-func (ed *EntryDetail) addendaCount() (n int) {
-	if ed == nil {
-		return 0
-	}
-	if ed.Addenda02 != nil {
-		n += 1
-	}
-	for i := range ed.Addenda05 {
-		if ed.Addenda05[i] != nil {
-			n += 1
-		}
-	}
-	if ed.Addenda98 != nil {
-		n += 1
-	}
-	if ed.Addenda98Refused != nil {
-		n += 1
-	}
-	if ed.Addenda99 != nil {
-		n += 1
-	}
-	if ed.Addenda99Dishonored != nil {
-		n += 1
-	}
-	if ed.Addenda99Contested != nil {
-		n += 1
-	}
-	return n
-}
+func (ed *EntryDetail) addendaCount() (n int) { _ = "STUB: not implemented"; return 0 }

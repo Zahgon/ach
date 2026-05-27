@@ -19,9 +19,6 @@ package ach
 
 import (
 	"errors"
-	"fmt"
-	"slices"
-	"sort"
 )
 
 var (
@@ -37,105 +34,30 @@ var (
 //     the final composition of the file.)
 //   - they don't contain any entries with common trace numbers, since trace numbers must be unique
 //     within a batch.
-func Flatten(originalFile *File) (*File, error) {
-	originalBatches := make([]mergeable, 0, len(originalFile.Batches)+len(originalFile.IATBatches))
+func Flatten(originalFile *File) (*File, error) { _ = "STUB: not implemented"; return nil, nil }
 
-	// Convert batches and IAT batches to "mergeables" for consistent flattening logic
-	for i := range originalFile.Batches {
-		originalBatches = append(originalBatches, mergeableBatcher{originalFile.Batches[i], nil})
-	}
-	for i := range originalFile.IATBatches {
-		originalBatches = append(originalBatches, mergeableIATBatch{&originalFile.IATBatches[i], nil})
-	}
+// Convert batches and IAT batches to "mergeables" for consistent flattening logic
 
-	// Considering bigger batches first allows for the least number of flattened batches
-	sort.Slice(originalBatches, func(i, j int) bool {
-		return originalBatches[i].GetEntryCount() < originalBatches[j].GetEntryCount()
-	})
+// Considering bigger batches first allows for the least number of flattened batches
 
-	// Merge each original batch into a new batch
-	newBatchesByHeader := map[string][]mergeable{}
-	for i := range originalBatches {
-		batch := originalBatches[i]
+// Merge each original batch into a new batch
 
-		var batchToMergeWith mergeable
+// Create a new file containing each of our new batches
 
-		batchesWithMatchingHeader, found := newBatchesByHeader[batch.GetHeaderSignature()]
-		if found {
-			for _, batchWithMatchingHeader := range batchesWithMatchingHeader {
-				if canMerge(batch, batchWithMatchingHeader) {
-					batchToMergeWith = batchWithMatchingHeader
-					break
-				}
-			}
-		}
+// Sort batches by original batch number to roughly maintain batch order in the flattened file
 
-		if batchToMergeWith == nil {
-			newBatchesByHeader[batch.GetHeaderSignature()] = append(newBatchesByHeader[batch.GetHeaderSignature()], batch.Copy())
-		} else {
-			batchToMergeWith.Consume(batch)
-		}
-	}
-
-	// Create a new file containing each of our new batches
-	newFile := NewFile()
-	newFile.SetValidation(originalFile.GetValidation())
-
-	newFile = originalFile.addFileHeaderData(newFile)
-	batchSlices := make([][]mergeable, 0, len(newBatchesByHeader))
-	for _, batches := range newBatchesByHeader {
-		batchSlices = append(batchSlices, batches)
-	}
-	allBatches := slices.Concat(batchSlices...)
-
-	// Sort batches by original batch number to roughly maintain batch order in the flattened file
-	sort.Slice(allBatches, func(i int, j int) bool { return allBatches[i].GetBatchNumber() < allBatches[j].GetBatchNumber() })
-
-	for i := range allBatches {
-		if err := allBatches[i].AddToFile(newFile); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := newFile.Create(); err != nil {
-		return nil, err
-	}
-	if err := newFile.Validate(); err != nil {
-		return nil, err
-	}
-
-	// Sanity checks; this is kind of a scary operation!
-	if originalFile.Control.EntryAddendaCount != newFile.Control.EntryAddendaCount {
-		return nil, askForBugReports(ErrFlattenChangedEntryCount)
-	}
-	if originalFile.Control.TotalDebitEntryDollarAmountInFile != newFile.Control.TotalDebitEntryDollarAmountInFile {
-		return nil, askForBugReports(ErrFlattenChangedDebitAmount)
-	}
-	if originalFile.Control.TotalCreditEntryDollarAmountInFile != newFile.Control.TotalCreditEntryDollarAmountInFile {
-		return nil, askForBugReports(ErrFlattenChangedCreditAmount)
-	}
-
-	return newFile, nil
-}
+// Sanity checks; this is kind of a scary operation!
 
 // FlattenBatches flattens the file's batches by consolidating batches with the same BatchHeader data into one Batch.
 // Entries within each flattened batch will be sorted by their TraceNumber field.
 func (f *File) FlattenBatches() (*File, error) {
-	return Flatten(f)
+	_ = "STUB: not implemented"
+
+	// Determine if two batches can be combined (ie, have the same header and no common trace numbers)
+	return nil, nil
 }
 
-// Determine if two batches can be combined (ie, have the same header and no common trace numbers)
-func canMerge(a mergeable, b mergeable) bool {
-	traceNumbers := b.GetTraceNumbers()
-	for traceNumber := range a.GetTraceNumbers() {
-		_, found := traceNumbers[traceNumber]
-		if found {
-			return false
-		}
-	}
-
-	return a.GetHeaderSignature() == b.GetHeaderSignature()
-}
+func canMerge(a mergeable, b mergeable) bool { _ = "STUB: not implemented"; return false }
 
 // Represents either a "normal" batch or an IAT batch
 type mergeable interface {
@@ -155,85 +77,31 @@ type mergeableBatcher struct {
 }
 
 // Batch header excluding the batch number, which isn't important to preserve
-func (b mergeableBatcher) GetHeaderSignature() string { return b.batcher.GetHeader().String()[:87] }
-func (b mergeableBatcher) GetBatch() interface{}      { return b.batcher }
-func (b mergeableBatcher) GetEntryCount() int         { return len(b.batcher.GetEntries()) }
-func (b mergeableBatcher) GetBatchNumber() int        { return b.batcher.GetHeader().BatchNumber }
+func (b mergeableBatcher) GetHeaderSignature() string { _ = "STUB: not implemented"; return "" }
+func (b mergeableBatcher) GetBatch() interface{}      { _ = "STUB: not implemented"; return nil }
+func (b mergeableBatcher) GetEntryCount() int         { _ = "STUB: not implemented"; return 0 }
+func (b mergeableBatcher) GetBatchNumber() int        { _ = "STUB: not implemented"; return 0 }
 
-func (b mergeableBatcher) GetTraceNumbers() map[string]bool {
-	if b.traceNumbers != nil {
-		return b.traceNumbers
-	}
-
-	b.traceNumbers = map[string]bool{}
-	for _, entry := range b.batcher.GetEntries() {
-		b.traceNumbers[entry.TraceNumber] = true
-	}
-
-	return b.traceNumbers
-}
+func (b mergeableBatcher) GetTraceNumbers() map[string]bool { _ = "STUB: not implemented"; return nil }
 
 func (m mergeableBatcher) Consume(mergeableToConsume mergeable) error {
-	batcherToConsume, ok := mergeableToConsume.GetBatch().(Batcher)
-	if !ok {
-		return fmt.Errorf("cannot consume %T - incompatible batch types", mergeableToConsume)
-	}
-
-	// Keep the lower of the two batch numbers, to roughly maintain batch order in the flattened file
-	if batcherToConsume.GetHeader().BatchNumber < m.batcher.GetHeader().BatchNumber {
-		m.batcher.GetHeader().BatchNumber = batcherToConsume.GetHeader().BatchNumber
-	}
-
-	entries := batcherToConsume.GetEntries()
-	for i := range entries {
-		m.batcher.AddEntry(entries[i])
-	}
-	advEntries := batcherToConsume.GetADVEntries()
-	for i := range advEntries {
-		m.batcher.AddADVEntry(advEntries[i])
-	}
-
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func (m mergeableBatcher) Copy() mergeable {
-	newBatcher, _ := NewBatch(m.batcher.GetHeader())
-	newMergeable := mergeableBatcher{newBatcher, nil}
-	newMergeable.Consume(m)
+// Keep the lower of the two batch numbers, to roughly maintain batch order in the flattened file
 
-	return newMergeable
-}
+func (m mergeableBatcher) Copy() mergeable { _ = "STUB: not implemented"; return *new(mergeable) }
 
 func (m mergeableBatcher) AddToFile(file *File) error {
+	_ = "STUB: not implemented"
 	// Sort entries by trace number
-	sort.Slice(m.batcher.GetEntries(), func(i, j int) bool {
-		return m.batcher.GetEntries()[i].TraceNumber < m.batcher.GetEntries()[j].TraceNumber
-	})
-
-	// Inherit validation options from file if batch doesn't have them
-	if opts := file.GetValidation(); opts != nil {
-		m.batcher.SetValidation(opts)
-
-		// Also set validation on all entries
-		for _, entry := range m.batcher.GetEntries() {
-			entry.SetValidation(opts)
-		}
-		for _, entry := range m.batcher.GetADVEntries() {
-			entry.SetValidation(opts)
-		}
-	}
-
-	err := m.batcher.Create()
-	if err != nil {
-		return askForBugReports(fmt.Errorf("mergeableBatcher - AddToFile: %v", err))
-	}
-
-	m.batcher.GetHeader().BatchNumber = 0
-
-	file.AddBatch(m.batcher)
-
 	return nil
 }
+
+// Inherit validation options from file if batch doesn't have them
+
+// Also set validation on all entries
 
 type mergeableIATBatch struct {
 	iatBatch     *IATBatch
@@ -241,73 +109,28 @@ type mergeableIATBatch struct {
 }
 
 // Batch header excluding the batch number, which isn't important to preserve
-func (b mergeableIATBatch) GetHeaderSignature() string { return b.iatBatch.Header.String()[:87] }
-func (b mergeableIATBatch) GetBatch() interface{}      { return *b.iatBatch }
-func (b mergeableIATBatch) GetEntryCount() int         { return len(b.iatBatch.Entries) }
-func (b mergeableIATBatch) GetBatchNumber() int        { return b.iatBatch.Header.BatchNumber }
+func (b mergeableIATBatch) GetHeaderSignature() string { _ = "STUB: not implemented"; return "" }
+func (b mergeableIATBatch) GetBatch() interface{}      { _ = "STUB: not implemented"; return nil }
+func (b mergeableIATBatch) GetEntryCount() int         { _ = "STUB: not implemented"; return 0 }
+func (b mergeableIATBatch) GetBatchNumber() int        { _ = "STUB: not implemented"; return 0 }
 
-func (b mergeableIATBatch) GetTraceNumbers() map[string]bool {
-	if b.traceNumbers != nil {
-		return b.traceNumbers
-	}
-
-	b.traceNumbers = map[string]bool{}
-	for _, entry := range b.iatBatch.Entries {
-		b.traceNumbers[entry.TraceNumber] = true
-	}
-
-	return b.traceNumbers
-}
+func (b mergeableIATBatch) GetTraceNumbers() map[string]bool { _ = "STUB: not implemented"; return nil }
 
 func (m mergeableIATBatch) Consume(mergeableToConsume mergeable) error {
-	batchToConsume, ok := mergeableToConsume.GetBatch().(IATBatch)
-	if !ok {
-		return fmt.Errorf("IAT cannot consume %T - incompatible batch types", mergeableToConsume)
-	}
-
-	// Keep the lower of the two batch numbers, to roughly maintain batch order in the flattened file
-	if batchToConsume.Header.BatchNumber < m.iatBatch.Header.BatchNumber {
-		m.iatBatch.Header.BatchNumber = batchToConsume.Header.BatchNumber
-	}
-
-	for _, entry := range batchToConsume.Entries {
-		m.iatBatch.AddEntry(entry)
-	}
-
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func (m mergeableIATBatch) Copy() mergeable {
-	newIATBatch := NewIATBatch(m.iatBatch.Header)
-	newMergeable := mergeableIATBatch{&newIATBatch, nil}
-	newMergeable.Consume(m)
+// Keep the lower of the two batch numbers, to roughly maintain batch order in the flattened file
 
-	return newMergeable
-}
+func (m mergeableIATBatch) Copy() mergeable { _ = "STUB: not implemented"; return *new(mergeable) }
 
 func (m mergeableIATBatch) AddToFile(file *File) error {
+	_ = "STUB: not implemented"
 	// Sort entries by trace number
-	sort.Slice(m.iatBatch.Entries, func(i, j int) bool {
-		return m.iatBatch.Entries[i].TraceNumber < m.iatBatch.Entries[j].TraceNumber
-	})
-
-	// Inherit validation options from file
-	if file.GetValidation() != nil {
-		m.iatBatch.SetValidation(file.GetValidation())
-
-		// Also set validation on all entries
-		for _, entry := range m.iatBatch.Entries {
-			entry.SetValidation(file.GetValidation())
-		}
-	}
-
-	err := m.iatBatch.Create()
-	if err != nil {
-		return askForBugReports(fmt.Errorf("mergeableIATBatch - AddToFile: %v", err))
-	}
-	m.iatBatch.Header.BatchNumber = 0
-
-	file.AddIATBatch(*m.iatBatch)
-
 	return nil
 }
+
+// Inherit validation options from file
+
+// Also set validation on all entries

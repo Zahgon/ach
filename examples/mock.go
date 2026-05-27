@@ -21,15 +21,6 @@ import (
 	"github.com/moov-io/ach"
 )
 
-func mockFileHeader() ach.FileHeader {
-	fh := ach.NewFileHeader()
-	fh.ImmediateDestination = "031300012"
-	fh.ImmediateOrigin = "231380104"
-	// need FileCreationDate and FileCreationTime to be fixed so it can match output
-	fh.FileCreationDate = "190816"
-	fh.FileCreationTime = "1055"
-	fh.ImmediateDestinationName = "Federal Reserve Bank"
-	fh.ImmediateOriginName = "My Bank Name"
-	fh.ReferenceCode = "12345678"
-	return fh
-}
+func mockFileHeader() ach.FileHeader { _ = "STUB: not implemented"; return *new(ach.FileHeader) }
+
+// need FileCreationDate and FileCreationTime to be fixed so it can match output

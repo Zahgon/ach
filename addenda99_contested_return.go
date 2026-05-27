@@ -17,10 +17,6 @@
 
 package ach
 
-import (
-	"unicode/utf8"
-)
-
 type Addenda99Contested struct {
 	// ID is an identifier only used by the moov-io/ach HTTP server as a way to identify a batch.
 	ID string `json:"id"`
@@ -76,181 +72,100 @@ type Addenda99Contested struct {
 }
 
 // NewAddenda99Contested returns a new Addenda99Contested with default values for none exported fields
-func NewAddenda99Contested() *Addenda99Contested {
-	Addenda99Contested := &Addenda99Contested{
-		TypeCode: "99",
-	}
-	return Addenda99Contested
-}
+func NewAddenda99Contested() *Addenda99Contested { _ = "STUB: not implemented"; return nil }
 
 func (Addenda99Contested *Addenda99Contested) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
-
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
-
-		// Append rune to buffer
-		buf.WriteRune(r)
-
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			Addenda99Contested.TypeCode = reset()
-		case 6:
-			Addenda99Contested.ContestedReturnCode = reset()
-		case 21:
-			Addenda99Contested.OriginalEntryTraceNumber = reset()
-		case 27:
-			Addenda99Contested.DateOriginalEntryReturned = reset()
-		case 35:
-			Addenda99Contested.OriginalReceivingDFIIdentification = reset()
-		case 38:
-			Addenda99Contested.OriginalSettlementDate = reset()
-		case 53:
-			Addenda99Contested.ReturnTraceNumber = reset()
-		case 56:
-			Addenda99Contested.ReturnSettlementDate = reset()
-		case 58:
-			Addenda99Contested.ReturnReasonCode = reset()
-		case 73:
-			Addenda99Contested.DishonoredReturnTraceNumber = reset()
-		case 76:
-			Addenda99Contested.DishonoredReturnSettlementDate = reset()
-		case 78:
-			Addenda99Contested.DishonoredReturnReasonCode = reset()
-		case 79:
-			reset() // reserved
-		case 94:
-			Addenda99Contested.TraceNumber = reset()
-		}
-	}
+	_ = "STUB: not implemented"
+	return
 }
 
-func (Addenda99Contested *Addenda99Contested) String() string {
-	if Addenda99Contested == nil {
-		return ""
-	}
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// Append rune to buffer
 
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(Addenda99Contested.TypeCode)
-	buf.WriteString(Addenda99Contested.ContestedReturnCodeField())
-	buf.WriteString(Addenda99Contested.OriginalEntryTraceNumberField())
-	buf.WriteString(Addenda99Contested.DateOriginalEntryReturnedField())
-	buf.WriteString(Addenda99Contested.OriginalReceivingDFIIdentificationField())
-	buf.WriteString(Addenda99Contested.OriginalSettlementDateField())
-	buf.WriteString(Addenda99Contested.ReturnTraceNumberField())
-	buf.WriteString(Addenda99Contested.ReturnSettlementDateField())
-	buf.WriteString(Addenda99Contested.ReturnReasonCodeField())
-	buf.WriteString(Addenda99Contested.DishonoredReturnTraceNumberField())
-	buf.WriteString(Addenda99Contested.DishonoredReturnSettlementDateField())
-	buf.WriteString(Addenda99Contested.DishonoredReturnReasonCodeField())
-	buf.WriteString(" ")
-	buf.WriteString(Addenda99Contested.TraceNumberField())
+// At each cutoff save the buffer and reset
 
-	return buf.String()
-}
+// 1-1 Always 7
+
+// reserved
+
+func (Addenda99Contested *Addenda99Contested) String() string { _ = "STUB: not implemented"; return "" }
 
 // SetValidation stores ValidateOpts on the Batch which are to be used to override
 // the default NACHA validation rules.
 func (Addenda99Contested *Addenda99Contested) SetValidation(opts *ValidateOpts) {
-	if Addenda99Contested == nil {
-		return
-	}
-	Addenda99Contested.validateOpts = opts
+	_ = "STUB: not implemented"
+	return
 }
 
 // Validate verifies NACHA rules for Addenda99Contested
 func (Addenda99Contested *Addenda99Contested) Validate() error {
-	if Addenda99Contested.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, Addenda99Contested.TypeCode)
-	}
-	if Addenda99Contested.TypeCode != "99" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, Addenda99Contested.TypeCode)
-	}
-
-	// Verify the ContestedReturnReasonCode matches expected values
-	if Addenda99Contested.validateOpts == nil || !Addenda99Contested.validateOpts.CustomReturnCodes {
-		// We can validate the Contested ReturnCode
-		if !IsContestedReturnCode(Addenda99Contested.ContestedReturnCode) {
-			return fieldError("ContestedReturnCode", ErrAddenda99ContestedReturnCode, Addenda99Contested.ContestedReturnCode)
-		}
-	}
-
+	_ = "STUB: not implemented"
 	return nil
 }
 
-func IsContestedReturnCode(code string) bool {
-	switch code {
-	case "R71", "R72", "R73", "R74", "R75", "R76", "R77":
-		return true
-	}
-	return false
-}
+// Verify the ContestedReturnReasonCode matches expected values
+
+// We can validate the Contested ReturnCode
+
+func IsContestedReturnCode(code string) bool { _ = "STUB: not implemented"; return false }
 
 func (Addenda99Contested *Addenda99Contested) ContestedReturnCodeField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.ContestedReturnCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) OriginalEntryTraceNumberField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.OriginalEntryTraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) DateOriginalEntryReturnedField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.DateOriginalEntryReturned, 6)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) OriginalReceivingDFIIdentificationField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.OriginalReceivingDFIIdentification, 8)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) OriginalSettlementDateField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.OriginalSettlementDate, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) ReturnTraceNumberField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.ReturnTraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) ReturnSettlementDateField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.ReturnSettlementDate, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) ReturnReasonCodeField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.ReturnReasonCode, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) DishonoredReturnTraceNumberField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.DishonoredReturnTraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) DishonoredReturnSettlementDateField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.DishonoredReturnSettlementDate, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) DishonoredReturnReasonCodeField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.DishonoredReturnReasonCode, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 func (Addenda99Contested *Addenda99Contested) TraceNumberField() string {
-	return Addenda99Contested.stringField(Addenda99Contested.TraceNumber, 15)
+	_ = "STUB: not implemented"
+	return ""
 }

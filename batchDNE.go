@@ -18,8 +18,6 @@
 package ach
 
 import (
-	"fmt"
-	"strings"
 	"time"
 )
 
@@ -36,91 +34,27 @@ type BatchDNE struct {
 }
 
 // NewBatchDNE returns a *BatchDNE
-func NewBatchDNE(bh *BatchHeader) *BatchDNE {
-	batch := new(BatchDNE)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchDNE(bh *BatchHeader) *BatchDNE { _ = "STUB: not implemented"; return nil }
 
 // Validate ensures the batch meets NACHA rules specific to this batch type.
-func (batch *BatchDNE) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchDNE) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := batch.verify(); err != nil {
-		return err
-	}
+// SEC code
 
-	// SEC code
-	if batch.Header.StandardEntryClassCode != DNE {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, DNE)
-	}
-
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchDNE) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchDNE) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	// Range over Entries
-	for _, entry := range batch.Entries {
-		if entry.Amount != 0 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("Amount", ErrBatchAmountNonZero, entry.Amount),
-			})
-		}
+// Range over Entries
 
-		switch entry.TransactionCode {
-		case CheckingPrenoteCredit, SavingsPrenoteCredit:
-		default:
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-			})
-		}
+// DNE must have one Addenda05
 
-		// DNE must have one Addenda05
-		if len(entry.Addenda05) != 1 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("AddendaCount", NewErrBatchAddendaCount(len(entry.Addenda05), 1)),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// Verify the Amount is valid for SEC code and TransactionCode
 
-	return out
-}
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -128,11 +62,9 @@ func (batch *BatchDNE) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchDNE) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	return batch.Validate()
+	return nil
 }
 
 type DNEPaymentInformation struct {
@@ -149,28 +81,8 @@ type DNEPaymentInformation struct {
 //
 // The returned information is not validated for correctness.
 func ParseDNEPaymentInformation(addenda05 *Addenda05) (*DNEPaymentInformation, error) {
-	if addenda05 == nil {
-		return nil, nil
-	}
-
-	fields := strings.Split(strings.TrimSuffix(addenda05.PaymentRelatedInformation, `\`), "*")
-	if len(fields) != 6 {
-		return nil, fmt.Errorf("unexpected %d fields", len(fields))
-	}
-
-	dateOfDeath, err := time.Parse("010206", fields[1])
-	if err != nil {
-		return nil, fmt.Errorf("parsing DateOfDeath: %w", err)
-	}
-
-	return &DNEPaymentInformation{
-		DateOfDeath: dateOfDeath,
-		CustomerSSN: fields[3],
-		Amount:      fields[5],
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
 
-func (info DNEPaymentInformation) String() string {
-	return fmt.Sprintf(`DATE OF DEATH*%s*CUSTOMER SSN*%s*AMOUNT*%s\`,
-		info.DateOfDeath.Format("010206"), info.CustomerSSN, info.Amount)
-}
+func (info DNEPaymentInformation) String() string { _ = "STUB: not implemented"; return "" }

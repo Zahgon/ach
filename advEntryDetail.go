@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strconv"
-	"unicode/utf8"
-)
-
 // ADVEntryDetail contains the actual transaction data for an individual entry.
 // Fields include those designating the entry as a deposit (credit) or
 // withdrawal (debit), the transit routing number for the entry recipient's financial
@@ -112,211 +107,95 @@ const (
 )
 
 // NewADVEntryDetail returns a new ADVEntryDetail with default values for non exported fields
-func NewADVEntryDetail() *ADVEntryDetail {
-	entry := &ADVEntryDetail{
-		Category: CategoryForward,
-	}
-	return entry
-}
+func NewADVEntryDetail() *ADVEntryDetail { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the ADVEntryDetail values
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm
 // successful parsing and data validity.
 
 // Parse ADVEntryDetail
-func (ed *ADVEntryDetail) Parse(record string) {
-	if utf8.RuneCountInString(record) != 94 {
-		return
-	}
-	runes := []rune(record)
+func (ed *ADVEntryDetail) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	// 1-1 Always "6"
-	// 2-3 is checking credit 22 debit 27 savings credit 32 debit 37
-	ed.TransactionCode = ed.parseNumField(string(runes[1:3]))
-	// 4-11 the RDFI's routing number without the last digit.
-	ed.RDFIIdentification = ed.parseStringField(string(runes[3:11]))
-	// 12-12 The last digit of the RDFI's routing number
-	ed.CheckDigit = ed.parseStringField(string(runes[11:12]))
-	// 13-27 The receiver's bank account number you are crediting/debiting
-	ed.DFIAccountNumber = string(runes[12:27])
-	// 28-39 Number of cents you are debiting/crediting this account
-	ed.Amount = ed.parseNumField(string(runes[27:39]))
-	// 40-48 Advice Routing Number
-	ed.AdviceRoutingNumber = ed.parseStringField(string(runes[39:48]))
-	// 49-53 File Identification
-	ed.FileIdentification = ed.parseStringField(string(runes[48:53]))
-	// 54-54 ACH Operator Data
-	ed.ACHOperatorData = ed.parseStringField(string(runes[53:54]))
-	// 55-76 Individual Name
-	ed.IndividualName = string(runes[54:76])
-	// 77-78 allows ODFIs to include codes of significance only to them, normally blank
-	ed.DiscretionaryData = string(runes[76:78])
-	// 79-79 1 if addenda exists 0 if it does not
-	ed.AddendaRecordIndicator = ed.parseNumField(string(runes[78:79]))
-	// 80-87
-	ed.ACHOperatorRoutingNumber = ed.parseStringField(string(runes[79:87]))
-	// 88-90
-	ed.JulianDay = ed.parseNumField(string(runes[87:90]))
-	// 91-94
-	ed.SequenceNumber = ed.parseNumField(string(runes[90:94]))
-}
+// 1-1 Always "6"
+// 2-3 is checking credit 22 debit 27 savings credit 32 debit 37
 
-func (a *ADVEntryDetail) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-11 the RDFI's routing number without the last digit.
+
+// 12-12 The last digit of the RDFI's routing number
+
+// 13-27 The receiver's bank account number you are crediting/debiting
+
+// 28-39 Number of cents you are debiting/crediting this account
+
+// 40-48 Advice Routing Number
+
+// 49-53 File Identification
+
+// 54-54 ACH Operator Data
+
+// 55-76 Individual Name
+
+// 77-78 allows ODFIs to include codes of significance only to them, normally blank
+
+// 79-79 1 if addenda exists 0 if it does not
+
+// 80-87
+
+// 88-90
+
+// 91-94
+
+func (a *ADVEntryDetail) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the ADVEntryDetail struct to a 94 character string.
-func (ed *ADVEntryDetail) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryDetailPos)
-	buf.WriteString(strconv.Itoa(ed.TransactionCode))
-	buf.WriteString(ed.RDFIIdentificationField())
-	buf.WriteString(ed.CheckDigit)
-	buf.WriteString(ed.DFIAccountNumberField())
-	buf.WriteString(ed.AmountField())
-	buf.WriteString(ed.AdviceRoutingNumberField())
-	buf.WriteString(ed.FileIdentificationField())
-	buf.WriteString(ed.ACHOperatorDataField())
-	buf.WriteString(ed.IndividualNameField())
-	buf.WriteString(ed.DiscretionaryDataField())
-	buf.WriteString(strconv.Itoa(ed.AddendaRecordIndicator))
-	buf.WriteString(ed.ACHOperatorRoutingNumberField())
-	buf.WriteString(ed.JulianDateDayField())
-	buf.WriteString(ed.SequenceNumberField())
-
-	return buf.String()
-}
+func (ed *ADVEntryDetail) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (ed *ADVEntryDetail) Validate() error {
-	if err := ed.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := ed.isTransactionCode(ed.TransactionCode); err != nil {
-		return fieldError("TransactionCode", err, strconv.Itoa(ed.TransactionCode))
-	}
-	if ed.validateOpts == nil || !ed.validateOpts.AllowSpecialCharacters {
-		if err := ed.isAlphanumeric(ed.DFIAccountNumber); err != nil {
-			return fieldError("DFIAccountNumber", err, ed.DFIAccountNumber)
-		}
-		if err := ed.isAlphanumeric(ed.AdviceRoutingNumber); err != nil {
-			return fieldError("AdviceRoutingNumber", err, ed.AdviceRoutingNumber)
-		}
-		if err := ed.isAlphanumeric(ed.IndividualName); err != nil {
-			return fieldError("IndividualName", err, ed.IndividualName)
-		}
-		if err := ed.isAlphanumeric(ed.DiscretionaryData); err != nil {
-			return fieldError("DiscretionaryData", err, ed.DiscretionaryData)
-		}
-		if err := ed.isAlphanumeric(ed.ACHOperatorRoutingNumber); err != nil {
-			return fieldError("ACHOperatorRoutingNumber", err, ed.ACHOperatorRoutingNumber)
-		}
-	}
-	calculated := CalculateCheckDigit(ed.RDFIIdentificationField())
-
-	edCheckDigit, _ := strconv.Atoi(ed.CheckDigit)
-
-	if calculated != edCheckDigit {
-		return fieldError("RDFIIdentification", NewErrValidCheckDigit(calculated), ed.CheckDigit)
-	}
-	return nil
-}
+func (ed *ADVEntryDetail) Validate() error { _ = "STUB: not implemented"; return nil }
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (ed *ADVEntryDetail) fieldInclusion() error {
-	if ed.TransactionCode == 0 {
-		return fieldError("TransactionCode", ErrConstructor, strconv.Itoa(ed.TransactionCode))
-	}
-	if ed.RDFIIdentification == "" {
-		return fieldError("RDFIIdentification", ErrConstructor, ed.RDFIIdentificationField())
-	}
-	if ed.DFIAccountNumber == "" {
-		return fieldError("DFIAccountNumber", ErrConstructor, ed.DFIAccountNumber)
-	}
-	if ed.AdviceRoutingNumber == "" {
-		return fieldError("AdviceRoutingNumber", ErrConstructor, ed.AdviceRoutingNumber)
-	}
-	if ed.IndividualName == "" {
-		return fieldError("IndividualName", ErrFieldRequired, ed.IndividualName)
-	}
-	if ed.ACHOperatorRoutingNumber == "" {
-		return fieldError("ACHOperatorRoutingNumber", ErrConstructor, ed.ACHOperatorRoutingNumber)
-	}
-	if ed.JulianDay <= 0 {
-		return fieldError("JulianDay", ErrConstructor, strconv.Itoa(ed.JulianDay))
-	}
-
-	if ed.SequenceNumber == 0 {
-		return fieldError("SequenceNumber", ErrConstructor, strconv.Itoa(ed.SequenceNumber))
-	}
-	return nil
-}
+func (ed *ADVEntryDetail) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // SetRDFI takes the 9 digit RDFI account number and separates it for RDFIIdentification and CheckDigit
 func (ed *ADVEntryDetail) SetRDFI(rdfi string) *ADVEntryDetail {
-	s := ed.stringField(rdfi, 9)
-	ed.RDFIIdentification = ed.parseStringField(s[:8])
-	ed.CheckDigit = ed.parseStringField(s[8:9])
-	return ed
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // RDFIIdentificationField get the rdfiIdentification with zero padding
-func (ed *ADVEntryDetail) RDFIIdentificationField() string {
-	return ed.stringField(ed.RDFIIdentification, 8)
-}
+func (ed *ADVEntryDetail) RDFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // DFIAccountNumberField gets the DFIAccountNumber with space padding
-func (ed *ADVEntryDetail) DFIAccountNumberField() string {
-	return ed.alphaField(ed.DFIAccountNumber, 15)
-}
+func (ed *ADVEntryDetail) DFIAccountNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // AmountField returns a zero padded string of amount
-func (ed *ADVEntryDetail) AmountField() string {
-	return ed.numericField(ed.Amount, 12)
-}
+func (ed *ADVEntryDetail) AmountField() string { _ = "STUB: not implemented"; return "" }
 
 // AdviceRoutingNumberField gets the AdviceRoutingNumber with zero padding
-func (ed *ADVEntryDetail) AdviceRoutingNumberField() string {
-	return ed.stringField(ed.AdviceRoutingNumber, 9)
-}
+func (ed *ADVEntryDetail) AdviceRoutingNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // FileIdentificationField returns a space padded string of FileIdentification
-func (ed *ADVEntryDetail) FileIdentificationField() string {
-	return ed.alphaField(ed.FileIdentification, 5)
-}
+func (ed *ADVEntryDetail) FileIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // ACHOperatorDataField returns a space padded string of ACHOperatorData
-func (ed *ADVEntryDetail) ACHOperatorDataField() string {
-	return ed.alphaField(ed.ACHOperatorData, 1)
-}
+func (ed *ADVEntryDetail) ACHOperatorDataField() string { _ = "STUB: not implemented"; return "" }
 
 // IndividualNameField returns a space padded string of IndividualName
-func (ed *ADVEntryDetail) IndividualNameField() string {
-	return ed.alphaField(ed.IndividualName, 22)
-}
+func (ed *ADVEntryDetail) IndividualNameField() string { _ = "STUB: not implemented"; return "" }
 
 // DiscretionaryDataField returns a space padded string of DiscretionaryData
-func (ed *ADVEntryDetail) DiscretionaryDataField() string {
-	return ed.alphaField(ed.DiscretionaryData, 2)
-}
+func (ed *ADVEntryDetail) DiscretionaryDataField() string { _ = "STUB: not implemented"; return "" }
 
 // ACHOperatorRoutingNumberField returns a space padded string of ACHOperatorRoutingNumber
 func (ed *ADVEntryDetail) ACHOperatorRoutingNumberField() string {
-	return ed.alphaField(ed.ACHOperatorRoutingNumber, 8)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // JulianDateDayField returns a zero padded string of JulianDay
-func (ed *ADVEntryDetail) JulianDateDayField() string {
-	return ed.numericField(ed.JulianDay, 3)
-}
+func (ed *ADVEntryDetail) JulianDateDayField() string { _ = "STUB: not implemented"; return "" }
 
 // SequenceNumberField returns a zero padded string of SequenceNumber
-func (ed *ADVEntryDetail) SequenceNumberField() string {
-	return ed.numericField(ed.SequenceNumber, 4)
-}
+func (ed *ADVEntryDetail) SequenceNumberField() string { _ = "STUB: not implemented"; return "" }

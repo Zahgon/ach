@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda18 is an addenda which provides business transaction information for Addenda Type
 // Code 18 in a machine readable format. It is usually formatted according to ANSI, ASC, X12 Standard.
 //
@@ -72,185 +67,84 @@ type Addenda18 struct {
 }
 
 // NewAddenda18 returns a new Addenda18 with default values for none exported fields
-func NewAddenda18() *Addenda18 {
-	addenda18 := new(Addenda18)
-	addenda18.TypeCode = "18"
-	return addenda18
-}
+func NewAddenda18() *Addenda18 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda18 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda18 *Addenda18) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda18 *Addenda18) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 18
-			addenda18.TypeCode = reset()
-		case 38:
-			// 4-38 Based on the information entered (04-38) 35 alphanumeric
-			addenda18.ForeignCorrespondentBankName = strings.TrimSpace(reset())
-		case 40:
-			// 39-40  Based on the information entered (39-40) 2 alphanumeric
-			// “01” = National Clearing System
-			// “02” = BIC Code
-			// “03” = IBAN Code
-			addenda18.ForeignCorrespondentBankIDNumberQualifier = reset()
-		case 74:
-			// 41-74 Based on the information entered (41-74) 34 alphanumeric
-			addenda18.ForeignCorrespondentBankIDNumber = strings.TrimSpace(reset())
-		case 77:
-			// 75-77 Based on the information entered (75-77) 3 alphanumeric
-			addenda18.ForeignCorrespondentBankBranchCountryCode = strings.TrimSpace(reset())
-		case 83:
-			// 78-83 - Blank space
-			reset()
-		case 87:
-			// 84-87 SequenceNumber is consecutively assigned to each Addenda18 Record following an Entry Detail Record
-			addenda18.SequenceNumber = addenda18.parseNumField(reset())
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda18.EntryDetailSequenceNumber = addenda18.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 18
 
-func (a *Addenda18) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-38 Based on the information entered (04-38) 35 alphanumeric
+
+// 39-40  Based on the information entered (39-40) 2 alphanumeric
+// “01” = National Clearing System
+// “02” = BIC Code
+// “03” = IBAN Code
+
+// 41-74 Based on the information entered (41-74) 34 alphanumeric
+
+// 75-77 Based on the information entered (75-77) 3 alphanumeric
+
+// 78-83 - Blank space
+
+// 84-87 SequenceNumber is consecutively assigned to each Addenda18 Record following an Entry Detail Record
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda18) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda18 struct to a 94 character string.
-func (addenda18 *Addenda18) String() string {
-	if addenda18 == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda18.TypeCode)
-	buf.WriteString(addenda18.ForeignCorrespondentBankNameField())
-	buf.WriteString(addenda18.ForeignCorrespondentBankIDNumberQualifierField())
-	buf.WriteString(addenda18.ForeignCorrespondentBankIDNumberField())
-	buf.WriteString(addenda18.ForeignCorrespondentBankBranchCountryCodeField())
-	buf.WriteString("      ")
-	buf.WriteString(addenda18.SequenceNumberField())
-	buf.WriteString(addenda18.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+func (addenda18 *Addenda18) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda18 *Addenda18) Validate() error {
-	if err := addenda18.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda18.isTypeCode(addenda18.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda18.TypeCode)
-	}
-	// Type Code must be 18
-	if addenda18.TypeCode != "18" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda18.TypeCode)
-	}
-	if addenda18.validateOpts == nil || !addenda18.validateOpts.AllowSpecialCharacters {
-		if err := addenda18.isAlphanumeric(addenda18.ForeignCorrespondentBankName); err != nil {
-			return fieldError("ForeignCorrespondentBankName", err, addenda18.ForeignCorrespondentBankName)
-		}
-		if err := addenda18.isAlphanumeric(addenda18.ForeignCorrespondentBankIDNumberQualifier); err != nil {
-			return fieldError("ForeignCorrespondentBankIDNumberQualifier", err, addenda18.ForeignCorrespondentBankIDNumberQualifier)
-		}
-		if err := addenda18.isAlphanumeric(addenda18.ForeignCorrespondentBankIDNumber); err != nil {
-			return fieldError("ForeignCorrespondentBankIDNumber", err, addenda18.ForeignCorrespondentBankIDNumber)
-		}
-		if err := addenda18.isAlphanumeric(addenda18.ForeignCorrespondentBankBranchCountryCode); err != nil {
-			return fieldError("ForeignCorrespondentBankBranchCountryCode", err, addenda18.ForeignCorrespondentBankBranchCountryCode)
-		}
-	}
-	return nil
-}
+func (addenda18 *Addenda18) Validate() error { _ = "STUB: not implemented"; return nil }
+
+// Type Code must be 18
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda18 *Addenda18) fieldInclusion() error {
-	if addenda18.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda18.TypeCode)
-	}
-	if addenda18.ForeignCorrespondentBankName == "" {
-		return fieldError("ForeignCorrespondentBankName", ErrConstructor, addenda18.ForeignCorrespondentBankName)
-	}
-	if addenda18.ForeignCorrespondentBankIDNumberQualifier == "" {
-		return fieldError("ForeignCorrespondentBankIDNumberQualifier", ErrConstructor, addenda18.ForeignCorrespondentBankIDNumberQualifier)
-	}
-	if addenda18.ForeignCorrespondentBankIDNumber == "" {
-		return fieldError("ForeignCorrespondentBankIDNumber", ErrConstructor, addenda18.ForeignCorrespondentBankIDNumber)
-	}
-	if addenda18.ForeignCorrespondentBankBranchCountryCode == "" {
-		return fieldError("ForeignCorrespondentBankBranchCountryCode", ErrConstructor, addenda18.ForeignCorrespondentBankBranchCountryCode)
-	}
-	if addenda18.SequenceNumber == 0 {
-		return fieldError("SequenceNumber", ErrConstructor, addenda18.SequenceNumberField())
-	}
-	if addenda18.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda18.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+func (addenda18 *Addenda18) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // ForeignCorrespondentBankNameField returns a zero padded ForeignCorrespondentBankName string
 func (addenda18 *Addenda18) ForeignCorrespondentBankNameField() string {
-	return addenda18.alphaField(addenda18.ForeignCorrespondentBankName, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignCorrespondentBankIDNumberQualifierField returns a zero padded ForeignCorrespondentBankIDNumberQualifier string
 func (addenda18 *Addenda18) ForeignCorrespondentBankIDNumberQualifierField() string {
-	return addenda18.alphaField(addenda18.ForeignCorrespondentBankIDNumberQualifier, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignCorrespondentBankIDNumberField returns a zero padded ForeignCorrespondentBankIDNumber string
 func (addenda18 *Addenda18) ForeignCorrespondentBankIDNumberField() string {
-	return addenda18.alphaField(addenda18.ForeignCorrespondentBankIDNumber, 34)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignCorrespondentBankBranchCountryCodeField returns a zero padded ForeignCorrespondentBankBranchCountryCode string
 func (addenda18 *Addenda18) ForeignCorrespondentBankBranchCountryCodeField() string {
-	return addenda18.alphaField(addenda18.ForeignCorrespondentBankBranchCountryCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // SequenceNumberField returns a zero padded SequenceNumber string
-func (addenda18 *Addenda18) SequenceNumberField() string {
-	return addenda18.numericField(addenda18.SequenceNumber, 4)
-}
+func (addenda18 *Addenda18) SequenceNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda18 *Addenda18) EntryDetailSequenceNumberField() string {
-	return addenda18.numericField(addenda18.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

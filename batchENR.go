@@ -17,13 +17,6 @@
 
 package ach
 
-import (
-	"fmt"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-)
-
 // BatchENR is a non-monetary entry that enrolls a person with an agency of the US government
 // for a depository financial institution.
 //
@@ -33,97 +26,30 @@ type BatchENR struct {
 }
 
 // NewBatchENR returns a *BatchENR
-func NewBatchENR(bh *BatchHeader) *BatchENR {
-	batch := new(BatchENR)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchENR(bh *BatchHeader) *BatchENR { _ = "STUB: not implemented"; return nil }
 
 // Validate ensures the batch meets NACHA rules specific to this batch type.
-func (batch *BatchENR) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchENR) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := batch.verify(); err != nil {
-		return err
-	}
+// Batch Header checks
 
-	// Batch Header checks
-	if batch.Header.StandardEntryClassCode != ENR {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, ENR)
-	}
-	if batch.Header.CompanyEntryDescription != "AUTOENROLL" {
-		return batch.Error("CompanyEntryDescription", ErrBatchCompanyEntryDescriptionAutoenroll, batch.Header.CompanyEntryDescription)
-	}
-
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchENR) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchENR) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	// Range over Entries
-	for _, entry := range batch.Entries {
-		if err := entry.Validate(); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
+// Range over Entries
 
-		if entry.Amount != 0 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("Amount", ErrBatchAmountNonZero, entry.Amount),
-			})
-		}
+// nothing
 
-		switch entry.TransactionCode {
-		case CheckingPrenoteCredit, SavingsPrenoteCredit:
-			// nothing
-		case CheckingReturnNOCCredit, SavingsReturnNOCCredit:
-			// reurns, do nothing
-		default:
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchTransactionCode, entry.TransactionCode),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// ENR must have one Addenda05
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// reurns, do nothing
 
-	return out
-}
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// ENR must have one Addenda05
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -131,11 +57,9 @@ func (batch *BatchENR) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchENR) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	return batch.Validate()
+	return nil
 }
 
 // ENRPaymentInformation structure
@@ -170,72 +94,28 @@ type ENRPaymentInformation struct {
 }
 
 func (info ENRPaymentInformation) String() string {
+	_ = "STUB: not implemented"
 	// Stretch the companies name across two fields
-	var individualName string
-	if strings.EqualFold(info.EnrolleeClassificationCode, "B") {
-		// First fifteen characters are added
-		individualName = strings.TrimSpace(fmt.Sprintf("%15.15s", info.IndividualName)) + "*"
-
-		// Add on a second field if needed
-		runes := utf8.RuneCountInString(info.IndividualName)
-		if runes > 15 {
-			individualName += strings.TrimSpace(fmt.Sprintf("%7.7s", info.IndividualName[15:]))
-		}
-	} else {
-		// Format the Individual's name by Surname first
-		nameParts := strings.Fields(info.IndividualName)
-
-		if len(nameParts) > 1 {
-			// Surname comes fist
-			nameParts = append(nameParts[len(nameParts)-1:], nameParts[:len(nameParts)-1]...)
-		}
-		individualName = strings.Join(nameParts, "*")
-	}
-
-	return fmt.Sprintf(`%v*%v*%v*%v*%v*%v*%v\`,
-		info.TransactionCode,
-		info.RDFIIdentification,
-		info.CheckDigit,
-		info.DFIAccountNumber,
-		info.IndividualIdentification,
-		individualName,
-		info.EnrolleeClassificationCode)
+	return ""
 }
+
+// First fifteen characters are added
+
+// Add on a second field if needed
+
+// Format the Individual's name by Surname first
+
+// Surname comes fist
 
 // ParseENRPaymentInformation returns an ENRPaymentInformation for a given Addenda05 record. The information is parsed from the addenda's
 // PaymentRelatedInformation field.
 //
 // The returned information is not validated for correctness.
 func ParseENRPaymentInformation(addenda05 *Addenda05) (*ENRPaymentInformation, error) {
-	if addenda05 == nil {
-		return nil, nil
-	}
-
-	parts := strings.Split(strings.TrimSuffix(addenda05.PaymentRelatedInformation, `\`), "*") // PaymentRelatedInformation is terminated by '\'
-	if len(parts) != 8 {
-		return nil, fmt.Errorf("ENR: unable to parse Addenda05 (%s) PaymentRelatedInformation", addenda05.ID)
-	}
-
-	txCode, err := strconv.Atoi(parts[0])
-	if err != nil {
-		return nil, fmt.Errorf("ENR: unable to parse TransactionCode (%s) from Addenda05.ID=%s", parts[0], addenda05.ID)
-	}
-
-	enrolleeClassificationCode := parts[7]
-
-	individualName := fmt.Sprintf("%s %s", parts[6], parts[5])
-	if strings.EqualFold(enrolleeClassificationCode, "B") {
-		// Business Names can be fill two field lengths
-		individualName = fmt.Sprintf("%s%s", parts[5], parts[6])
-	}
-
-	return &ENRPaymentInformation{
-		TransactionCode:            txCode,
-		RDFIIdentification:         parts[1],
-		CheckDigit:                 parts[2],
-		DFIAccountNumber:           parts[3],
-		IndividualIdentification:   parts[4],
-		IndividualName:             individualName,
-		EnrolleeClassificationCode: enrolleeClassificationCode,
-	}, nil
+	_ = "STUB: not implemented"
+	return nil, nil
 }
+
+// PaymentRelatedInformation is terminated by '\'
+
+// Business Names can be fill two field lengths

@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda10 is an addenda which provides business transaction information for Addenda Type
 // Code 10 in a machine readable format. It is usually formatted according to ANSI, ASC, X12 Standard.
 //
@@ -63,171 +58,74 @@ type Addenda10 struct {
 }
 
 // NewAddenda10 returns a new Addenda10 with default values for none exported fields
-func NewAddenda10() *Addenda10 {
-	addenda10 := new(Addenda10)
-	addenda10.TypeCode = "10"
-	return addenda10
-}
+func NewAddenda10() *Addenda10 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda10 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda10 *Addenda10) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda10 *Addenda10) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 10
-			addenda10.TypeCode = reset()
-		case 6:
-			// 04-06 Describes the type of payment
-			addenda10.TransactionTypeCode = reset()
-		case 24:
-			// 07-24 Payment Amount	For inbound IAT payments this field should contain the USD amount or may be blank.
-			addenda10.ForeignPaymentAmount = addenda10.parseNumField(reset())
-		case 46:
-			//  25-46 Insert blanks or zeros
-			addenda10.ForeignTraceNumber = strings.TrimSpace(reset())
-		case 81:
-			// 47-81 Receiving Company Name/Individual Name
-			addenda10.Name = strings.TrimSpace(reset())
-		case 87:
-			// 82-87 reserved - Leave blank
-			reset()
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda10.EntryDetailSequenceNumber = addenda10.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 10
 
-func (a *Addenda10) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 04-06 Describes the type of payment
+
+// 07-24 Payment Amount	For inbound IAT payments this field should contain the USD amount or may be blank.
+
+//  25-46 Insert blanks or zeros
+
+// 47-81 Receiving Company Name/Individual Name
+
+// 82-87 reserved - Leave blank
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda10) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda10 struct to a 94 character string.
-func (addenda10 *Addenda10) String() string {
-	if addenda10 == nil {
-		return ""
-	}
+func (addenda10 *Addenda10) String() string { _ = "STUB: not implemented"; return "" }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda10.TypeCode)
-	// TransactionTypeCode Validator
-	buf.WriteString(addenda10.TransactionTypeCode)
-	buf.WriteString(addenda10.ForeignPaymentAmountField())
-	buf.WriteString(addenda10.ForeignTraceNumberField())
-	buf.WriteString(addenda10.NameField())
-	buf.WriteString("      ")
-	buf.WriteString(addenda10.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+// TransactionTypeCode Validator
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda10 *Addenda10) Validate() error {
-	if addenda10 == nil {
-		return nil
-	}
+func (addenda10 *Addenda10) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := addenda10.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda10.isTypeCode(addenda10.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda10.TypeCode)
-	}
-	// Type Code must be 10
-	if addenda10.TypeCode != "10" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda10.TypeCode)
-	}
-	if err := addenda10.isTransactionTypeCode(addenda10.TransactionTypeCode); err != nil {
-		return fieldError("TransactionTypeCode", err, addenda10.TransactionTypeCode)
-	}
-	if addenda10.validateOpts == nil || !addenda10.validateOpts.AllowSpecialCharacters {
-		// ToDo: Foreign Payment Amount blank ?
-		if err := addenda10.isAlphanumeric(addenda10.ForeignTraceNumber); err != nil {
-			return fieldError("ForeignTraceNumber", err, addenda10.ForeignTraceNumber)
-		}
-		if err := addenda10.isAlphanumeric(addenda10.Name); err != nil {
-			return fieldError("Name", err, addenda10.Name)
-		}
-	}
-	return nil
-}
+// Type Code must be 10
+
+// ToDo: Foreign Payment Amount blank ?
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda10 *Addenda10) fieldInclusion() error {
-	if addenda10 == nil {
-		return nil
-	}
+func (addenda10 *Addenda10) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
-	if addenda10.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda10.TypeCode)
-	}
-	if addenda10.TransactionTypeCode == "" {
-		return fieldError("TransactionTypeCode", ErrFieldRequired, addenda10.TransactionTypeCode)
-	}
-	// ToDo:  Commented because it appears this value can be all 000 (maybe blank?)
-	/*	if addenda10.ForeignPaymentAmount == 0 {
-		return fieldError( "ForeignPaymentAmount", ErrFieldRequired,  strconv.Itoa(addenda10.ForeignPaymentAmount))
-	}*/
-	if addenda10.Name == "" {
-		return fieldError("Name", ErrConstructor, addenda10.Name)
-	}
-	if addenda10.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda10.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+// ToDo:  Commented because it appears this value can be all 000 (maybe blank?)
+/*	if addenda10.ForeignPaymentAmount == 0 {
+	return fieldError( "ForeignPaymentAmount", ErrFieldRequired,  strconv.Itoa(addenda10.ForeignPaymentAmount))
+}*/
 
 // ForeignPaymentAmountField returns ForeignPaymentAmount zero padded
 // ToDo: Review/Add logic for blank ?
 func (addenda10 *Addenda10) ForeignPaymentAmountField() string {
-	return addenda10.numericField(addenda10.ForeignPaymentAmount, 18)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignTraceNumberField gets the Foreign TraceNumber left padded
-func (addenda10 *Addenda10) ForeignTraceNumberField() string {
-	return addenda10.alphaField(addenda10.ForeignTraceNumber, 22)
-}
+func (addenda10 *Addenda10) ForeignTraceNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // NameField gets the name field - Receiving Company Name/Individual Name left padded
-func (addenda10 *Addenda10) NameField() string {
-	return addenda10.alphaField(addenda10.Name, 35)
-}
+func (addenda10 *Addenda10) NameField() string { _ = "STUB: not implemented"; return "" }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda10 *Addenda10) EntryDetailSequenceNumberField() string {
-	return addenda10.numericField(addenda10.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

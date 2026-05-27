@@ -35,99 +35,36 @@ type BatchARC struct {
 }
 
 // NewBatchARC returns a *BatchARC
-func NewBatchARC(bh *BatchHeader) *BatchARC {
-	batch := new(BatchARC)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchARC(bh *BatchHeader) *BatchARC { _ = "STUB: not implemented"; return nil }
 
 // Validate checks properties of the ACH batch to ensure they match NACHA guidelines.
 // This includes computing checksums, totals, and sequence orderings.
 //
 // Validate will never modify the batch.
-func (batch *BatchARC) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchARC) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration and type specific validation for this type.
+// basic verification of the batch before we validate specific rules.
 
-	if batch.Header.StandardEntryClassCode != ARC {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, ARC)
-	}
+// Add configuration and type specific validation for this type.
 
-	// ARC detail entries can only be a debit, ServiceClassCode must allow debits
-	switch batch.Header.ServiceClassCode {
-	case CreditsOnly:
-		return batch.Error("ServiceClassCode", ErrBatchServiceClassCode, batch.Header.ServiceClassCode)
-	}
+// ARC detail entries can only be a debit, ServiceClassCode must allow debits
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
-
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchARC) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchARC) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		// ARC detail entries must be a debit
-		if entry.CreditOrDebit() != "D" {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("TransactionCode", ErrBatchDebitOnly, entry.TransactionCode),
-			})
-		}
+// ARC detail entries must be a debit
 
-		// Amount must be 25,000 or less
-		if entry.Amount > 2500000 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("Amount", NewErrBatchAmount(entry.Amount, 2500000)),
-			})
-		}
+// Amount must be 25,000 or less
 
-		// CheckSerialNumber underlying IdentificationNumber, must be defined
-		if entry.IdentificationNumber == "" {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("CheckSerialNumber", ErrBatchCheckSerialNumber),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
-	return out
-}
+// CheckSerialNumber underlying IdentificationNumber, must be defined
+
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -135,12 +72,10 @@ func (batch *BatchARC) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchARC) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-	// Additional steps specific to batch type
-	// ...
-
-	return batch.Validate()
+	return nil
 }
+
+// Additional steps specific to batch type
+// ...

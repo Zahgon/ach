@@ -18,12 +18,8 @@
 package server
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/moov-io/ach"
 )
@@ -61,103 +57,6 @@ const (
 //
 // Query parameters override the JSON body
 func readValidateOpts(request *http.Request) (io.ReadCloser, *ach.ValidateOpts, error) {
-	validationNames := []string{
-		skipAll,
-		requireABAOrigin,
-		bypassOrigin,
-		bypassOriginValidation,
-		bypassDestination,
-		bypassDestinationValidation,
-		customTraceNumbers,
-		allowZeroBatches,
-		allowMissingFileHeader,
-		allowMissingFileControl,
-		bypassCompanyIdentificationMatch,
-		customReturnCodes,
-		unequalServiceClassCode,
-		unorderedBatchNumbers,
-		allowUnorderedBatchNumbers,
-		allowInvalidCheckDigit,
-		unequalAddendaCounts,
-		preserveSpaces,
-		allowInvalidAmounts,
-		allowZeroEntryAmount,
-		allowSpecialCharacters,
-		allowEmptyIndividualName,
-		bypassBatchValidation,
-		skipFileCreationValidation,
-		skipBatchHeaderCompanyValidation,
-	}
-
-	var buf bytes.Buffer
-
-	r := io.LimitReader(request.Body, maxBodySize)
-	bs, _ := io.ReadAll(io.TeeReader(r, &buf))
-
-	opts := &ach.ValidateOpts{}
-	json.Unmarshal(bs, opts)
-
-	for _, name := range validationNames {
-		q := request.URL.Query()
-		if q == nil {
-			continue
-		}
-		input := q.Get(name)
-		if input == "" {
-			continue
-		}
-
-		yes, err := strconv.ParseBool(input)
-		if err != nil {
-			return nil, nil, fmt.Errorf("%s is an invalid boolean: %v", name, err)
-		}
-		switch name {
-		case skipAll:
-			opts.SkipAll = yes
-		case requireABAOrigin:
-			opts.RequireABAOrigin = yes
-		case bypassOrigin, bypassOriginValidation:
-			opts.BypassOriginValidation = yes
-		case bypassDestination, bypassDestinationValidation:
-			opts.BypassDestinationValidation = yes
-		case customTraceNumbers:
-			opts.CustomTraceNumbers = yes
-		case allowZeroBatches:
-			opts.AllowZeroBatches = yes
-		case allowMissingFileHeader:
-			opts.AllowMissingFileHeader = yes
-		case allowMissingFileControl:
-			opts.AllowMissingFileControl = yes
-		case bypassCompanyIdentificationMatch:
-			opts.BypassCompanyIdentificationMatch = yes
-		case customReturnCodes:
-			opts.CustomReturnCodes = yes
-		case unequalServiceClassCode:
-			opts.UnequalServiceClassCode = yes
-		case unorderedBatchNumbers, allowUnorderedBatchNumbers:
-			opts.AllowUnorderedBatchNumbers = yes
-		case allowInvalidCheckDigit:
-			opts.AllowInvalidCheckDigit = yes
-		case unequalAddendaCounts:
-			opts.UnequalAddendaCounts = yes
-		case preserveSpaces:
-			opts.PreserveSpaces = yes
-		case allowInvalidAmounts:
-			opts.AllowInvalidAmounts = yes
-		case allowZeroEntryAmount:
-			opts.AllowZeroEntryAmount = yes
-		case allowSpecialCharacters:
-			opts.AllowSpecialCharacters = yes
-		case allowEmptyIndividualName:
-			opts.AllowEmptyIndividualName = yes
-		case bypassBatchValidation:
-			opts.BypassBatchValidation = yes
-		case skipFileCreationValidation:
-			opts.SkipFileCreationValidation = yes
-		case skipBatchHeaderCompanyValidation:
-			opts.SkipBatchHeaderCompanyValidation = yes
-		}
-	}
-
-	return io.NopCloser(&buf), opts, nil
+	_ = "STUB: not implemented"
+	return *new(io.ReadCloser), nil, nil
 }

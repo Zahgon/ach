@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda15 is an addenda which provides business transaction information for Addenda Type
 // Code 15 in a machine readable format. It is usually formatted according to ANSI, ASC, X12 Standard.
 //
@@ -55,145 +50,57 @@ type Addenda15 struct {
 }
 
 // NewAddenda15 returns a new Addenda15 with default values for none exported fields
-func NewAddenda15() *Addenda15 {
-	addenda15 := new(Addenda15)
-	addenda15.TypeCode = "15"
-	return addenda15
-}
+func NewAddenda15() *Addenda15 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda15 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda15 *Addenda15) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda15 *Addenda15) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 15
-			addenda15.TypeCode = reset()
-		case 18:
-			// 4-18
-			addenda15.ReceiverIDNumber = addenda15.parseStringField(reset())
-		case 53:
-			// 19-53
-			addenda15.ReceiverStreetAddress = strings.TrimSpace(reset())
-		case 87:
-			// 54-87 reserved - Leave blank
-			reset()
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda15.EntryDetailSequenceNumber = addenda15.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 15
 
-func (a *Addenda15) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-18
+
+// 19-53
+
+// 54-87 reserved - Leave blank
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda15) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda15 struct to a 94 character string.
-func (addenda15 *Addenda15) String() string {
-	if addenda15 == nil {
-		return ""
-	}
-
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda15.TypeCode)
-	buf.WriteString(addenda15.ReceiverIDNumberField())
-	buf.WriteString(addenda15.ReceiverStreetAddressField())
-	buf.WriteString("                                  ")
-	buf.WriteString(addenda15.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+func (addenda15 *Addenda15) String() string { _ = "STUB: not implemented"; return "" }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda15 *Addenda15) Validate() error {
-	if addenda15 == nil {
-		return nil
-	}
+func (addenda15 *Addenda15) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := addenda15.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda15.isTypeCode(addenda15.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda15.TypeCode)
-	}
-	// Type Code must be 15
-	if addenda15.TypeCode != "15" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda15.TypeCode)
-	}
-	if addenda15.validateOpts == nil || !addenda15.validateOpts.AllowSpecialCharacters {
-		if err := addenda15.isAlphanumeric(addenda15.ReceiverIDNumber); err != nil {
-			return fieldError("ReceiverIDNumber", err, addenda15.ReceiverIDNumber)
-		}
-		if err := addenda15.isAlphanumeric(addenda15.ReceiverStreetAddress); err != nil {
-			return fieldError("ReceiverStreetAddress", err, addenda15.ReceiverStreetAddress)
-		}
-	}
-	return nil
-}
+// Type Code must be 15
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda15 *Addenda15) fieldInclusion() error {
-	if addenda15 == nil {
-		return nil
-	}
-
-	if addenda15.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda15.TypeCode)
-	}
-	if addenda15.ReceiverStreetAddress == "" {
-		return fieldError("ReceiverStreetAddress", ErrConstructor, addenda15.ReceiverStreetAddress)
-	}
-	if addenda15.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda15.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+func (addenda15 *Addenda15) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // ReceiverIDNumberField gets the ReceiverIDNumber field left padded
-func (addenda15 *Addenda15) ReceiverIDNumberField() string {
-	return addenda15.alphaField(addenda15.ReceiverIDNumber, 15)
-}
+func (addenda15 *Addenda15) ReceiverIDNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // ReceiverStreetAddressField gets the ReceiverStreetAddressField field left padded
 func (addenda15 *Addenda15) ReceiverStreetAddressField() string {
-	return addenda15.alphaField(addenda15.ReceiverStreetAddress, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda15 *Addenda15) EntryDetailSequenceNumberField() string {
-	return addenda15.numericField(addenda15.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

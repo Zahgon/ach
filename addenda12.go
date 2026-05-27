@@ -17,11 +17,6 @@
 
 package ach
 
-import (
-	"strings"
-	"unicode/utf8"
-)
-
 // Addenda12 is an addenda which provides business transaction information for Addenda Type
 // Code 12 in a machine readable format. It is usually formatted according to ANSI, ASC, X12 Standard.
 //
@@ -62,158 +57,70 @@ type Addenda12 struct {
 }
 
 // NewAddenda12 returns a new Addenda12 with default values for none exported fields
-func NewAddenda12() *Addenda12 {
-	addenda12 := new(Addenda12)
-	addenda12.TypeCode = "12"
-	return addenda12
-}
+func NewAddenda12() *Addenda12 { _ = "STUB: not implemented"; return nil }
 
 // Parse takes the input record string and parses the Addenda12 values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (addenda12 *Addenda12) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (addenda12 *Addenda12) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always 7
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always 7
-			reset()
-		case 3:
-			// 2-3 Always 12
-			addenda12.TypeCode = reset()
-		case 38:
-			// 4-38
-			addenda12.OriginatorCityStateProvince = strings.TrimSpace(reset())
-		case 73:
-			// 39-73
-			addenda12.OriginatorCountryPostalCode = strings.TrimSpace(reset())
-		case 83:
-			// 74-83
-			addenda12.OriginatorDateOfBirth = strings.TrimSpace(reset())
-		case 87:
-			// 84-87 reserved - Leave blank
-			reset()
-		case 94:
-			// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
-			addenda12.EntryDetailSequenceNumber = addenda12.parseNumField(reset())
-		}
-	}
-}
+// 2-3 Always 12
 
-func (a *Addenda12) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 4-38
+
+// 39-73
+
+// 74-83
+
+// 84-87 reserved - Leave blank
+
+// 88-94 Contains the last seven digits of the number entered in the Trace Number field in the corresponding Entry Detail Record
+
+func (a *Addenda12) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the Addenda12 struct to a 94 character string.
-func (addenda12 *Addenda12) String() string {
-	if addenda12 == nil {
-		return ""
-	}
+func (addenda12 *Addenda12) String() string { _ = "STUB: not implemented"; return "" }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(entryAddendaPos)
-	buf.WriteString(addenda12.TypeCode)
-	buf.WriteString(addenda12.OriginatorCityStateProvinceField())
-	// ToDo Validator for backslash
-	buf.WriteString(addenda12.OriginatorCountryPostalCodeField())
-	buf.WriteString(addenda12.OriginatorDateOfBirthField())
-	buf.WriteString("    ")
-	buf.WriteString(addenda12.EntryDetailSequenceNumberField())
-
-	return buf.String()
-}
+// ToDo Validator for backslash
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (addenda12 *Addenda12) Validate() error {
-	if addenda12 == nil {
-		return nil
-	}
+func (addenda12 *Addenda12) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	if err := addenda12.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := addenda12.isTypeCode(addenda12.TypeCode); err != nil {
-		return fieldError("TypeCode", err, addenda12.TypeCode)
-	}
-	// Type Code must be 12
-	if addenda12.TypeCode != "12" {
-		return fieldError("TypeCode", ErrAddendaTypeCode, addenda12.TypeCode)
-	}
-	if addenda12.validateOpts == nil || !addenda12.validateOpts.AllowSpecialCharacters {
-		if err := addenda12.isAlphanumeric(addenda12.OriginatorCityStateProvince); err != nil {
-			return fieldError("OriginatorCityStateProvince", err, addenda12.OriginatorCityStateProvince)
-		}
-		if err := addenda12.isAlphanumeric(addenda12.OriginatorCountryPostalCode); err != nil {
-			return fieldError("OriginatorCountryPostalCode", err, addenda12.OriginatorCountryPostalCode)
-		}
-	}
-	return nil
-}
+// Type Code must be 12
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (addenda12 *Addenda12) fieldInclusion() error {
-	if addenda12 == nil {
-		return nil
-	}
-
-	if addenda12.TypeCode == "" {
-		return fieldError("TypeCode", ErrConstructor, addenda12.TypeCode)
-	}
-	if addenda12.OriginatorCityStateProvince == "" {
-		return fieldError("OriginatorCityStateProvince", ErrConstructor, addenda12.OriginatorCityStateProvince)
-	}
-	if addenda12.OriginatorCountryPostalCode == "" {
-		return fieldError("OriginatorCountryPostalCode", ErrConstructor, addenda12.OriginatorCountryPostalCode)
-	}
-	if addenda12.EntryDetailSequenceNumber < 0 {
-		return fieldError("EntryDetailSequenceNumber", ErrConstructor, addenda12.EntryDetailSequenceNumberField())
-	}
-	return nil
-}
+func (addenda12 *Addenda12) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
 
 // OriginatorCityStateProvinceField gets the OriginatorCityStateProvinceField left padded
 func (addenda12 *Addenda12) OriginatorCityStateProvinceField() string {
-	return addenda12.alphaField(addenda12.OriginatorCityStateProvince, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // OriginatorCountryPostalCodeField gets the OriginatorCountryPostalCode field left padded
 func (addenda12 *Addenda12) OriginatorCountryPostalCodeField() string {
-	return addenda12.alphaField(addenda12.OriginatorCountryPostalCode, 35)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // OriginatorDateOfBirthField formats the OriginatorDateOfBirth field
 func (addenda12 *Addenda12) OriginatorDateOfBirthField() string {
-	return addenda12.alphaField(addenda12.OriginatorDateOfBirth, 10)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // EntryDetailSequenceNumberField returns a zero padded EntryDetailSequenceNumber string
 func (addenda12 *Addenda12) EntryDetailSequenceNumberField() string {
-	return addenda12.numericField(addenda12.EntryDetailSequenceNumber, 7)
+	_ = "STUB: not implemented"
+	return ""
 }

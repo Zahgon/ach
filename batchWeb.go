@@ -25,74 +25,27 @@ type BatchWEB struct {
 }
 
 // NewBatchWEB returns a *BatchWEB
-func NewBatchWEB(bh *BatchHeader) *BatchWEB {
-	batch := new(BatchWEB)
-	batch.SetControl(NewBatchControl())
-	batch.SetHeader(bh)
-	batch.SetID(bh.ID)
-	return batch
-}
+func NewBatchWEB(bh *BatchHeader) *BatchWEB { _ = "STUB: not implemented"; return nil }
 
 // Validate ensures the batch meets NACHA rules specific to this batch type.
-func (batch *BatchWEB) Validate() error {
-	if batch.validateOpts != nil && (batch.validateOpts.SkipAll || batch.validateOpts.BypassBatchValidation) {
-		return nil
-	}
+func (batch *BatchWEB) Validate() error { _ = "STUB: not implemented"; return nil }
 
-	// basic verification of the batch before we validate specific rules.
-	if err := batch.verify(); err != nil {
-		return err
-	}
-	// Add configuration and type specific validation for this type.
-	if batch.Header.StandardEntryClassCode != WEB {
-		return batch.Error("StandardEntryClassCode", ErrBatchSECType, WEB)
-	}
+// basic verification of the batch before we validate specific rules.
 
-	invalidEntries := batch.InvalidEntries()
-	if len(invalidEntries) > 0 {
-		return invalidEntries[0].Error // return the first invalid entry's error
-	}
+// Add configuration and type specific validation for this type.
 
-	return nil
-}
+// return the first invalid entry's error
 
 // InvalidEntries returns entries with validation errors in the batch
-func (batch *BatchWEB) InvalidEntries() []InvalidEntry {
-	var out []InvalidEntry
+func (batch *BatchWEB) InvalidEntries() []InvalidEntry { _ = "STUB: not implemented"; return nil }
 
-	for _, entry := range batch.Entries {
-		// WEB can have up to one Addenda05 record
-		if len(entry.Addenda05) > 1 {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: batch.Error("AddendaCount", NewErrBatchAddendaCount(len(entry.Addenda05), 1)),
-			})
-		}
-		// Verify the Amount is valid for SEC code and TransactionCode
-		if err := batch.ValidAmountForCodes(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify the TransactionCode is valid for a ServiceClassCode
-		if err := batch.ValidTranCodeForServiceClassCode(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-		// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
-		if err := batch.addendaFieldInclusion(entry); err != nil {
-			out = append(out, InvalidEntry{
-				Entry: entry,
-				Error: err,
-			})
-		}
-	}
+// WEB can have up to one Addenda05 record
 
-	return out
-}
+// Verify the Amount is valid for SEC code and TransactionCode
+
+// Verify the TransactionCode is valid for a ServiceClassCode
+
+// Verify Addenda* FieldInclusion based on entry.Category and batchHeader.StandardEntryClassCode
 
 // Create will tabulate and assemble an ACH batch into a valid state. This includes
 // setting any posting dates, sequence numbers, counts, and sums.
@@ -100,10 +53,7 @@ func (batch *BatchWEB) InvalidEntries() []InvalidEntry {
 // Create implementations are free to modify computable fields in a file and should
 // call the Batch's Validate function at the end of their execution.
 func (batch *BatchWEB) Create() error {
+	_ = "STUB: not implemented"
 	// generates sequence numbers and batch control
-	if err := batch.build(); err != nil {
-		return err
-	}
-
-	return batch.Validate()
+	return nil
 }

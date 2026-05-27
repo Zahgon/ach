@@ -17,15 +17,6 @@
 
 package ach
 
-import (
-	"strconv"
-	"strings"
-	"unicode/utf8"
-
-	"github.com/moov-io/iso3166"
-	"github.com/moov-io/iso4217"
-)
-
 // IATBatchHeader identifies the originating entity and the type of transactions
 // contained in the batch for SEC Code IAT. This record also contains the effective
 // date, or desired settlement date, for all entries contained in this batch. The
@@ -178,353 +169,177 @@ const (
 )
 
 // NewIATBatchHeader returns a new BatchHeader with default values for non exported fields
-func NewIATBatchHeader() *IATBatchHeader {
-	iatBh := &IATBatchHeader{
-		OriginatorStatusCode: 0, //Prepared by an Originator
-		BatchNumber:          1,
-	}
-	return iatBh
-}
+func NewIATBatchHeader() *IATBatchHeader { _ = "STUB: not implemented"; return nil }
+
+//Prepared by an Originator
 
 // Parse takes the input record string and parses the BatchHeader values
 //
 // Parse provides no guarantee about all fields being filled in. Callers should make a Validate call to confirm successful parsing and data validity.
-func (iatBh *IATBatchHeader) Parse(record string) {
-	runeCount := utf8.RuneCountInString(record)
-	if runeCount != 94 {
-		return
-	}
+func (iatBh *IATBatchHeader) Parse(record string) { _ = "STUB: not implemented"; return }
 
-	buf := getBuffer()
-	defer saveBuffer(buf)
+// We're going to process the record rune-by-rune and at each field cutoff save the value.
 
-	reset := func() string {
-		out := buf.String()
-		buf.Reset()
-		return out
-	}
+// Append rune to buffer
 
-	// We're going to process the record rune-by-rune and at each field cutoff save the value.
-	var idx int
-	for _, r := range record {
-		idx++
+// At each cutoff save the buffer and reset
 
-		// Append rune to buffer
-		buf.WriteRune(r)
+// 1-1 Always "5"
 
-		// At each cutoff save the buffer and reset
-		switch idx {
-		case 0, 1:
-			// 1-1 Always "5"
-			reset()
-		case 4:
-			// 2-4 MixedCreditsAnDebits (220), CReditsOnly 9220), DebitsOnly (225)"
-			iatBh.ServiceClassCode = iatBh.parseNumField(reset())
-		case 20:
-			// 05-20  Blank except for corrected IAT entries
-			iatBh.IATIndicator = iatBh.parseStringField(reset())
-		case 22:
-			// 21-22 A code indicating currency conversion
-			// “FV” Fixed-to-Variable
-			// “VF” Variable-to-Fixed
-			// “FF” Fixed-to-Fixed
-			iatBh.ForeignExchangeIndicator = iatBh.parseStringField(reset())
-		case 23:
-			// 23-23 Foreign Exchange Reference Indicator – Refers to “Foreign Exchange Reference”
-			// field and is filled by the gateway operator. Valid entries are:
-			// 1 - Foreign Exchange Rate;
-			// 2 - Foreign Exchange Reference Number; or
-			// 3 - Space Filled
-			iatBh.ForeignExchangeReferenceIndicator = iatBh.parseNumField(reset())
-		case 38:
-			// 24-38 Contains either the foreign exchange rate used to execute the
-			// foreign exchange conversion of a cross-border entry or another
-			// reference to the foreign exchange transaction.
-			iatBh.ForeignExchangeReference = iatBh.parseStringField(reset())
-		case 40:
-			// 39-40  Receiver ISO Country Code - For entries
-			// destined to account holder in the U.S., this would be 'US'.
-			iatBh.ISODestinationCountryCode = iatBh.parseStringField(reset())
-		case 50:
-			// 41-50 For U.S. entities: the number assigned will be your tax ID
-			// For non-U.S. entities: the number assigned will be your DDA number,
-			// or the last 9 characters of your account number if it exceeds 9 characters
-			iatBh.OriginatorIdentification = iatBh.parseStringField(reset())
-		case 53:
-			// 51-53 IAT for both consumer and non consumer international payments
-			iatBh.StandardEntryClassCode = string(reset())
-		case 63:
-			// 54-63 Your description of the transaction. This text will appear on the receivers' bank statement.
-			// For example: "Payroll   "
-			iatBh.CompanyEntryDescription = strings.TrimSpace(reset())
-		case 66:
-			// 64-66 Originator ISO Currency Code
-			iatBh.ISOOriginatingCurrencyCode = iatBh.parseStringField(reset())
-		case 69:
-			// 67-69 Receiver ISO Currency Code
-			iatBh.ISODestinationCurrencyCode = iatBh.parseStringField(reset())
-		case 75:
-			// 70-75 Date transactions are to be posted to the receivers' account.
-			// You almost always want the transaction to post as soon as possible, so put tomorrow's date in YYMMDD format
-			iatBh.EffectiveEntryDate = iatBh.validateSimpleDate(reset())
-		case 78:
-			// 76-78 Always blank (just fill with spaces)
-			iatBh.SettlementDate = iatBh.validateSettlementDate(reset())
-		case 79:
-			// 79-79 Always 1
-			iatBh.OriginatorStatusCode = iatBh.parseNumField(reset())
-		case 87:
-			// 80-87 Your ODFI's routing number without the last digit. The last digit is simply a
-			// checksum digit, which is why it is not necessary
-			iatBh.ODFIIdentification = iatBh.parseStringField(reset())
-		case 94:
-			// 88-94 Sequential number of this Batch Header Record
-			// For example, put "1" if this is the first Batch Header Record in the file
-			iatBh.BatchNumber = iatBh.parseNumField(reset())
-		}
-	}
-}
+// 2-4 MixedCreditsAnDebits (220), CReditsOnly 9220), DebitsOnly (225)"
 
-func (a *IATBatchHeader) SetValidation(opts *ValidateOpts) {
-	if a != nil {
-		a.validateOpts = opts
-	}
-}
+// 05-20  Blank except for corrected IAT entries
+
+// 21-22 A code indicating currency conversion
+// “FV” Fixed-to-Variable
+// “VF” Variable-to-Fixed
+// “FF” Fixed-to-Fixed
+
+// 23-23 Foreign Exchange Reference Indicator – Refers to “Foreign Exchange Reference”
+// field and is filled by the gateway operator. Valid entries are:
+// 1 - Foreign Exchange Rate;
+// 2 - Foreign Exchange Reference Number; or
+// 3 - Space Filled
+
+// 24-38 Contains either the foreign exchange rate used to execute the
+// foreign exchange conversion of a cross-border entry or another
+// reference to the foreign exchange transaction.
+
+// 39-40  Receiver ISO Country Code - For entries
+// destined to account holder in the U.S., this would be 'US'.
+
+// 41-50 For U.S. entities: the number assigned will be your tax ID
+// For non-U.S. entities: the number assigned will be your DDA number,
+// or the last 9 characters of your account number if it exceeds 9 characters
+
+// 51-53 IAT for both consumer and non consumer international payments
+
+// 54-63 Your description of the transaction. This text will appear on the receivers' bank statement.
+// For example: "Payroll   "
+
+// 64-66 Originator ISO Currency Code
+
+// 67-69 Receiver ISO Currency Code
+
+// 70-75 Date transactions are to be posted to the receivers' account.
+// You almost always want the transaction to post as soon as possible, so put tomorrow's date in YYMMDD format
+
+// 76-78 Always blank (just fill with spaces)
+
+// 79-79 Always 1
+
+// 80-87 Your ODFI's routing number without the last digit. The last digit is simply a
+// checksum digit, which is why it is not necessary
+
+// 88-94 Sequential number of this Batch Header Record
+// For example, put "1" if this is the first Batch Header Record in the file
+
+func (a *IATBatchHeader) SetValidation(opts *ValidateOpts) { _ = "STUB: not implemented"; return }
 
 // String writes the BatchHeader struct to a 94 character string.
-func (iatBh *IATBatchHeader) String() string {
-	buf := getBuffer()
-	defer saveBuffer(buf)
-
-	buf.WriteString(batchHeaderPos)
-	buf.WriteString(strconv.Itoa(iatBh.ServiceClassCode))
-	buf.WriteString(iatBh.IATIndicatorField())
-	buf.WriteString(iatBh.ForeignExchangeIndicatorField())
-	buf.WriteString(iatBh.ForeignExchangeReferenceIndicatorField())
-	buf.WriteString(iatBh.ForeignExchangeReferenceField())
-	buf.WriteString(iatBh.ISODestinationCountryCodeField())
-	buf.WriteString(iatBh.OriginatorIdentificationField())
-	buf.WriteString(iatBh.StandardEntryClassCode)
-	buf.WriteString(iatBh.CompanyEntryDescriptionField())
-	buf.WriteString(iatBh.ISOOriginatingCurrencyCodeField())
-	buf.WriteString(iatBh.ISODestinationCurrencyCodeField())
-	buf.WriteString(iatBh.EffectiveEntryDateField())
-	buf.WriteString(iatBh.SettlementDateField())
-	buf.WriteString(strconv.Itoa(iatBh.OriginatorStatusCode))
-	buf.WriteString(iatBh.ODFIIdentificationField())
-	buf.WriteString(iatBh.BatchNumberField())
-
-	return buf.String()
-}
+func (iatBh *IATBatchHeader) String() string { _ = "STUB: not implemented"; return "" }
 
 // isForeignExchangeIndicator ensures foreign exchange indicators of an
 // IATBatchHeader is valid
 func (iatBh *IATBatchHeader) isForeignExchangeIndicator() error {
-	switch iatBh.ForeignExchangeIndicator {
-	case "FV", "VF", "FF":
-		return nil
-	}
-	return ErrForeignExchangeIndicator
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // isForeignExchangeReferenceIndicator ensures foreign exchange reference
 // indicator of am IATBatchHeader is valid
 func (iatBh *IATBatchHeader) isForeignExchangeReferenceIndicator() error {
-	switch iatBh.ForeignExchangeReferenceIndicator {
-	case 1, 2, 3:
-		return nil
-
-	case 0:
-		if iatBh.ForeignExchangeIndicator == "FF" {
-			return nil
-		}
-		return ErrForeignExchangeReferenceIndicator
-	}
-	return ErrForeignExchangeReferenceIndicator
+	_ = "STUB: not implemented"
+	return nil
 }
 
 // Validate performs NACHA format rule checks on the record and returns an error if not Validated
 // The first error encountered is returned and stops that parsing.
-func (iatBh *IATBatchHeader) Validate() error {
-	if err := iatBh.fieldInclusion(); err != nil {
-		return err
-	}
-	if err := iatBh.isServiceClass(iatBh.ServiceClassCode); err != nil {
-		return fieldError("ServiceClassCode", err, strconv.Itoa(iatBh.ServiceClassCode))
-	}
-	if err := iatBh.isForeignExchangeIndicator(); err != nil {
-		return fieldError("ForeignExchangeIndicator", err, iatBh.ForeignExchangeIndicator)
-	}
-	if err := iatBh.isForeignExchangeReferenceIndicator(); err != nil {
-		return fieldError("ForeignExchangeReferenceIndicator", err, strconv.Itoa(iatBh.ForeignExchangeReferenceIndicator))
-	}
-	if !iso3166.Valid(iatBh.ISODestinationCountryCode) {
-		return fieldError("ISODestinationCountryCode", ErrValidISO3166, iatBh.ISODestinationCountryCode)
-	}
-	if err := iatBh.isSECCode(iatBh.StandardEntryClassCode); err != nil {
-		return fieldError("StandardEntryClassCode", err, iatBh.StandardEntryClassCode)
-	}
-	if iatBh.validateOpts == nil || !iatBh.validateOpts.AllowSpecialCharacters {
-		if err := iatBh.isAlphanumeric(iatBh.CompanyEntryDescription); err != nil {
-			return fieldError("CompanyEntryDescription", err, iatBh.CompanyEntryDescription)
-		}
-	}
-	if _, exists := iso4217.Lookup(iatBh.ISOOriginatingCurrencyCode); !exists {
-		return fieldError("ISOOriginatingCurrencyCode", ErrValidISO4217, iatBh.ISOOriginatingCurrencyCode)
-	}
-	if _, exists := iso4217.Lookup(iatBh.ISODestinationCurrencyCode); !exists {
-		return fieldError("ISODestinationCurrencyCode", ErrValidISO4217, iatBh.ISODestinationCurrencyCode)
-	}
-	if err := iatBh.isOriginatorStatusCode(iatBh.OriginatorStatusCode); err != nil {
-		return fieldError("OriginatorStatusCode", err, strconv.Itoa(iatBh.OriginatorStatusCode))
-	}
-	return nil
-}
+func (iatBh *IATBatchHeader) Validate() error { _ = "STUB: not implemented"; return nil }
 
 // fieldInclusion validate mandatory fields are not default values. If fields are
 // invalid the ACH transfer will be returned.
-func (iatBh *IATBatchHeader) fieldInclusion() error {
-	if iatBh.ServiceClassCode == 0 {
-		return fieldError("ServiceClassCode", ErrFieldInclusion, strconv.Itoa(iatBh.ServiceClassCode))
-	}
-	if iatBh.ForeignExchangeIndicator == "" {
-		return fieldError("ForeignExchangeIndicator", ErrFieldInclusion, iatBh.ForeignExchangeIndicator)
-	}
-	if iatBh.ForeignExchangeReferenceIndicator == 0 {
-		if iatBh.ForeignExchangeIndicator != "FF" {
-			return fieldError("ForeignExchangeReferenceIndicator", ErrFieldRequired, strconv.Itoa(iatBh.ForeignExchangeReferenceIndicator))
-		}
-	}
-	// ToDo: It can be space filled based on ForeignExchangeReferenceIndicator just use a validator to handle -
-	// ToDo: Calling Field ok for validation?
-	/*	if iatBh.ForeignExchangeReference == "" {
-		return fieldError("ForeignExchangeReference", ErrFieldRequired, iatBh.ForeignExchangeReference)
-	}*/
-	if iatBh.ISODestinationCountryCode == "" {
-		return fieldError("ISODestinationCountryCode", ErrFieldInclusion, iatBh.ISODestinationCountryCode)
-	}
-	if iatBh.OriginatorIdentification == "" {
-		return fieldError("OriginatorIdentification", ErrFieldInclusion, iatBh.OriginatorIdentification)
-	}
-	if iatBh.StandardEntryClassCode == "" {
-		return fieldError("StandardEntryClassCode", ErrFieldInclusion, iatBh.StandardEntryClassCode)
-	}
-	if iatBh.CompanyEntryDescription == "" {
-		return fieldError("CompanyEntryDescription", ErrFieldInclusion, iatBh.CompanyEntryDescription)
-	}
-	if iatBh.ISOOriginatingCurrencyCode == "" {
-		return fieldError("ISOOriginatingCurrencyCode", ErrFieldInclusion, iatBh.ISOOriginatingCurrencyCode)
-	}
-	if iatBh.ISODestinationCurrencyCode == "" {
-		return fieldError("ISODestinationCurrencyCode", ErrFieldInclusion, iatBh.ISODestinationCurrencyCode)
-	}
-	if iatBh.ODFIIdentification == "" {
-		return fieldError("ODFIIdentification", ErrFieldInclusion, iatBh.ODFIIdentificationField())
-	}
-	return nil
-}
+func (iatBh *IATBatchHeader) fieldInclusion() error { _ = "STUB: not implemented"; return nil }
+
+// ToDo: It can be space filled based on ForeignExchangeReferenceIndicator just use a validator to handle -
+// ToDo: Calling Field ok for validation?
+/*	if iatBh.ForeignExchangeReference == "" {
+	return fieldError("ForeignExchangeReference", ErrFieldRequired, iatBh.ForeignExchangeReference)
+}*/
 
 // IATIndicatorField gets the IATIndicator left padded
 func (iatBh *IATBatchHeader) IATIndicatorField() string {
+	_ = "STUB: not implemented"
 	// should this be left padded
-	return iatBh.alphaField(iatBh.IATIndicator, 16)
+	return ""
 }
 
 // ForeignExchangeIndicatorField gets the ForeignExchangeIndicator
 func (iatBh *IATBatchHeader) ForeignExchangeIndicatorField() string {
-	return iatBh.alphaField(iatBh.ForeignExchangeIndicator, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignExchangeReferenceIndicatorField gets the ForeignExchangeReferenceIndicator
 func (iatBh *IATBatchHeader) ForeignExchangeReferenceIndicatorField() string {
-	return iatBh.numericField(iatBh.ForeignExchangeReferenceIndicator, 1)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ForeignExchangeReferenceField gets the ForeignExchangeReference left padded
 func (iatBh *IATBatchHeader) ForeignExchangeReferenceField() string {
-	if iatBh.ForeignExchangeReferenceIndicator == 3 {
-		//blank space
-		return "               "
-	}
-	return iatBh.alphaField(iatBh.ForeignExchangeReference, 15)
+	_ = "STUB: not implemented"
+	return ""
 }
+
+//blank space
 
 // ISODestinationCountryCodeField gets the ISODestinationCountryCode
 func (iatBh *IATBatchHeader) ISODestinationCountryCodeField() string {
-	return iatBh.alphaField(iatBh.ISODestinationCountryCode, 2)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // OriginatorIdentificationField gets the OriginatorIdentification left padded
 func (iatBh *IATBatchHeader) OriginatorIdentificationField() string {
-	return iatBh.alphaField(iatBh.OriginatorIdentification, 10)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // CompanyEntryDescriptionField gets the CompanyEntryDescription left padded
 func (iatBh *IATBatchHeader) CompanyEntryDescriptionField() string {
-	return iatBh.alphaField(iatBh.CompanyEntryDescription, 10)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ISOOriginatingCurrencyCodeField gets the ISOOriginatingCurrencyCode
 func (iatBh *IATBatchHeader) ISOOriginatingCurrencyCodeField() string {
-	return iatBh.alphaField(iatBh.ISOOriginatingCurrencyCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // ISODestinationCurrencyCodeField gets the ISODestinationCurrencyCode
 func (iatBh *IATBatchHeader) ISODestinationCurrencyCodeField() string {
-	return iatBh.alphaField(iatBh.ISODestinationCurrencyCode, 3)
+	_ = "STUB: not implemented"
+	return ""
 }
 
 // EffectiveEntryDateField get the EffectiveEntryDate in YYMMDD format
-func (iatBh *IATBatchHeader) EffectiveEntryDateField() string {
-	return iatBh.stringField(iatBh.EffectiveEntryDate, 6) // YYMMDD
-}
+func (iatBh *IATBatchHeader) EffectiveEntryDateField() string { _ = "STUB: not implemented"; return "" }
+
+// YYMMDD
 
 // ODFIIdentificationField get the odfi number zero padded
-func (iatBh *IATBatchHeader) ODFIIdentificationField() string {
-	return iatBh.stringField(iatBh.ODFIIdentification, 8)
-}
+func (iatBh *IATBatchHeader) ODFIIdentificationField() string { _ = "STUB: not implemented"; return "" }
 
 // BatchNumberField get the batch number zero padded
-func (iatBh *IATBatchHeader) BatchNumberField() string {
-	return iatBh.numericField(iatBh.BatchNumber, 7)
-}
+func (iatBh *IATBatchHeader) BatchNumberField() string { _ = "STUB: not implemented"; return "" }
 
 // SettlementDateField gets the SettlementDate
-func (iatBh *IATBatchHeader) SettlementDateField() string {
-	return iatBh.alphaField(iatBh.SettlementDate, 3)
-}
+func (iatBh *IATBatchHeader) SettlementDateField() string { _ = "STUB: not implemented"; return "" }
 
 // Equal checks if two IATBatchHeader records are equal for merge matching purposes.
 func (iatBh *IATBatchHeader) Equal(other *IATBatchHeader) bool {
-	if iatBh == nil || other == nil {
-		return false
-	}
-	if iatBh.ServiceClassCode != other.ServiceClassCode {
-		return false
-	}
-	if iatBh.ForeignExchangeIndicator != other.ForeignExchangeIndicator {
-		return false
-	}
-	if iatBh.ISODestinationCountryCode != other.ISODestinationCountryCode {
-		return false
-	}
-	if iatBh.OriginatorIdentification != other.OriginatorIdentification {
-		return false
-	}
-	if iatBh.StandardEntryClassCode != other.StandardEntryClassCode {
-		return false
-	}
-	if iatBh.CompanyEntryDescription != other.CompanyEntryDescription {
-		return false
-	}
-	if iatBh.ISOOriginatingCurrencyCode != other.ISOOriginatingCurrencyCode {
-		return false
-	}
-	if iatBh.ISODestinationCurrencyCode != other.ISODestinationCurrencyCode {
-		return false
-	}
-	if iatBh.ODFIIdentification != other.ODFIIdentification {
-		return false
-	}
-	return true
+	_ = "STUB: not implemented"
+	return false
 }
